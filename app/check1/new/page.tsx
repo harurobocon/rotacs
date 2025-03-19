@@ -11,7 +11,7 @@ import {
   Button,
   Radio,
   RadioGroup,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";

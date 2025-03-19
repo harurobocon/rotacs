@@ -1,7 +1,7 @@
 "use client";
 
 import { FC } from "react";
-import { Switch, SwitchProps } from "@nextui-org/switch";
+import { Switch, SwitchProps } from "@heroui/switch";
 import { useTheme } from "next-themes";
 import { useIsSSR } from "@react-aria/ssr";
 import { Icon } from "@iconify/react";

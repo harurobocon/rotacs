@@ -1,6 +1,6 @@
 "use client";
 
-import { DropdownItem, DropdownMenu } from "@nextui-org/react";
+import { DropdownItem, DropdownMenu } from "@heroui/react";
 import { User } from "lucia";
 
 import { siteConfig } from "@/config/site";

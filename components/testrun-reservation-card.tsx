@@ -19,7 +19,7 @@ import {
   ModalHeader,
   Spacer,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { tv } from "tailwind-variants";
 import { Icon } from "@iconify/react";
 

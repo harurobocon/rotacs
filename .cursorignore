@@ -1,0 +1,10 @@
+.env*
+.next
+.git
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.p12
+*.der

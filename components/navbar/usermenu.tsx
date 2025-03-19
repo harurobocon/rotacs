@@ -2,8 +2,8 @@
 
 import "client-only";
 
-import { Dropdown, DropdownTrigger, Avatar, Link } from "@nextui-org/react";
-import { button as buttonStyle } from "@nextui-org/theme";
+import { Dropdown, DropdownTrigger, Avatar, Link } from "@heroui/react";
+import { button as buttonStyle } from "@heroui/theme";
 import { User } from "lucia";
 
 import UserMenuDropdownMenu from "./usermenu-dropdownmenu";

@@ -11,7 +11,7 @@ import {
   Button,
   Radio,
   RadioGroup,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
@@ -95,9 +95,6 @@ export default function NewTestrun() {
           className="flex flex-col gap-3"
           onSubmit={handleSubmit}
         >
-          <p className="text-sm font-bold">
-            テストラン予約受付は終了しました．
-          </p>
           <RadioGroup
             label="フィールドの色を選択してください"
             name="side"
@@ -116,7 +113,7 @@ export default function NewTestrun() {
           ) : null}
           <Button
             color="primary"
-            isDisabled={true || side === ""}
+            isDisabled={side === ""}
             isLoading={isSubmitting}
             type="submit"
           >

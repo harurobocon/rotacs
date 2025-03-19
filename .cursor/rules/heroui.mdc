@@ -1,0 +1,8 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# HeroUI
+- Use HeroUI (previously NextUI) components for UI
+- refer to `HeroUI` documentation for api

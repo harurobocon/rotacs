@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Link } from "@nextui-org/react";
+import { Button, Link } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/cn";
 

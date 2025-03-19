@@ -5,8 +5,8 @@ import {
   Breadcrumbs as NextUiBreadcrumbs,
   BreadcrumbItem,
   Link,
-} from "@nextui-org/react";
-import { capitalize } from "@nextui-org/shared-utils";
+} from "@heroui/react";
+import { capitalize } from "@heroui/shared-utils";
 
 import { routes } from "@/config/site";
 

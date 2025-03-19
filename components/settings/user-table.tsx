@@ -16,8 +16,8 @@ import {
   User as NextUiUser,
   Selection,
   Spinner,
-} from "@nextui-org/react";
-import { capitalize } from "@nextui-org/shared-utils";
+} from "@heroui/react";
+import { capitalize } from "@heroui/shared-utils";
 import { User as LuciaUser } from "lucia";
 import { useAsyncList } from "@react-stately/data";
 
@@ -105,7 +105,6 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
         case "actions":
           return (
             // 実装されてない
-            <></>
             //   <div className="relative flex items-center justify-end gap-2">
             //     <Dropdown>
             //       <DropdownTrigger>
@@ -121,6 +120,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
             //       </DropdownMenu>
             //     </Dropdown>
             //   </div>
+            <></>
           );
         default:
           return cellValue;

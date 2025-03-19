@@ -6,7 +6,7 @@ import {
   NavbarMenu as NextUiNavbarMenu,
   NavbarMenuItem,
   Link,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { User } from "lucia";
 
 import { siteConfig } from "@/config/site";

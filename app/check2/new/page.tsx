@@ -5,7 +5,7 @@ import "client-only";
 import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Autocomplete, AutocompleteItem, Button } from "@nextui-org/react";
+import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";

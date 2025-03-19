@@ -1,6 +1,6 @@
 "use client"; // Workaround for a Next.js bug: https://github.com/nextui-org/nextui/issues/1342
 
-import { Tabs, Tab } from "@nextui-org/react";
+import { Tabs, Tab } from "@heroui/react";
 import { usePathname } from "next/navigation";
 
 import { siteConfig } from "@/config/site";

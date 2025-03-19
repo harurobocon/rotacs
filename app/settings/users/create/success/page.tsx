@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, button as buttonStyles } from "@nextui-org/react";
+import { Link, button as buttonStyles } from "@heroui/react";
 
 const CreateUserSuccessPage: React.FC = () => {
   return (

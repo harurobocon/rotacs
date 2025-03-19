@@ -6,7 +6,7 @@ import {
   Link,
   Spacer,
   button as buttonStyles,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { cn } from "@/lib/cn";
 

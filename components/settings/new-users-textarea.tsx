@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, Textarea, Button, Spacer } from "@nextui-org/react";
+import { Card, CardBody, Textarea, Button, Spacer } from "@heroui/react";
 import React from "react";
 import { useFormState } from "react-dom";
 

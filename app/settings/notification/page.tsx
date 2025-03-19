@@ -19,7 +19,7 @@ export default async function Page() {
   return (
     <div>
       <div className="p-2">
-        <p className={settingsPageTitle()}>通知設定</p>
+        <p className={settingsPageTitle()}>LINE通知設定</p>
         <p className={settingsPageSubtitle()}>LINEへの通知の設定をします．</p>
         <NotificationTable tokenJson={JSON.stringify(tokens)} />
       </div>

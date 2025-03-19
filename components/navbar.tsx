@@ -12,8 +12,8 @@ import {
   Link,
   ScrollShadow,
   Spacer,
-} from "@nextui-org/react";
-import { button as buttonStyles } from "@nextui-org/react";
+} from "@heroui/react";
+import { button as buttonStyles } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { User } from "lucia";
 

@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormState } from "react-dom";
 import { useSearchParams } from "next/navigation";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { login } from "@/lib/server/auth";

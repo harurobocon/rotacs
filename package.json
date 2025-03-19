@@ -14,7 +14,7 @@
   "dependencies": {
     "@iconify/react": "^5.0.2",
     "@lucia-auth/adapter-postgresql": "^3.1.2",
-    "@nextui-org/react": "^2.4.8",
+    "@heroui/react": "2.7.5",
     "@node-rs/argon2": "^1.8.3",
     "@react-aria/ssr": "^3.9.6",
     "@react-aria/visually-hidden": "^3.8.17",
