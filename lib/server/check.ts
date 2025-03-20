@@ -321,7 +321,7 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
         // 事前通知
         message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，順番表を確認してください．
-https://rotacs.yuchi.jp/check1`;
+https://rotacs-sprc25.yuchi.jp/check1`;
       }
 
       // 通知を送信
