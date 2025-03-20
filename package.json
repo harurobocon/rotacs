@@ -12,9 +12,9 @@
     "migrate:down:all": "RUNNING_IN_CLI=true node -r dotenv/config -r esbuild-register scripts/migrateDownAll.ts"
   },
   "dependencies": {
+    "@heroui/react": "2.7.5",
     "@iconify/react": "^5.0.2",
     "@lucia-auth/adapter-postgresql": "^3.1.2",
-    "@heroui/react": "2.7.5",
     "@node-rs/argon2": "^1.8.3",
     "@react-aria/ssr": "^3.9.6",
     "@react-aria/visually-hidden": "^3.8.17",

@@ -20,6 +20,7 @@ import {
   reservationDataConverter,
   validateFormData as _validateFormData,
 } from "@/lib/server/reservation";
+import { testrunDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
 import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
@@ -200,14 +201,6 @@ export async function updateTestrunStatus(
   }
 
   return {};
-}
-
-function testrunDataConverter(): FirestoreDataConverter<TestrunReservation> {
-  return reservationDataConverter<
-    TestrunStatus,
-    TestrunSide,
-    TestrunReservation
-  >();
 }
 
 // 「順番待ち」の先頭からat番目のテストランに呼び出し予告を送信する

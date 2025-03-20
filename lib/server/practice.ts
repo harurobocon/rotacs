@@ -20,6 +20,7 @@ import {
   reservationDataConverter,
   validateFormData as _validateFormData,
 } from "@/lib/server/reservation";
+import { practiceDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
 import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
@@ -310,12 +311,4 @@ https://rotacs-sprc25.yuchi.jp/practice`;
   });
 
   await Promise.all(sidesPromises);
-}
-
-function practiceDataConverter(): FirestoreDataConverter<PracticeReservation> {
-  return reservationDataConverter<
-    PracticeStatus,
-    PracticeSide,
-    PracticeReservation
-  >();
 }

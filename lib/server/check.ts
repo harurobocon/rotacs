@@ -19,6 +19,7 @@ import {
   reservationDataConverter,
   validateFormData as _validateFormData,
 } from "@/lib/server/reservation";
+import { checkDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
 import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
@@ -235,10 +236,6 @@ export async function updateCheckResults(
   await firestore.collection(collectionId).doc(id).update(update);
 
   return {};
-}
-
-function checkDataConverter(): FirestoreDataConverter<CheckReservation> {
-  return reservationDataConverter<CheckStatus, CheckSide, CheckReservation>();
 }
 
 async function sendCall(at: number, status: CheckStatus, collectionId: string) {
