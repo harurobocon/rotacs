@@ -18,7 +18,7 @@ export const CheckStatuses = [
 ] as const;
 export type CheckStatus = (typeof CheckStatuses)[number];
 
-export const CheckSides = ["西", "東"] as const;
+export const CheckSides = ["ピット"] as const;
 export type CheckSide = (typeof CheckSides)[number];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
