@@ -75,9 +75,7 @@ export default function NewCheck() {
           }}
         >
           {(item) => (
-            <AutocompleteItem key={item.key} value={item.key}>
-              {item.label}
-            </AutocompleteItem>
+            <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
           )}
         </Autocomplete>
       );

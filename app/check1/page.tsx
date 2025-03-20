@@ -60,7 +60,7 @@ export default function Check() {
   ];
 
   function getBgColor(side: CheckSide, status: CheckStatus) {
-    return side === "東" ? "bg-warning-50" : "bg-success-50";
+    return side === "ピット" ? "bg-warning-50" : "bg-success-50";
   }
 
   const scheduleView =
@@ -83,7 +83,7 @@ export default function Check() {
           >
             <div
               key={`${status}-items`}
-              className="my-4 grid grid-cols-2 gap-4 md:gap-8"
+              className="my-4 grid grid-cols-1 gap-4 md:gap-8"
             >
               {CheckSides.map((side) => (
                 <div
