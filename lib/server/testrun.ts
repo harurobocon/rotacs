@@ -260,13 +260,15 @@ async function sendCall(at: number, status: TestrunStatus) {
     // 送信先のユーザIDをリストアップ
     let receivers: User[] = [];
 
-    const admin = await db
-      .selectFrom("user")
-      .where("role", "=", "admin")
-      .selectAll()
-      .execute();
+    if (status === "実施決定") {
+      const admin = await db
+        .selectFrom("user")
+        .where("role", "=", "admin")
+        .selectAll()
+        .execute();
 
-    receivers.push(...admin);
+      receivers.push(...admin);
+    }
 
     const targetUser = await db
       .selectFrom("user")

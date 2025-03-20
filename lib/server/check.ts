@@ -288,13 +288,16 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
     let receivers: User[] = [];
 
-    const admin = await db
-      .selectFrom("user")
-      .where("role", "=", "admin")
-      .selectAll()
-      .execute();
+    if (status === "実施決定") {
+      // 実施決定時のみ管理者にも通知
+      const admin = await db
+        .selectFrom("user")
+        .where("role", "=", "admin")
+        .selectAll()
+        .execute();
 
-    receivers.push(...admin);
+      receivers.push(...admin);
+    }
 
     const targetUser = await db
       .selectFrom("user")
