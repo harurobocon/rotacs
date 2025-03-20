@@ -81,12 +81,12 @@ export default function NewCheck() {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-        <p className="pb-2 text-xl font-medium">新規計量計測2予約（日曜日）</p>
-        <p className="text-sm text-default-500">
-          計量計測エリアは東西に1つずつあります．自分のピットに近い方に自動で割り振られます．
+        <p className="pb-2 text-xl font-medium">
+          新規計量計測2予約（当日金曜日）
         </p>
+        <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
         <p className="text-sm font-bold text-default-500">
-          受付開始は9:30です．それ以前の予約は削除します．
+          受付開始はhh:mmです．それ以前の予約は削除します．
         </p>
         <form
           action={formAction}
@@ -106,7 +106,12 @@ export default function NewCheck() {
             name="collectionId"
             type="hidden"
           />
-          <Button color="primary" isLoading={isSubmitting} type="submit">
+          <Button
+            color="primary"
+            isDisabled={true}
+            isLoading={isSubmitting}
+            type="submit"
+          >
             予約する
           </Button>
         </form>
