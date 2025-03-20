@@ -73,8 +73,8 @@ export async function createTestrun(
         .withConverter(testrunDataConverter());
       const existsStatus: TestrunStatus[] = [
         "順番待ち",
-        "実施決定",
-        "準備中",
+        "呼出中",
+        "移動中",
         "実施中",
       ];
 
@@ -156,14 +156,14 @@ export async function updateTestrunStatus(
 
       if (
         prevState === "順番待ち" &&
-        ["実施決定", "準備中", "実施中"].includes(newState)
+        ["呼出中", "移動中", "実施中"].includes(newState)
       ) {
         update.fixed_at = new Date();
       }
 
       // 順番待ちに戻す時は固定時刻と通知フラグをリセット
       if (
-        ["実施決定", "準備中", "実施中"].includes(prevState || "") &&
+        ["呼出中", "移動中", "実施中"].includes(prevState || "") &&
         newState === "順番待ち"
       ) {
         update.fixed_at = null;
@@ -189,10 +189,10 @@ export async function updateTestrunStatus(
   try {
     Promise.all([
       sendCall(0, "順番待ち"),
-      sendCall(0, "実施決定"),
-      sendCall(1, "実施決定"),
-      sendCall(2, "実施決定"),
-      sendCall(3, "実施決定"),
+      sendCall(0, "呼出中"),
+      sendCall(1, "呼出中"),
+      sendCall(2, "呼出中"),
+      sendCall(3, "呼出中"),
     ]);
   } catch (e: any) {
     console.trace(e.toString());
@@ -239,7 +239,7 @@ async function sendCall(at: number, status: TestrunStatus) {
 
       if (status === "順番待ち" && at === 0 && target.data()?.pre_call_sent) {
         return null;
-      } else if (status === "実施決定" && target.data()?.call_sent) {
+      } else if (status === "呼出中" && target.data()?.call_sent) {
         return null;
       }
 
@@ -260,7 +260,7 @@ async function sendCall(at: number, status: TestrunStatus) {
     // 送信先のユーザIDをリストアップ
     let receivers: User[] = [];
 
-    if (status === "実施決定") {
+    if (status === "呼出中") {
       const admin = await db
         .selectFrom("user")
         .where("role", "=", "admin")
@@ -285,7 +285,7 @@ async function sendCall(at: number, status: TestrunStatus) {
       // 通知内容を作成
       let message = "";
 
-      if (status === "実施決定") {
+      if (status === "呼出中") {
         // 呼び出し通知
         message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] テストランの順番になりました．「${target.side}」テストラン待機エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {

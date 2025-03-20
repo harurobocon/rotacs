@@ -150,8 +150,8 @@ export default function OverviewTable() {
         case "check2":
           switch (item[columnKey]) {
             case "順番待ち":
-            case "実施決定":
-            case "準備中":
+            case "呼出中":
+            case "移動中":
               return (
                 <Chip color="secondary" size="sm">
                   <span className="font-bold">{item[columnKey]}</span>
@@ -195,8 +195,8 @@ export default function OverviewTable() {
         case "testrun5":
           switch (item[columnKey]) {
             case "順番待ち":
-            case "実施決定":
-            case "準備中":
+            case "呼出中":
+            case "移動中":
               return (
                 <Chip color="secondary" size="sm">
                   <span className="font-bold">{item[columnKey]}</span>

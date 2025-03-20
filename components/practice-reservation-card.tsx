@@ -25,18 +25,18 @@ import { Icon } from "@iconify/react";
 
 import { cn } from "@/lib/cn";
 import {
-  TestrunReservation,
-  TestrunStatus,
-  TestrunStatuses,
-} from "@/types/testrun";
+  PracticeReservation,
+  PracticeStatus,
+  PracticeStatuses,
+} from "@/types/practice";
 import {
-  getTestrunReservation,
-  onTestrunReservationChange,
-} from "@/lib/client/testrun";
-import { updateTestrunStatus } from "@/lib/server/testrun";
+  getPracticeReservation,
+  onPracticeReservationChange,
+} from "@/lib/client/practice";
+import { updatePracticeStatus } from "@/lib/server/practice";
 import { isAdmin } from "@/lib/client/auth";
 
-interface TestrunReservationCardProps {
+interface PracticeReservationCardProps {
   className?: string;
   bgColor: string;
   reservationId: string;
@@ -46,11 +46,11 @@ const infoText = tv({
   base: "text-xs block font-semibold text-default-500",
 });
 
-export default function TestrunReservationCard(
-  props: TestrunReservationCardProps,
+export default function PracticeReservationCard(
+  props: PracticeReservationCardProps,
 ) {
   const [reservation, setReservation] =
-    React.useState<TestrunReservation | null>(null);
+    React.useState<PracticeReservation | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const {
@@ -60,19 +60,22 @@ export default function TestrunReservationCard(
   } = useDisclosure();
 
   React.useEffect(() => {
-    getTestrunReservation(props.reservationId).then((reservation) => {
+    getPracticeReservation(props.reservationId).then((reservation) => {
       setReservation(reservation);
     });
 
-    return onTestrunReservationChange(props.reservationId, (newReservation) => {
-      setReservation(newReservation);
-    });
+    return onPracticeReservationChange(
+      props.reservationId,
+      (newReservation) => {
+        setReservation(newReservation);
+      },
+    );
   }, [props.reservationId]);
 
-  async function handleStatusUpdate(status: TestrunStatus) {
+  async function handleStatusUpdate(status: PracticeStatus) {
     setIsSubmitting(true);
 
-    const result = await updateTestrunStatus(props.reservationId, status);
+    const result = await updatePracticeStatus(props.reservationId, status);
 
     setIsSubmitting(false);
 
@@ -203,7 +206,7 @@ export default function TestrunReservationCard(
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
-                    disabledKeys={isSubmitting ? TestrunStatuses : []}
+                    disabledKeys={isSubmitting ? PracticeStatuses : []}
                   >
                     <DropdownSection title="状態変更">
                       <DropdownItem
@@ -255,11 +258,10 @@ export default function TestrunReservationCard(
             ) : null}
           </div>
         </CardHeader>
-        {isAdmin() && changeStatusButton ? (
+        {isAdmin() ? (
           <>
-            <Spacer y={2} />
             <Divider />
-            <CardBody className="flex-row items-stretch justify-center gap-2">
+            <CardBody className="flex-col items-stretch justify-start gap-2">
               {changeStatusButton}
             </CardBody>
           </>
@@ -268,30 +270,28 @@ export default function TestrunReservationCard(
     );
   }
 
-  const errorModal = (
-    <Modal isOpen={isOpenErrorDialog} onOpenChange={onOpenChangeErrorDialog}>
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">エラー</ModalHeader>
-            <ModalBody>
-              <p>{errorMessage}</p>
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
-                閉じる
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
-  );
-
   return (
     <>
       {card}
-      {errorModal}
+      <Modal
+        isOpen={isOpenErrorDialog}
+        onOpenChange={onOpenChangeErrorDialog}
+        placement="center"
+      >
+        <ModalContent>
+          <ModalHeader>エラー</ModalHeader>
+          <ModalBody>{errorMessage}</ModalBody>
+          <ModalFooter>
+            <Button
+              color="danger"
+              onPress={onOpenChangeErrorDialog}
+              variant="light"
+            >
+              閉じる
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }

@@ -54,8 +54,8 @@ export default function Testrun() {
   const statusOrder: TestrunStatus[] = [
     "終了",
     "実施中",
-    "準備中",
-    "実施決定",
+    "移動中",
+    "呼出中",
     "順番待ち",
     "キャンセル",
   ];
@@ -69,7 +69,7 @@ export default function Testrun() {
       <Spinner className="flex py-4" label="読み込み中..." />
     ) : (
       <Accordion
-        defaultExpandedKeys={["実施中", "準備中", "実施決定", "順番待ち"]}
+        defaultExpandedKeys={["実施中", "移動中", "呼出中", "順番待ち"]}
         selectionMode="multiple"
       >
         {statusOrder.map((status) => (
