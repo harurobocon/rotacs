@@ -100,6 +100,7 @@ export async function createCheck(
         reservation_count: reservationCount,
         status: "順番待ち",
         side: booker.pit_side,
+        pit_number: booker.pit_number,
       });
 
       const reservationRef = collection.doc(check.id);

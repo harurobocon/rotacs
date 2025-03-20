@@ -361,7 +361,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                 "text-center text-lg font-bold text-default-foreground",
               )}
             >
-              {reservation.user_display_name}
+              {`#${reservation.pit_number} ${reservation.user_display_name}`}
             </h4>
             <p className={cn(infoText(), "text-center")}>
               {`${reservation.reservation_count}回目`}

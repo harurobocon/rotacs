@@ -101,6 +101,7 @@ export async function createTestrun(
         reservation_count: reservationCount,
         status: "順番待ち",
         side,
+        pit_number: booker.pit_number,
       });
 
       const reservationRef = collection.doc(testrun.id);
