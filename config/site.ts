@@ -21,14 +21,6 @@ export const routes: Route = {
       href: "/testrun/new",
     },
   },
-  practice: {
-    label: "試走一覧",
-    href: "/practice",
-    new: {
-      label: "試走場予約",
-      href: "/practice/new",
-    },
-  },
   check1: {
     label: "計量計測1",
     href: "/check1",
