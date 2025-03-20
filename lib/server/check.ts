@@ -314,10 +314,10 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，順番表を確認してください．
 https://rotacs-sprc25.yuchi.jp/check1`;
       }

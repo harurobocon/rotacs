@@ -281,10 +281,10 @@ async function sendPracticeCall(at: number, status: PracticeStatus) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 試走場の順番になりました．試走場待機エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 試走場の順番になりました．試走場待機エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 試走場が近づいています．呼び出された時に移動できるよう準備をお願いします．
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 試走場が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，試走場一覧を確認してください．
 https://rotacs-sprc25.yuchi.jp/practice`;
       }
