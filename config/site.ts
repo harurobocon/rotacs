@@ -65,6 +65,7 @@ export const siteConfig = {
   tabItems: [
     routes.home,
     routes.testrun,
+    routes.practice,
     routes.check1,
     routes.check2,
     routes.settings,

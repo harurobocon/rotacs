@@ -53,14 +53,14 @@ export default function Check() {
     "再検査",
     "合格",
     "実施中",
-    "準備中",
-    "実施決定",
+    "移動中",
+    "呼出中",
     "順番待ち",
     "キャンセル",
   ];
 
   function getBgColor(side: CheckSide, status: CheckStatus) {
-    return side === "東" ? "bg-warning-50" : "bg-success-50";
+    return side === "ピット" ? "bg-warning-50" : "bg-success-50";
   }
 
   const scheduleView =
@@ -68,7 +68,7 @@ export default function Check() {
       <Spinner className="flex py-4" label="読み込み中..." />
     ) : (
       <Accordion
-        defaultExpandedKeys={["実施中", "準備中", "実施決定", "順番待ち"]}
+        defaultExpandedKeys={["実施中", "移動中", "呼出中", "順番待ち"]}
         selectionMode="multiple"
       >
         {statusOrder.map((status) => (
@@ -83,7 +83,7 @@ export default function Check() {
           >
             <div
               key={`${status}-items`}
-              className="my-4 grid grid-cols-2 gap-4 md:gap-8"
+              className="my-4 grid grid-cols-1 gap-4 md:gap-8"
             >
               {CheckSides.map((side) => (
                 <div
@@ -110,7 +110,7 @@ export default function Check() {
     <div className={pageContainer()}>
       {/* Title */}
       <div className="flex-col items-stretch">
-        <h1 className={pageTitle()}>計量計測1（土曜日）</h1>
+        <h1 className={pageTitle()}>計量計測1（前日土曜日）</h1>
         <h2 className={pageSubtitle()}>
           表示順の上から下に向かって計量計測を実施していきます．
         </h2>

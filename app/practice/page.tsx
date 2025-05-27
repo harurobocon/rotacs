@@ -13,55 +13,51 @@ import {
 } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-import { getCheckSchedule, onCheckCollectionChange } from "@/lib/client/check";
+import {
+  getPracticeSchedule,
+  onPracticeCollectionChange,
+} from "@/lib/client/practice";
 import {
   pageContainer,
   pageSubtitle,
   pageTitle,
 } from "@/components/primitives";
-import CheckReservationCard from "@/components/check-reservation-card";
+import PracticeReservationCard from "@/components/practice-reservation-card";
 import {
-  CHECK2_COLLECTION,
-  CheckSchedule,
-  CheckSide,
-  CheckSides,
-  CheckStatus,
-} from "@/types/check";
+  PracticeSchedule,
+  PracticeStatus,
+  PracticeStatuses,
+} from "@/types/practice";
 
-export default function Check() {
-  const [schedule, setSchedule] = React.useState<CheckSchedule | undefined>(
+export default function Practice() {
+  const [schedule, setSchedule] = React.useState<PracticeSchedule | undefined>(
     undefined,
   );
 
   React.useEffect(() => {
-    getCheckSchedule(CHECK2_COLLECTION).then((_newSchedule) => {
-      const newSchedule = new CheckSchedule(_newSchedule);
+    getPracticeSchedule().then((_newSchedule) => {
+      const newSchedule = new PracticeSchedule(_newSchedule);
 
       setSchedule(newSchedule);
     });
 
-    return onCheckCollectionChange(CHECK2_COLLECTION, (_) => {
-      getCheckSchedule(CHECK2_COLLECTION).then((_newSchedule) => {
-        const newSchedule = new CheckSchedule(_newSchedule);
+    return onPracticeCollectionChange((_) => {
+      getPracticeSchedule().then((_newSchedule) => {
+        const newSchedule = new PracticeSchedule(_newSchedule);
 
         setSchedule(newSchedule);
       });
     });
   }, []);
 
-  const statusOrder: CheckStatus[] = [
-    "再検査",
-    "合格",
+  const statusOrder: PracticeStatus[] = [
+    "終了",
     "実施中",
     "移動中",
     "呼出中",
     "順番待ち",
     "キャンセル",
   ];
-
-  function getBgColor(side: CheckSide, status: CheckStatus) {
-    return side === "ピット" ? "bg-warning-50" : "bg-success-50";
-  }
 
   const scheduleView =
     schedule === undefined ? (
@@ -85,21 +81,15 @@ export default function Check() {
               key={`${status}-items`}
               className="my-4 grid grid-cols-1 gap-4 md:gap-8"
             >
-              {CheckSides.map((side) => (
-                <div
-                  key={side}
-                  className="grid grid-cols-1 place-content-start gap-4"
-                >
-                  {schedule.get(side, status).map((r) => (
-                    <CheckReservationCard
-                      key={r}
-                      bgColor={getBgColor(side, status)}
-                      collectionId={CHECK2_COLLECTION}
-                      reservationId={r}
-                    />
-                  ))}
-                </div>
-              ))}
+              <div className="grid grid-cols-1 place-content-start gap-4">
+                {schedule.get("default", status).map((r) => (
+                  <PracticeReservationCard
+                    key={r}
+                    bgColor="bg-success-50"
+                    reservationId={r}
+                  />
+                ))}
+              </div>
             </div>
           </AccordionItem>
         ))}
@@ -110,19 +100,19 @@ export default function Check() {
     <div className={pageContainer()}>
       {/* Title */}
       <div className="flex-col items-stretch">
-        <h1 className={pageTitle()}>計量計測2（当日日曜日）</h1>
+        <h1 className={pageTitle()}>試走場予約</h1>
         <h2 className={pageSubtitle()}>
-          表示順の上から下に向かって計量計測を実施していきます．
+          表示順の上から下に向かって試走を実施していきます．
         </h2>
         <div className="my-4 flex items-stretch justify-start">
           <Link
             className={buttonStyle({
               color: "success",
             })}
-            href="/check2/new"
+            href="/practice/new"
           >
             <Icon icon="mdi:plus" />
-            計量計測を予約する
+            試走場を予約する
           </Link>
         </div>
         <Divider />

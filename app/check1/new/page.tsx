@@ -75,9 +75,7 @@ export default function NewCheck() {
           }}
         >
           {(item) => (
-            <AutocompleteItem key={item.key} value={item.key}>
-              {item.label}
-            </AutocompleteItem>
+            <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
           )}
         </Autocomplete>
       );
@@ -89,10 +87,10 @@ export default function NewCheck() {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-        <p className="pb-2 text-xl font-medium">新規計量計測1予約（土曜日）</p>
-        <p className="text-sm text-default-500">
-          計量計測エリアは東西に1つずつあります．自分のピットに近い方に自動で割り振られます．
+        <p className="pb-2 text-xl font-medium">
+          新規計量計測1予約（前日土曜日）
         </p>
+        <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
         <form
           action={formAction}
           className="flex flex-col gap-3"

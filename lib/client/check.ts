@@ -84,7 +84,7 @@ export async function getCheckStatus(
       latestStatus = "再検査";
     } else if (
       !["合格", "再検査"].includes(latestStatus) &&
-      ["順番待ち", "実施決定", "準備中", "実施中"].includes(check.status)
+      ["順番待ち", "呼出中", "移動中", "実施中"].includes(check.status)
     ) {
       latestStatus = check.status;
     }

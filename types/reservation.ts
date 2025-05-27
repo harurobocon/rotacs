@@ -12,6 +12,7 @@ export class Reservation<StatusType extends string, SideType extends string> {
   side: SideType;
   pre_call_sent: boolean;
   call_sent: boolean;
+  pit_number: number | null;
 
   constructor(
     options: Partial<Reservation<StatusType, SideType>> & {
@@ -33,6 +34,7 @@ export class Reservation<StatusType extends string, SideType extends string> {
     this.side = options.side;
     this.pre_call_sent = options.pre_call_sent ?? false;
     this.call_sent = options.call_sent ?? false;
+    this.pit_number = options.pit_number ?? null;
   }
 }
 

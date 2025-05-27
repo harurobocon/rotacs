@@ -9,8 +9,8 @@ export const CHECK2_COLLECTION =
 
 export const CheckStatuses = [
   "順番待ち",
-  "実施決定",
-  "準備中",
+  "呼出中",
+  "移動中",
   "実施中",
   "合格",
   "再検査",
@@ -18,7 +18,7 @@ export const CheckStatuses = [
 ] as const;
 export type CheckStatus = (typeof CheckStatuses)[number];
 
-export const CheckSides = ["西", "東"] as const;
+export const CheckSides = ["ピット"] as const;
 export type CheckSide = (typeof CheckSides)[number];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
@@ -89,8 +89,8 @@ export class CheckSchedule extends Schedule<CheckStatus, CheckSide> {
             ids = sorted.map((reservation) => reservation.id);
             break;
           case "実施中":
-          case "準備中":
-          case "実施決定":
+          case "移動中":
+          case "呼出中":
             sorted = filtered.sort((a, b) => {
               const aFixedAt = a.fixed_at;
               const bFixedAt = b.fixed_at;

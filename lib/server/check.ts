@@ -19,6 +19,7 @@ import {
   reservationDataConverter,
   validateFormData as _validateFormData,
 } from "@/lib/server/reservation";
+import { checkDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
 import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
@@ -72,8 +73,8 @@ export async function createCheck(
         .withConverter(checkDataConverter());
       const existsStatus: CheckStatus[] = [
         "順番待ち",
-        "実施決定",
-        "準備中",
+        "呼出中",
+        "移動中",
         "実施中",
       ];
 
@@ -100,6 +101,7 @@ export async function createCheck(
         reservation_count: reservationCount,
         status: "順番待ち",
         side: booker.pit_side,
+        pit_number: booker.pit_number,
       });
 
       const reservationRef = collection.doc(check.id);
@@ -154,14 +156,14 @@ export async function updateCheckStatus(
 
       if (
         prevState === "順番待ち" &&
-        ["実施決定", "準備中", "実施中"].includes(newState)
+        ["呼出中", "移動中", "実施中"].includes(newState)
       ) {
         update.fixed_at = new Date();
       }
 
       // 順番待ちに戻す時は固定時刻と通知フラグをリセット
       if (
-        ["実施決定", "準備中", "実施中"].includes(prevState || "") &&
+        ["呼出中", "移動中", "実施中"].includes(prevState || "") &&
         newState === "順番待ち"
       ) {
         update.fixed_at = null;
@@ -193,10 +195,10 @@ export async function updateCheckStatus(
   try {
     Promise.all([
       sendCall(0, "順番待ち", collectionId),
-      sendCall(0, "実施決定", collectionId),
-      sendCall(1, "実施決定", collectionId),
-      sendCall(2, "実施決定", collectionId),
-      sendCall(3, "実施決定", collectionId),
+      sendCall(0, "呼出中", collectionId),
+      sendCall(1, "呼出中", collectionId),
+      sendCall(2, "呼出中", collectionId),
+      sendCall(3, "呼出中", collectionId),
     ]);
   } catch (e: any) {
     console.trace(e.toString());
@@ -236,10 +238,6 @@ export async function updateCheckResults(
   return {};
 }
 
-function checkDataConverter(): FirestoreDataConverter<CheckReservation> {
-  return reservationDataConverter<CheckStatus, CheckSide, CheckReservation>();
-}
-
 async function sendCall(at: number, status: CheckStatus, collectionId: string) {
   const firestore = await getFirestore();
   const reservationDocs = await firestore
@@ -268,7 +266,7 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
       if (status === "順番待ち" && at === 0 && target.data()?.pre_call_sent) {
         return null;
-      } else if (status === "実施決定" && target.data()?.call_sent) {
+      } else if (status === "呼出中" && target.data()?.call_sent) {
         return null;
       }
 
@@ -288,13 +286,16 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
     let receivers: User[] = [];
 
-    const admin = await db
-      .selectFrom("user")
-      .where("role", "=", "admin")
-      .selectAll()
-      .execute();
+    if (status === "呼出中") {
+      // 呼出中時のみ管理者にも通知
+      const admin = await db
+        .selectFrom("user")
+        .where("role", "=", "admin")
+        .selectAll()
+        .execute();
 
-    receivers.push(...admin);
+      receivers.push(...admin);
+    }
 
     const targetUser = await db
       .selectFrom("user")
@@ -311,14 +312,14 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       // 通知内容を作成
       let message = "";
 
-      if (status === "実施決定") {
+      if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
-        message = `[${target.user_display_name}高専 ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，順番表を確認してください．
-https://rotacs.yuchi.jp/check1`;
+https://rotacs-sprc25.yuchi.jp/check1`;
       }
 
       // 通知を送信

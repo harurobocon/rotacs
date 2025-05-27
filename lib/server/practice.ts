@@ -6,13 +6,13 @@ import { FirestoreDataConverter } from "firebase-admin/firestore";
 import { User } from "lucia";
 
 import {
-  TestrunReservation,
-  TestrunSide,
-  TestrunStatus,
-  TESTRUN_COLLECTION,
-  TestrunSchedule,
-  TestrunSides,
-} from "@/types/testrun";
+  PracticeReservation,
+  PracticeSide,
+  PracticeStatus,
+  PRACTICE_COLLECTION,
+  PracticeSchedule,
+  PracticeSides,
+} from "@/types/practice";
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { validateRequest } from "@/lib/server/auth";
@@ -20,12 +20,12 @@ import {
   reservationDataConverter,
   validateFormData as _validateFormData,
 } from "@/lib/server/reservation";
-import { testrunDataConverter } from "@/lib/server/converters";
+import { practiceDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
 import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
 export async function validateFormData(formData: FormData, currentUser: User) {
-  let { side, booker } = await _validateFormData<TestrunSide>(
+  let { side, booker } = await _validateFormData<PracticeSide>(
     formData,
     currentUser,
   );
@@ -37,7 +37,7 @@ export async function validateFormData(formData: FormData, currentUser: User) {
   return { side, booker };
 }
 
-export async function createTestrun(
+export async function createPractice(
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
@@ -49,7 +49,7 @@ export async function createTestrun(
     return { errors: "認証情報が不正です．ログインしなおしてください" };
   }
 
-  let side: TestrunSide;
+  let side: PracticeSide;
   let booker: User;
 
   try {
@@ -65,14 +65,14 @@ export async function createTestrun(
     const result = await firestore.runTransaction(async (transaction) => {
       if (retryCount > 0) {
         console.log(
-          `[${booker.display_name}] createTestrun retry: ${retryCount}`,
+          `[${booker.display_name}] createPractice retry: ${retryCount}`,
         );
       }
 
       const collection = firestore
-        .collection(TESTRUN_COLLECTION)
-        .withConverter(testrunDataConverter());
-      const existsStatus: TestrunStatus[] = [
+        .collection(PRACTICE_COLLECTION)
+        .withConverter(practiceDataConverter());
+      const existsStatus: PracticeStatus[] = [
         "順番待ち",
         "呼出中",
         "移動中",
@@ -96,7 +96,7 @@ export async function createTestrun(
       const finishedSnapshot = await transaction.get(finishedRef);
       const reservationCount = finishedSnapshot.size + 1;
 
-      const testrun = new TestrunReservation({
+      const practice = new PracticeReservation({
         user_id: booker.id,
         user_display_name: booker.display_name,
         reservation_count: reservationCount,
@@ -105,9 +105,9 @@ export async function createTestrun(
         pit_number: booker.pit_number,
       });
 
-      const reservationRef = collection.doc(testrun.id);
+      const reservationRef = collection.doc(practice.id);
 
-      transaction.set(reservationRef, testrun);
+      transaction.set(reservationRef, practice);
     });
 
     if (result?.errors) {
@@ -125,9 +125,9 @@ export async function createTestrun(
   return {};
 }
 
-export async function updateTestrunStatus(
+export async function updatePracticeStatus(
   id: string,
-  newState: TestrunStatus,
+  newState: PracticeStatus,
 ): Promise<ActionResult> {
   const { user } = await validateRequest();
 
@@ -140,19 +140,19 @@ export async function updateTestrunStatus(
   try {
     await firestore.runTransaction(async (transaction) => {
       const docRef = firestore
-        .collection(TESTRUN_COLLECTION)
+        .collection(PRACTICE_COLLECTION)
         .doc(id)
-        .withConverter(testrunDataConverter());
+        .withConverter(practiceDataConverter());
 
       const doc = await transaction.get(docRef);
 
       if (!doc.exists) {
-        throw new Error("指定されたテストランが存在しません");
+        throw new Error("指定された試走場が存在しません");
       }
 
       const prevState = doc.data()?.status;
 
-      let update: Partial<TestrunReservation> = {
+      let update: Partial<PracticeReservation> = {
         status: newState,
       };
 
@@ -190,11 +190,11 @@ export async function updateTestrunStatus(
 
   try {
     Promise.all([
-      sendCall(0, "順番待ち"),
-      sendCall(0, "呼出中"),
-      sendCall(1, "呼出中"),
-      sendCall(2, "呼出中"),
-      sendCall(3, "呼出中"),
+      sendPracticeCall(0, "順番待ち"),
+      sendPracticeCall(0, "呼出中"),
+      sendPracticeCall(1, "呼出中"),
+      sendPracticeCall(2, "呼出中"),
+      sendPracticeCall(3, "呼出中"),
     ]);
   } catch (e: any) {
     console.trace(e.toString());
@@ -203,18 +203,18 @@ export async function updateTestrunStatus(
   return {};
 }
 
-// 「順番待ち」の先頭からat番目のテストランに呼び出し予告を送信する
-async function sendCall(at: number, status: TestrunStatus) {
+// 「順番待ち」の先頭からat番目の試走場に呼び出し予告を送信する
+async function sendPracticeCall(at: number, status: PracticeStatus) {
   const firestore = await getFirestore();
   const reservationDocs = await firestore
-    .collection(TESTRUN_COLLECTION)
-    .withConverter(testrunDataConverter())
+    .collection(PRACTICE_COLLECTION)
+    .withConverter(practiceDataConverter())
     .get();
   const reservations = reservationDocs.docs.map((doc) => doc.data());
-  const schedule = TestrunSchedule.fromUnsorted(reservations);
+  const schedule = PracticeSchedule.fromUnsorted(reservations);
 
-  const sidesPromises = TestrunSides.map(async (side) => {
-    // 通知対象のテストランを取得
+  const sidesPromises = PracticeSides.map(async (side) => {
+    // 通知対象の試走場を取得
     const waiting = schedule.get(side, status);
 
     if (waiting.length < at + 1) {
@@ -225,9 +225,9 @@ async function sendCall(at: number, status: TestrunStatus) {
 
     const target = await firestore.runTransaction(async (transaction) => {
       const targetRef = firestore
-        .collection(TESTRUN_COLLECTION)
+        .collection(PRACTICE_COLLECTION)
         .doc(targetId)
-        .withConverter(testrunDataConverter());
+        .withConverter(practiceDataConverter());
 
       let target = await transaction.get(targetRef);
 
@@ -237,7 +237,7 @@ async function sendCall(at: number, status: TestrunStatus) {
         return null;
       }
 
-      const update: Partial<TestrunReservation> =
+      const update: Partial<PracticeReservation> =
         status === "順番待ち" && at === 0
           ? { pre_call_sent: true }
           : { call_sent: true };
@@ -281,12 +281,12 @@ async function sendCall(at: number, status: TestrunStatus) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] テストランの順番になりました．「${target.side}」テストラン待機エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 試走場の順番になりました．試走場待機エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] テストランが近づいています．呼び出された時に移動できるよう準備をお願いします．
-他チームの予約状況により順番が前後することもあるため，テストラン一覧を確認してください．
-https://rotacs-sprc25.yuchi.jp/testrun`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 試走場が近づいています．呼び出された時に移動できるよう準備をお願いします．
+他チームの予約状況により順番が前後することもあるため，試走場一覧を確認してください．
+https://rotacs-sprc25.yuchi.jp/practice`;
       }
 
       // 通知を送信
@@ -299,85 +299,16 @@ https://rotacs-sprc25.yuchi.jp/testrun`;
       console.trace(e.toString());
 
       // フラグを元に戻す
-      const update: Partial<TestrunReservation> =
+      const update: Partial<PracticeReservation> =
         at === 1 ? { pre_call_sent: false } : { call_sent: false };
 
       await firestore
-        .collection(TESTRUN_COLLECTION)
+        .collection(PRACTICE_COLLECTION)
         .doc(targetId)
-        .withConverter(testrunDataConverter())
+        .withConverter(practiceDataConverter())
         .update(update);
     }
   });
 
   await Promise.all(sidesPromises);
-}
-
-export async function testConcurrentCreateTestrun(
-  state: ActionResult,
-  formData: FormData,
-) {
-  const formDataArray = Array.from({ length: 4 }, () => new FormData());
-
-  // username 01_asahikawaのuser_idを取得
-  const asahikawaId = (
-    await db
-      .selectFrom("user")
-      .where("username", "=", "01_asahikawa")
-      .select("id")
-      .executeTakeFirst()
-  )?.id;
-  // username 02_hakodateのuser_idを取得
-  const hakodateId = (
-    await db
-      .selectFrom("user")
-      .where("username", "=", "02_hakodate")
-      .select("id")
-      .executeTakeFirst()
-  )?.id;
-  // username 03_ichinosekiのuser_idを取得
-  const ichinosekiId = (
-    await db
-      .selectFrom("user")
-      .where("username", "=", "03_ichinoseki")
-      .select("id")
-      .executeTakeFirst()
-  )?.id;
-  // username 04_fukushimaのuser_idを取得
-  const fukushimaId = (
-    await db
-      .selectFrom("user")
-      .where("username", "=", "04_fukushima")
-      .select("id")
-      .executeTakeFirst()
-  )?.id;
-
-  if (asahikawaId) {
-    formDataArray[0].set("bookerId", asahikawaId); // 旭川
-  }
-  if (hakodateId) {
-    formDataArray[1].set("bookerId", hakodateId); // 函館
-  }
-  if (ichinosekiId) {
-    formDataArray[2].set("bookerId", ichinosekiId); // 一関
-  }
-  if (fukushimaId) {
-    formDataArray[3].set("bookerId", fukushimaId); // 福島
-  }
-
-  formData.forEach((value, key) => {
-    formDataArray.forEach((fd) => fd.append(key, value));
-  });
-
-  const promises = formDataArray.map((fd) => createTestrun(state, fd));
-
-  const results = await Promise.all(promises);
-
-  // Merge results with numbering
-  const errors = results
-    .map((result, index) => `Error ${index + 1}: ${result.errors}`)
-    .filter((error) => error !== "Error ${index + 1}: ")
-    .join("\n");
-
-  return { errors };
 }

@@ -9,27 +9,22 @@ import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
-import { createCheck } from "@/lib/server/check";
+import { createPractice } from "@/lib/server/practice";
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
-import { CHECK2_COLLECTION } from "@/types/check";
 
 const initialState: ActionResult = {
   errors: "",
 };
 
-export default function NewCheck() {
+export default function NewPractice() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [users, setUsers] = React.useState<User[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
-  const [formState, formAction] = useFormState(createCheck, initialState);
-  // const [formState, formAction] = useFormState(
-  //   testConcurrentCreateCheck,
-  //   initialState,
-  // );
+  const [formState, formAction] = useFormState(createPractice, initialState);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -38,9 +33,9 @@ export default function NewCheck() {
   React.useEffect(() => {
     if (isSubmitting) {
       if (formState.errors) {
-        router.push("/check2/new/failed?message=" + formState.errors);
+        router.push("/practice/new/failed?message=" + formState.errors);
       } else {
-        router.push("/check2/new/success");
+        router.push("/practice/new/success");
       }
     }
   }, [formState]);
@@ -81,13 +76,7 @@ export default function NewCheck() {
   return (
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-        <p className="pb-2 text-xl font-medium">
-          新規計量計測2予約（当日日曜日）
-        </p>
-        <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
-        <p className="text-sm font-bold text-default-500">
-          受付開始はhh:mmです．それ以前の予約は削除します．
-        </p>
+        <p className="pb-2 text-xl font-medium">新規試走場予約</p>
         <form
           action={formAction}
           className="flex flex-col gap-3"
@@ -101,17 +90,8 @@ export default function NewCheck() {
               type="hidden"
             />
           ) : null}
-          <input
-            defaultValue={CHECK2_COLLECTION}
-            name="collectionId"
-            type="hidden"
-          />
-          <Button
-            color="primary"
-            isDisabled={true}
-            isLoading={isSubmitting}
-            type="submit"
-          >
+          <input name="side" type="hidden" value="default" />
+          <Button color="primary" isLoading={isSubmitting} type="submit">
             予約する
           </Button>
         </form>

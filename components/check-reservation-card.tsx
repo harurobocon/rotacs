@@ -132,11 +132,11 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
 
   if (reservation) {
     if (
-      ["実施決定", "準備中", "実施中"].includes(reservation.status) &&
+      ["呼出中", "移動中", "実施中"].includes(reservation.status) &&
       reservation.fixed_at
     ) {
       updateTime =
-        "実施決定: " +
+        "呼出中: " +
         reservation.fixed_at.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -256,26 +256,26 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
               color="primary"
               isLoading={isSubmitting}
               size="sm"
-              onPress={() => handleStatusUpdate("実施決定")}
+              onPress={() => handleStatusUpdate("呼出中")}
             >
-              実施決定
+              呼出中
             </Button>
           );
           break;
-        case "実施決定":
+        case "呼出中":
           changeStatusButton = (
             <Button
               className="flex"
               color="primary"
               isLoading={isSubmitting}
               size="sm"
-              onPress={() => handleStatusUpdate("準備中")}
+              onPress={() => handleStatusUpdate("移動中")}
             >
-              準備中
+              移動中
             </Button>
           );
           break;
-        case "準備中":
+        case "移動中":
           changeStatusButton = (
             <Button
               className="flex"
@@ -361,7 +361,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                 "text-center text-lg font-bold text-default-foreground",
               )}
             >
-              {reservation.user_display_name}
+              {`#${reservation.pit_number} ${reservation.user_display_name}`}
             </h4>
             <p className={cn(infoText(), "text-center")}>
               {`${reservation.reservation_count}回目`}
@@ -391,18 +391,18 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                         順番待ち
                       </DropdownItem>
                       <DropdownItem
-                        key="実施決定"
+                        key="呼出中"
                         color="primary"
-                        onPress={() => handleStatusUpdate("実施決定")}
+                        onPress={() => handleStatusUpdate("呼出中")}
                       >
-                        実施決定
+                        呼出中
                       </DropdownItem>
                       <DropdownItem
-                        key="準備中"
+                        key="移動中"
                         color="primary"
-                        onPress={() => handleStatusUpdate("準備中")}
+                        onPress={() => handleStatusUpdate("移動中")}
                       >
-                        準備中
+                        移動中
                       </DropdownItem>
                       <DropdownItem
                         key="実施中"

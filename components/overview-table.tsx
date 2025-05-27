@@ -24,32 +24,23 @@ import {
 } from "@/lib/client/testrun";
 
 const TEAM_NAMES = [
-  { displayName: "旭川", id: 1 },
-  { displayName: "函館", id: 2 },
-  { displayName: "一関", id: 3 },
-  { displayName: "福島", id: 4 },
-  { displayName: "鶴岡", id: 5 },
-  { displayName: "小山", id: 6 },
-  { displayName: "木更津", id: 7 },
-  { displayName: "産技荒川", id: 8 },
-  { displayName: "茨城", id: 9 },
-  { displayName: "富山射水", id: 10 },
-  { displayName: "沼津", id: 11 },
-  { displayName: "石川", id: 12 },
-  { displayName: "豊田", id: 13 },
-  { displayName: "奈良", id: 14 },
-  { displayName: "大阪公大", id: 15 },
-  { displayName: "神戸市立", id: 16 },
-  { displayName: "呉", id: 17 },
-  { displayName: "米子", id: 18 },
-  { displayName: "大島商船", id: 19 },
-  { displayName: "香川高松", id: 20 },
-  { displayName: "香川詫間", id: 21 },
-  { displayName: "阿南", id: 22 },
-  { displayName: "熊本八代", id: 23 },
-  { displayName: "熊本熊本", id: 24 },
-  { displayName: "大分", id: 25 },
-  { displayName: "北九州", id: 26 },
+  { displayName: "東北大", id: 1 },
+  { displayName: "工学院大", id: 2 },
+  { displayName: "電気通信大", id: 3 },
+  { displayName: "東京工科大", id: 4 },
+  { displayName: "東京科学大", id: 5 },
+  { displayName: "東京大", id: 6 },
+  { displayName: "東京農工大", id: 7 },
+  { displayName: "早稲田大", id: 8 },
+  { displayName: "長岡技科大", id: 9 },
+  { displayName: "金沢工業大", id: 10 },
+  { displayName: "豊橋技科大", id: 11 },
+  { displayName: "立命館大", id: 12 },
+  { displayName: "京都大", id: 13 },
+  { displayName: "京都工繊大", id: 14 },
+  { displayName: "大阪大", id: 15 },
+  { displayName: "大阪工業大", id: 16 },
+  { displayName: "九州大", id: 17 },
 ];
 
 const columns = [
@@ -155,8 +146,8 @@ export default function OverviewTable() {
         case "check2":
           switch (item[columnKey]) {
             case "順番待ち":
-            case "実施決定":
-            case "準備中":
+            case "呼出中":
+            case "移動中":
               return (
                 <Chip color="secondary" size="sm">
                   <span className="font-bold">{item[columnKey]}</span>
@@ -200,8 +191,8 @@ export default function OverviewTable() {
         case "testrun5":
           switch (item[columnKey]) {
             case "順番待ち":
-            case "実施決定":
-            case "準備中":
+            case "呼出中":
+            case "移動中":
               return (
                 <Chip color="secondary" size="sm">
                   <span className="font-bold">{item[columnKey]}</span>
