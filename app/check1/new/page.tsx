@@ -88,7 +88,7 @@ export default function NewCheck() {
     <div className="flex h-full w-full items-center justify-center">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <p className="pb-2 text-xl font-medium">
-          新規計量計測1予約（前日木曜日）
+          新規計量計測1予約（前日土曜日）
         </p>
         <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
         <form

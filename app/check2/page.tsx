@@ -110,7 +110,7 @@ export default function Check() {
     <div className={pageContainer()}>
       {/* Title */}
       <div className="flex-col items-stretch">
-        <h1 className={pageTitle()}>計量計測2（当日金曜日）</h1>
+        <h1 className={pageTitle()}>計量計測2（当日日曜日）</h1>
         <h2 className={pageSubtitle()}>
           表示順の上から下に向かって計量計測を実施していきます．
         </h2>
