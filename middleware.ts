@@ -11,7 +11,11 @@ export default async function middleware(request: NextRequest) {
   )?.value;
 
   if (!currentUser) {
-    if (request.nextUrl.pathname.match(/^\/(settings|logout|testrun\/new).*/)) {
+    if (
+      request.nextUrl.pathname.match(
+        /^\/(settings|logout|testrun\/new|check1\/new|check2\/new|practice\/new).*/,
+      )
+    ) {
       return Response.redirect(
         new URL(`/login?redirect=${request.nextUrl.pathname}`, request.url),
       );

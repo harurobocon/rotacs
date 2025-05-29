@@ -37,6 +37,14 @@ export const routes: Route = {
       href: "/check2/new",
     },
   },
+  practice: {
+    label: "試走場",
+    href: "/practice",
+    new: {
+      label: "試走場予約",
+      href: "/practice/new",
+    },
+  },
   settings: {
     label: "設定",
     href: "/settings",
@@ -65,9 +73,9 @@ export const siteConfig = {
   tabItems: [
     routes.home,
     routes.testrun,
-    routes.practice,
     routes.check1,
     routes.check2,
+    routes.practice,
     routes.settings,
   ],
   navMenuItemsSignedOut: [routes.home, routes.login],
