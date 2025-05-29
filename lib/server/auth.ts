@@ -15,6 +15,10 @@ import { ActionResult } from "@/types/actions";
 import { UserTable } from "@/types/auth";
 import { DatabaseUserAttributes, UserRole } from "@/types/auth";
 import { CheckSide } from "@/types/check";
+import {
+  upsertUserToFirestore,
+  getUserFromFirestore,
+} from "@/lib/server/firestoreUser";
 
 declare module "lucia" {
   interface Register {
@@ -193,6 +197,13 @@ export async function login(
     return {
       errors: "ユーザー名またはパスワードが間違っています．",
     };
+  }
+
+  // Firestoreに存在しなければ作成
+  const firestoreUser = await getUserFromFirestore(existingUser.id);
+
+  if (!firestoreUser) {
+    await upsertUserToFirestore(existingUser);
   }
 
   const session = await lucia.createSession(existingUser.id, {});

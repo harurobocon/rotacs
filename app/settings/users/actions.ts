@@ -10,6 +10,10 @@ import { UserTable, UserRole } from "@/types/auth";
 import { ActionResult } from "@/types/actions";
 import { createUserInfo } from "@/lib/server/auth";
 import { CheckSide } from "@/types/check";
+import {
+  deleteUserFromFirestore,
+  upsertUserToFirestore,
+} from "@/lib/server/firestoreUser";
 
 export async function createUsers(
   state: ActionResult,
@@ -88,6 +92,11 @@ export async function createUsers(
     .values(userEntries as UserTable[])
     .execute();
 
+  // Firestoreにも追加
+  await Promise.all(
+    (userEntries as UserTable[]).map((user) => upsertUserToFirestore(user)),
+  );
+
   return redirect("/settings/users/create/success");
 }
 
@@ -95,6 +104,9 @@ export async function deleteUsers(formData: FormData) {
   const userIds = formData.getAll("user_id").map((id) => id.toString());
 
   await db.deleteFrom("user").where("id", "in", userIds).execute();
+
+  // Firestoreからも削除
+  await Promise.all(userIds.map((id) => deleteUserFromFirestore(id)));
 
   return redirect("/settings/users/delete/success");
 }
