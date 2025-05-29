@@ -81,7 +81,11 @@ export const siteConfig = {
   navMenuItemsSignedOut: [routes.home, routes.login],
   navMenuItemsSignedIn: [
     routes.home,
-    routes.about,
+    routes.home,
+    routes.testrun,
+    routes.check1,
+    routes.check2,
+    routes.practice,
     routes.settings,
     routes.logout,
   ],

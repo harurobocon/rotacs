@@ -45,6 +45,9 @@ export default function NotificationTable(props: NotificationTableProps) {
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
     new Set([]),
   );
+  const [isSlackLoading, setIsSlackLoading] = React.useState(false);
+  const [slackState, slackFormAction] = React.useState<any>(null);
+  const [formState, formAction] = React.useState<any>(null); // for LINE test if needed
 
   const notificationList = useAsyncList<LineNotifyToken>({
     async load() {
@@ -116,6 +119,14 @@ export default function NotificationTable(props: NotificationTableProps) {
     setIsLoggingIn(true);
   };
 
+  // Slackテスト通知送信時のローディング管理
+  const handleSlackSubmit = async () => {
+    setIsSlackLoading(true);
+  };
+  React.useEffect(() => {
+    setIsSlackLoading(false);
+  }, [slackState]);
+
   const topContent = React.useMemo(() => {
     return (
       <div className="flex w-full grid-cols-1 gap-4 md:grid-cols-4">
@@ -175,6 +186,9 @@ export default function NotificationTable(props: NotificationTableProps) {
     isDeleting,
     handleDeleteNotifications,
     tokenHiddenInputs,
+    isLoggingIn,
+    descriptionValue,
+    handleLineLogin,
   ]);
 
   return (

@@ -1,3 +1,5 @@
+"use server";
+
 import NotificationTable from "@/components/settings/notification-table";
 import {
   settingsPageSubtitle,
@@ -6,6 +8,9 @@ import {
 import { validateRequest } from "@/lib/server/auth";
 import { getUserTokens } from "@/lib/server/line-notify";
 import { LineNotifyToken } from "@/types/db";
+import { handleSlackTestMessageSend } from "@/app/settings/notification/actions";
+import { Button } from "@heroui/react";
+import SlackNotificationButton from "@/components/settings/slack-notification-button";
 
 export default async function Page() {
   const { user } = await validateRequest();
@@ -22,6 +27,15 @@ export default async function Page() {
         <p className={settingsPageTitle()}>LINE通知設定</p>
         <p className={settingsPageSubtitle()}>LINEへの通知の設定をします．</p>
         <NotificationTable tokenJson={JSON.stringify(tokens)} />
+      </div>
+      <div className="mt-8 p-2">
+        <p className={settingsPageTitle()}>Slack通知設定</p>
+        <p className={settingsPageSubtitle()}>
+          Slackへのテスト通知のみ送信できます．
+        </p>
+        <div className="mt-4">
+          <SlackNotificationButton />
+        </div>
       </div>
     </div>
   );
