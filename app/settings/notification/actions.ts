@@ -50,6 +50,7 @@ export async function handleSlackTestMessageSend() {
 
   // Firestoreからユーザー情報取得
   const firestoreUser = await getUserFromFirestore(user.id);
+
   if (!firestoreUser) {
     // エラー時も何か返す
     return { ok: false, error: "ユーザー情報がFirestoreに存在しません" };
@@ -72,7 +73,7 @@ export async function handleSlackTestMessageSend() {
   await postSlackMessage({
     channel: channelId,
     markdown_text:
-      "<!channel> RoTACS (Robocon Testrun And Check Scheduler)からのSlackテスト通知です。",
+      "RoTACS (Robocon Testrun And Check Scheduler)からのSlackテスト通知です。",
     at_channel: false,
   });
 
