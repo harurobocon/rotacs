@@ -13,7 +13,11 @@ import {
 
 const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
   (acc, type) => {
-    acc[type] = { mode: "disabled", startTime: "09:00" };
+    acc[type] = {
+      mode: "disabled",
+      startDate: "2000-01-01",
+      startTime: "09:00",
+    };
     return acc;
   },
   {} as ReservationSettings,
