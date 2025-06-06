@@ -9,15 +9,17 @@ import {
   Autocomplete,
   AutocompleteItem,
   Button,
+  Input,
   Radio,
   RadioGroup,
 } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
-import { createTestrun } from "@/lib/server/testrun";
+import { createTestrun, createTestrunMessageCard } from "@/lib/server/testrun";
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
+import MessageCardForm from "@/components/MessageCardForm";
 
 const initialState: ActionResult = {
   errors: "",
@@ -31,25 +33,42 @@ export default function NewTestrun() {
     null,
   );
   const [side, setSide] = React.useState<string>("");
-  const [formState, formAction] = useFormState(createTestrun, initialState);
-  // const [formState, formAction] = useFormState(
-  //   testConcurrentCreateTestrun,
-  //   initialState,
-  // );
+  const [testrunFormState, testrunFormAction] = useFormState(
+    createTestrun,
+    initialState,
+  );
+  const [testrunMessageCardFormState, testrunMessageCardFormAction] =
+    useFormState(createTestrunMessageCard, initialState);
 
-  const handleSubmit = async () => {
+  const handleTestrunSubmit = async () => {
+    setIsSubmitting(true);
+  };
+
+  const handleTestrunMessageCardSubmit = async () => {
     setIsSubmitting(true);
   };
 
   React.useEffect(() => {
     if (isSubmitting) {
-      if (formState.errors) {
-        router.push("/testrun/new/failed?message=" + formState.errors);
+      if (testrunFormState.errors) {
+        router.push("/testrun/new/failed?message=" + testrunFormState.errors);
       } else {
         router.push("/testrun/new/success");
       }
     }
-  }, [formState]);
+  }, [testrunFormState]);
+
+  React.useEffect(() => {
+    if (isSubmitting) {
+      if (testrunMessageCardFormState.errors) {
+        router.push(
+          "/testrun/new/failed?message=" + testrunMessageCardFormState.errors,
+        );
+      } else {
+        router.push("/testrun/new/success?message=カードを作成しました");
+      }
+    }
+  }, [testrunMessageCardFormState]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {
@@ -85,13 +104,13 @@ export default function NewTestrun() {
   }, [users]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <p className="pb-2 text-xl font-medium">新規テストラン予約</p>
         <form
-          action={formAction}
+          action={testrunFormAction}
           className="flex flex-col gap-3"
-          onSubmit={handleSubmit}
+          onSubmit={handleTestrunSubmit}
         >
           <RadioGroup
             label="フィールドの色を選択してください"
@@ -119,6 +138,19 @@ export default function NewTestrun() {
           </Button>
         </form>
       </div>
+      {isAdmin() ? (
+        <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+          <p className="pb-2 text-xl font-medium">
+            任意名のカードを作成（休憩・対戦形式など）
+          </p>
+          <MessageCardForm
+            action={createTestrunMessageCard}
+            successRedirect="/testrun/new/success?message=カードを作成しました"
+            failedRedirect="/testrun/new/failed"
+            hiddenFields={[{ name: "side", value: side || "赤" }]}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

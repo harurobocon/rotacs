@@ -9,9 +9,13 @@ import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
-import { createPractice } from "@/lib/server/practice";
+import {
+  createPractice,
+  createPracticeMessageCard,
+} from "@/lib/server/practice";
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
+import MessageCardForm from "@/components/MessageCardForm";
 
 const initialState: ActionResult = {
   errors: "",
@@ -74,7 +78,7 @@ export default function NewPractice() {
   }, [users]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <p className="pb-2 text-xl font-medium">新規試走場予約</p>
         <form
@@ -96,6 +100,19 @@ export default function NewPractice() {
           </Button>
         </form>
       </div>
+      {isAdmin() ? (
+        <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+          <p className="pb-2 text-xl font-medium">
+            任意名のカードを作成（休憩・対戦形式など）
+          </p>
+          <MessageCardForm
+            action={createPracticeMessageCard}
+            failedRedirect="/practice/new/failed"
+            hiddenFields={[{ name: "side", value: "default" }]}
+            successRedirect="/practice/new/success?message=カードを作成しました"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

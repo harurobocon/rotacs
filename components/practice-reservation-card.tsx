@@ -187,11 +187,15 @@ export default function PracticeReservationCard(
                 "text-center text-lg font-bold text-default-foreground",
               )}
             >
-              {reservation.user_display_name}
+              {reservation.pit_number && reservation.pit_number > 0
+                ? `Pit${reservation.pit_number} ${reservation.user_display_name}`
+                : reservation.user_display_name}
             </h4>
-            <p className={cn(infoText(), "text-center")}>
-              {`${reservation.reservation_count}回目`}
-            </p>
+            {reservation.pit_number && reservation.pit_number > 0 ? (
+              <p
+                className={cn(infoText(), "text-center")}
+              >{`${reservation.reservation_count}回目`}</p>
+            ) : null}
           </div>
           <div className="h-full w-full items-start justify-end">
             {isAdmin() ? (

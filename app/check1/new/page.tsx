@@ -5,13 +5,7 @@ import "client-only";
 import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
-import {
-  Autocomplete,
-  AutocompleteItem,
-  Button,
-  Radio,
-  RadioGroup,
-} from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
@@ -19,6 +13,8 @@ import { createCheck } from "@/lib/server/check";
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
 import { CHECK1_COLLECTION } from "@/types/check";
+import { createCheckMessageCard } from "@/lib/server/check";
+import MessageCardForm from "@/components/MessageCardForm";
 
 const initialState: ActionResult = {
   errors: "",
@@ -85,7 +81,7 @@ export default function NewCheck() {
   }, [users]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <p className="pb-2 text-xl font-medium">
           新規計量計測1予約（前日土曜日）
@@ -114,6 +110,19 @@ export default function NewCheck() {
           </Button>
         </form>
       </div>
+      {isAdmin() ? (
+        <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+          <p className="pb-2 text-xl font-medium">
+            任意名のカードを作成（休憩・対戦形式など）
+          </p>
+          <MessageCardForm
+            action={createCheckMessageCard}
+            failedRedirect="/check1/new/failed"
+            hiddenFields={[{ name: "collectionId", value: CHECK1_COLLECTION }]}
+            successRedirect="/check1/new/success?message=カードを作成しました"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

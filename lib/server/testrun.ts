@@ -122,6 +122,70 @@ export async function createTestrun(
   return {};
 }
 
+export async function createTestrunMessageCard(
+  state: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user: currentUser } = await validateRequest();
+
+  if (!currentUser) {
+    console.trace("認証情報が不正です．ログインし直してください．");
+
+    return { errors: "認証情報が不正です．ログインしなおしてください" };
+  }
+
+  let message: string;
+  let side: TestrunSide;
+
+  try {
+    message = formData.get("message")?.toString() ?? "";
+    const sideValue = formData.get("side")?.toString() ?? "赤";
+    if (sideValue !== "赤" && sideValue !== "青") {
+      throw new Error("フィールドの色は「赤」または「青」を指定してください");
+    }
+    side = sideValue;
+  } catch (e: any) {
+    return { errors: e.toString() };
+  }
+
+  try {
+    const firestore = await getFirestore();
+    const retryCount = 0;
+
+    const result = await firestore.runTransaction(async (transaction) => {
+      if (retryCount > 0) {
+        console.log(
+          `[${currentUser.display_name}] createTestrunMessageCard retry: ${retryCount}`,
+        );
+      }
+
+      const collection = firestore
+        .collection(TESTRUN_COLLECTION)
+        .withConverter(testrunDataConverter());
+
+      const testrun = new TestrunReservation({
+        user_id: currentUser.id,
+        user_display_name: message,
+        reservation_count: 0,
+        status: "順番待ち",
+        side,
+        pit_number: 0,
+      });
+
+      const reservationRef = collection.doc(testrun.id);
+
+      transaction.set(reservationRef, testrun);
+    });
+  } catch (e: any) {
+    console.dir(e);
+    console.trace(e.toString());
+
+    return { errors: e.toString() };
+  }
+
+  return {};
+}
+
 export async function updateTestrunStatus(
   id: string,
   newState: TestrunStatus,

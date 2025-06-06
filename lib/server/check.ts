@@ -337,3 +337,63 @@ https://rotacs.yuchi.jp/check1`;
 
   await Promise.all(sidesPromises);
 }
+
+export async function createCheckMessageCard(
+  state: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user: currentUser } = await validateRequest();
+
+  if (!currentUser) {
+    console.trace("認証情報が不正です．ログインし直してください．");
+    return { errors: "認証情報が不正です．ログインしなおしてください" };
+  }
+
+  let message: string;
+  let collectionId: string;
+
+  try {
+    message = formData.get("message")?.toString() ?? "";
+    collectionId = formData.get("collectionId")?.toString() ?? "";
+    if (!collectionId) {
+      throw new Error("計量計測の種類が指定されていません");
+    }
+  } catch (e: any) {
+    return { errors: e.toString() };
+  }
+
+  try {
+    const firestore = await getFirestore();
+    const retryCount = 0;
+
+    await firestore.runTransaction(async (transaction) => {
+      if (retryCount > 0) {
+        console.log(
+          `[${currentUser.display_name}] createCheckMessageCard retry: ${retryCount}`,
+        );
+      }
+
+      const collection = firestore
+        .collection(collectionId)
+        .withConverter(checkDataConverter());
+
+      const check = new CheckReservation({
+        user_id: currentUser.id,
+        user_display_name: message,
+        reservation_count: 0,
+        status: "順番待ち",
+        side: "ピット",
+        pit_number: 0,
+      });
+
+      const reservationRef = collection.doc(check.id);
+      transaction.set(reservationRef, check);
+    });
+  } catch (e: any) {
+    console.dir(e);
+    console.trace(e.toString());
+    return { errors: e.toString() };
+  }
+
+  return {};
+}

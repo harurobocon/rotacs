@@ -307,3 +307,58 @@ https://rotacs-sprc25.yuchi.jp/practice`;
 
   await Promise.all(sidesPromises);
 }
+
+export async function createPracticeMessageCard(
+  state: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const { user: currentUser } = await validateRequest();
+
+  if (!currentUser) {
+    console.trace("認証情報が不正です．ログインし直してください．");
+    return { errors: "認証情報が不正です．ログインしなおしてください" };
+  }
+
+  let message: string;
+
+  try {
+    message = formData.get("message")?.toString() ?? "";
+  } catch (e: any) {
+    return { errors: e.toString() };
+  }
+
+  try {
+    const firestore = await getFirestore();
+    const retryCount = 0;
+
+    await firestore.runTransaction(async (transaction) => {
+      if (retryCount > 0) {
+        console.log(
+          `[${currentUser.display_name}] createPracticeMessageCard retry: ${retryCount}`,
+        );
+      }
+
+      const collection = firestore
+        .collection(PRACTICE_COLLECTION)
+        .withConverter(practiceDataConverter());
+
+      const practice = new PracticeReservation({
+        user_id: currentUser.id,
+        user_display_name: message,
+        reservation_count: 0,
+        status: "順番待ち",
+        side: "default",
+        pit_number: 0,
+      });
+
+      const reservationRef = collection.doc(practice.id);
+      transaction.set(reservationRef, practice);
+    });
+  } catch (e: any) {
+    console.dir(e);
+    console.trace(e.toString());
+    return { errors: e.toString() };
+  }
+
+  return {};
+}
