@@ -65,7 +65,7 @@ export default function ReservationControlPage() {
 
   const handleSettingChange = (
     type: ReservationType,
-    key: "mode" | "startTime",
+    key: "mode" | "startTime" | "startDate",
     value: string,
   ) => {
     if (settings) {
@@ -118,16 +118,28 @@ export default function ReservationControlPage() {
                   <Radio value="enabled">有効</Radio>
                   <Radio value="timer">タイマー</Radio>
                 </RadioGroup>
-                <Input
-                  label="開始時間 (JST)"
-                  name={`${type}-startTime`}
-                  type="time"
-                  value={settings[type].startTime}
-                  onChange={(e) =>
-                    handleSettingChange(type, "startTime", e.target.value)
-                  }
-                  isDisabled={settings[type].mode !== "timer"}
-                />
+                <div className="flex w-full flex-row items-center gap-2">
+                  <Input
+                    label="開始日 (JST)"
+                    name={`${type}-startDate`}
+                    type="date"
+                    value={settings[type].startDate}
+                    onChange={(e) =>
+                      handleSettingChange(type, "startDate", e.target.value)
+                    }
+                    isDisabled={settings[type].mode !== "timer"}
+                  />
+                  <Input
+                    label="開始時間 (JST)"
+                    name={`${type}-startTime`}
+                    type="time"
+                    value={settings[type].startTime}
+                    onChange={(e) =>
+                      handleSettingChange(type, "startTime", e.target.value)
+                    }
+                    isDisabled={settings[type].mode !== "timer"}
+                  />
+                </div>
               </CardBody>
             </Card>
           ))}

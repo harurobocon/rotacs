@@ -15,6 +15,7 @@ export type ReservationControlMode = (typeof RESERVATION_CONTROL_MODES)[number];
 
 export interface ReservationControlSetting {
   mode: ReservationControlMode;
+  startDate: string; // YYYY-MM-DD
   startTime: string; // HH:mm
 }
 

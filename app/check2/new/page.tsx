@@ -43,7 +43,7 @@ export default function NewCheck() {
         router.push("/check2/new/success");
       }
     }
-  }, [formState, isSubmitting, router]);
+  }, [formState]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {

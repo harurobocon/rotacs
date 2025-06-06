@@ -29,13 +29,23 @@ export async function updateReservationSettings(
 
     for (const type of RESERVATION_TYPES) {
       const mode = formData.get(`${type}-mode`) as ReservationControlMode;
+      const startDate = formData.get(`${type}-startDate`) as string;
       const startTime = formData.get(`${type}-startTime`) as string;
 
       if (!RESERVATION_CONTROL_MODES.includes(mode)) {
         return { errors: `無効なモードが${type}に設定されています` };
       }
 
-      settings[type] = { mode, startTime: startTime || "09:00" };
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+
+      settings[type] = {
+        mode,
+        startDate: startDate || `${year}-${month}-${day}`,
+        startTime: startTime || "09:00",
+      };
     }
 
     const db = await getFirestore();

@@ -47,12 +47,15 @@ export function useReservationControl(reservationType: ReservationType) {
         case "timer":
           {
             const jstNow = getJstDate();
-            const [hours, minutes] = setting.startTime.split(":").map(Number);
-            const startTime = getJstDate();
-            startTime.setHours(hours, minutes, 0, 0);
-            if (jstNow < startTime) {
+            const startDateTime = new Date(
+              `${setting.startDate}T${setting.startTime}:00+09:00`,
+            );
+
+            if (jstNow < startDateTime) {
               setIsDisabled(true);
-              setMessage(`予約受付は${setting.startTime}から開始します`);
+              setMessage(
+                `予約受付は${setting.startDate} ${setting.startTime}から開始します`,
+              );
             } else {
               setIsDisabled(false);
               setMessage(null);

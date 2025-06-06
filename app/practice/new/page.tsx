@@ -45,7 +45,7 @@ export default function NewPractice() {
         router.push("/practice/new/success");
       }
     }
-  }, [formState, isSubmitting, router]);
+  }, [formState]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {

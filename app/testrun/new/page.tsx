@@ -53,7 +53,7 @@ export default function NewTestrun() {
         router.push("/testrun/new/success");
       }
     }
-  }, [testrunFormState, isSubmitting, router]);
+  }, [testrunFormState]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {
