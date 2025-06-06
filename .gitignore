@@ -37,3 +37,4 @@ next-env.d.ts
 *-firebase-adminsdk-*.json
 sprc2025_accounts.csv
 gakusei2025-teams.csv
+firestore.indexes.json

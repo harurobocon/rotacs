@@ -6,6 +6,7 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  orderBy,
   query,
   QuerySnapshot,
   where,
@@ -121,6 +122,29 @@ export function onCheckCollectionChange(
 
   return onSnapshot(checkRef, (snapshot) => {
     callback(snapshot);
+  });
+}
+
+export function onCheckChangeByTeam(
+  collectionId: string,
+  teamName: string,
+  callback: (status: CheckStatus | "未予約") => void,
+) {
+  const checkRef = collection(firestore, collectionId).withConverter(
+    checkDataConverter(),
+  );
+  const q = query(
+    checkRef,
+    where("user_display_name", "==", teamName),
+    orderBy("reserved_at", "desc"),
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      callback("未予約");
+    } else {
+      callback(snapshot.docs[0].data().status);
+    }
   });
 }
 

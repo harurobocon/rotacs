@@ -118,6 +118,30 @@ export function onTestrunCollectionChange(
   });
 }
 
+export function onTestrunChangeByTeam(
+  teamName: string,
+  testrunNumber: number,
+  callback: (status: TestrunStatus | "未予約") => void,
+) {
+  const testrunRef = collection(firestore, TESTRUN_COLLECTION).withConverter(
+    testrunDataConverter(),
+  );
+  const q = query(
+    testrunRef,
+    where("user_display_name", "==", teamName),
+    where("reservation_count", "==", testrunNumber),
+    orderBy("reserved_at", "desc"),
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      callback("未予約");
+    } else {
+      callback(snapshot.docs[0].data().status);
+    }
+  });
+}
+
 function testrunDataConverter(): FirestoreDataConverter<TestrunReservation> {
   return reservationDataConverter<
     TestrunStatus,
