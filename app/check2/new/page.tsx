@@ -5,7 +5,7 @@ import "client-only";
 import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Autocomplete, AutocompleteItem, Button, Input } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
@@ -14,6 +14,7 @@ import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
 import { CHECK2_COLLECTION } from "@/types/check";
 import MessageCardForm from "@/components/MessageCardForm";
+import { useReservationControl } from "@/hooks/useReservationControl";
 
 const initialState: ActionResult = {
   errors: "",
@@ -27,10 +28,8 @@ export default function NewCheck() {
     null,
   );
   const [formState, formAction] = useFormState(createCheck, initialState);
-  // const [formState, formAction] = useFormState(
-  //   testConcurrentCreateCheck,
-  //   initialState,
-  // );
+  const { isDisabled: isReservationDisabled, message: reservationMessage } =
+    useReservationControl("check2");
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -44,7 +43,7 @@ export default function NewCheck() {
         router.push("/check2/new/success");
       }
     }
-  }, [formState]);
+  }, [formState, isSubmitting, router]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {
@@ -86,9 +85,6 @@ export default function NewCheck() {
           新規計量計測2予約（当日日曜日）
         </p>
         <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
-        <p className="text-sm font-bold text-default-500">
-          受付開始はhh:mmです．それ以前の予約は削除します．
-        </p>
         <form
           action={formAction}
           className="flex flex-col gap-3"
@@ -109,12 +105,17 @@ export default function NewCheck() {
           />
           <Button
             color="primary"
-            isDisabled={true}
             isLoading={isSubmitting}
             type="submit"
+            isDisabled={isReservationDisabled || isSubmitting}
           >
             予約する
           </Button>
+          {reservationMessage && (
+            <p className="pt-2 text-center text-sm text-danger">
+              {reservationMessage}
+            </p>
+          )}
         </form>
       </div>
       {isAdmin() ? (

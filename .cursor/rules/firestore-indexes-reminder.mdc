@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Rule: Firestore Indexes Reminder
 # Description: Reminds to update the index generation script when Firestore queries are changed.
 

@@ -20,6 +20,7 @@ import { createTestrun, createTestrunMessageCard } from "@/lib/server/testrun";
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
 import MessageCardForm from "@/components/MessageCardForm";
+import { useReservationControl } from "@/hooks/useReservationControl";
 
 const initialState: ActionResult = {
   errors: "",
@@ -37,38 +38,22 @@ export default function NewTestrun() {
     createTestrun,
     initialState,
   );
-  const [testrunMessageCardFormState, testrunMessageCardFormAction] =
-    useFormState(createTestrunMessageCard, initialState);
+  const { isDisabled: isReservationDisabled, message: reservationMessage } =
+    useReservationControl("testrun");
 
   const handleTestrunSubmit = async () => {
     setIsSubmitting(true);
   };
 
-  const handleTestrunMessageCardSubmit = async () => {
-    setIsSubmitting(true);
-  };
-
   React.useEffect(() => {
-    if (isSubmitting) {
+    if (isSubmitting && "errors" in testrunFormState) {
       if (testrunFormState.errors) {
         router.push("/testrun/new/failed?message=" + testrunFormState.errors);
-      } else {
+      } else if (testrunFormState.errors === "") {
         router.push("/testrun/new/success");
       }
     }
-  }, [testrunFormState]);
-
-  React.useEffect(() => {
-    if (isSubmitting) {
-      if (testrunMessageCardFormState.errors) {
-        router.push(
-          "/testrun/new/failed?message=" + testrunMessageCardFormState.errors,
-        );
-      } else {
-        router.push("/testrun/new/success?message=カードを作成しました");
-      }
-    }
-  }, [testrunMessageCardFormState]);
+  }, [testrunFormState, isSubmitting, router]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {
@@ -130,12 +115,17 @@ export default function NewTestrun() {
           ) : null}
           <Button
             color="primary"
-            isDisabled={side === ""}
+            isDisabled={side === "" || isReservationDisabled || isSubmitting}
             isLoading={isSubmitting}
             type="submit"
           >
             予約する
           </Button>
+          {reservationMessage && (
+            <p className="pt-2 text-center text-sm text-danger">
+              {reservationMessage}
+            </p>
+          )}
         </form>
       </div>
       {isAdmin() ? (

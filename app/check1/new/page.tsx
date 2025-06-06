@@ -15,6 +15,7 @@ import { isAdmin } from "@/lib/client/auth";
 import { CHECK1_COLLECTION } from "@/types/check";
 import { createCheckMessageCard } from "@/lib/server/check";
 import MessageCardForm from "@/components/MessageCardForm";
+import { useReservationControl } from "@/hooks/useReservationControl";
 
 const initialState: ActionResult = {
   errors: "",
@@ -28,10 +29,8 @@ export default function NewCheck() {
     null,
   );
   const [formState, formAction] = useFormState(createCheck, initialState);
-  // const [formState, formAction] = useFormState(
-  //   testConcurrentCreateCheck,
-  //   initialState,
-  // );
+  const { isDisabled: isReservationDisabled, message: reservationMessage } =
+    useReservationControl("check1");
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -45,7 +44,7 @@ export default function NewCheck() {
         router.push("/check1/new/success");
       }
     }
-  }, [formState]);
+  }, [formState, isSubmitting, router]);
 
   React.useEffect(() => {
     getAllUsersJson().then((usersJson: string) => {
@@ -105,9 +104,19 @@ export default function NewCheck() {
             name="collectionId"
             type="hidden"
           />
-          <Button color="primary" isLoading={isSubmitting} type="submit">
+          <Button
+            color="primary"
+            isLoading={isSubmitting}
+            type="submit"
+            isDisabled={isReservationDisabled || isSubmitting}
+          >
             予約する
           </Button>
+          {reservationMessage && (
+            <p className="pt-2 text-center text-sm text-danger">
+              {reservationMessage}
+            </p>
+          )}
         </form>
       </div>
       {isAdmin() ? (
