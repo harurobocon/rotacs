@@ -2,8 +2,9 @@
 
 import "server-cli-only";
 
-import { FirestoreDataConverter } from "firebase-admin/firestore";
 import { User } from "lucia";
+
+import { sendSlackNotifyMessage } from "./slack";
 
 import {
   CheckReservation,
@@ -15,13 +16,9 @@ import {
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { validateRequest } from "@/lib/server/auth";
-import {
-  reservationDataConverter,
-  validateFormData as _validateFormData,
-} from "@/lib/server/reservation";
+import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { checkDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
-import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
 async function validateFormData(formData: FormData, currentUser: User) {
   let { booker, collectionId } = await _validateFormData<CheckSide>(
@@ -222,11 +219,8 @@ export async function updateCheckResults(
 
   const update: Partial<CheckReservation> = {
     status: formData.get("status")?.toString() as CheckStatus,
-    startSize: formData.has("startSize"),
-    r1ExpandSize: formData.has("r1ExpandSize"),
-    totalWeight: formData.has("totalWeight"),
-    powerVoltage: formData.has("powerVoltage"),
-    emergencyStop: formData.has("emergencyStop"),
+    r1ok: formData.has("r1ok"),
+    r2ok: formData.has("r2ok"),
     memo: formData.get("memo")?.toString() ?? "",
     recheckItems: formData.get("recheckItems")?.toString() ?? "",
   };
@@ -284,17 +278,11 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       return;
     }
 
-    let receivers: User[] = [];
+    let receivers: string[] = [];
 
     if (status === "呼出中") {
       // 呼出中時のみ管理者にも通知
-      const admin = await db
-        .selectFrom("user")
-        .where("role", "=", "admin")
-        .selectAll()
-        .execute();
-
-      receivers.push(...admin);
+      receivers.push(`計量計測`);
     }
 
     const targetUser = await db
@@ -304,7 +292,7 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       .executeTakeFirst();
 
     if (targetUser && targetUser.role !== "admin") {
-      receivers.push(targetUser);
+      receivers.push(targetUser.display_name);
     }
 
     // 通知を送信
@@ -314,16 +302,20 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
+        message = `[${target.user_display_name} ${target.reservation_count}回目] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，順番表を確認してください．
-https://rotacs-sprc25.yuchi.jp/check1`;
+https://rotacs.yuchi.jp/check1`;
       }
 
       // 通知を送信
-      return sendLineNotifyMessage({ message }, receiver);
+      return sendSlackNotifyMessage({
+        receiver,
+        markdown_text: message,
+        at_channel: true,
+      });
     });
 
     try {

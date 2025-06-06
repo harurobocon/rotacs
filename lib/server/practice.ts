@@ -2,8 +2,9 @@
 
 import "server-cli-only";
 
-import { FirestoreDataConverter } from "firebase-admin/firestore";
 import { User } from "lucia";
+
+import { sendSlackNotifyMessage } from "./slack";
 
 import {
   PracticeReservation,
@@ -16,13 +17,9 @@ import {
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { validateRequest } from "@/lib/server/auth";
-import {
-  reservationDataConverter,
-  validateFormData as _validateFormData,
-} from "@/lib/server/reservation";
+import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { practiceDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
-import { sendLineNotifyMessage } from "@/lib/server/line-notify";
 
 export async function validateFormData(formData: FormData, currentUser: User) {
   let { side, booker } = await _validateFormData<PracticeSide>(
@@ -252,16 +249,10 @@ async function sendPracticeCall(at: number, status: PracticeStatus) {
     }
 
     // 送信先のユーザIDをリストアップ
-    let receivers: User[] = [];
+    let receivers: string[] = [];
 
     if (status === "呼出中") {
-      const admin = await db
-        .selectFrom("user")
-        .where("role", "=", "admin")
-        .selectAll()
-        .execute();
-
-      receivers.push(...admin);
+      receivers.push(`試走場`);
     }
 
     const targetUser = await db
@@ -271,7 +262,7 @@ async function sendPracticeCall(at: number, status: PracticeStatus) {
       .executeTakeFirst();
 
     if (targetUser && targetUser.role !== "admin") {
-      receivers.push(targetUser);
+      receivers.push(targetUser.display_name);
     }
 
     // 通知を送信
@@ -290,7 +281,11 @@ https://rotacs-sprc25.yuchi.jp/practice`;
       }
 
       // 通知を送信
-      return sendLineNotifyMessage({ message }, receiver);
+      return sendSlackNotifyMessage({
+        receiver,
+        markdown_text: message,
+        at_channel: true,
+      });
     });
 
     try {

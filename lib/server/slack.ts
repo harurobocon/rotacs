@@ -89,3 +89,37 @@ export async function findSlackChannelId(
 
   return null;
 }
+
+/**
+ * User型(receiver)にSlack通知を送信する
+ * @param receiver User型 (luciaのUser)
+ * @param markdown_text メッセージ内容 (mrkdwn形式)
+ * @param at_channel @channelで通知する場合true (デフォルト: false)
+ */
+export async function sendSlackNotifyMessage({
+  receiver,
+  markdown_text,
+  at_channel = false,
+}: {
+  receiver: string;
+  markdown_text: string;
+  at_channel?: boolean;
+}): Promise<void> {
+  const channelNamePart = receiver ?? "";
+
+  if (!channelNamePart) {
+    throw new Error("receiver.display_nameが未設定です");
+  }
+
+  const channelId = await findSlackChannelId(channelNamePart);
+
+  if (!channelId) {
+    throw new Error(`Slackチャンネルが見つかりません: #${channelNamePart}`);
+  } else {
+    await postSlackMessage({
+      channel: channelId,
+      markdown_text,
+      at_channel,
+    });
+  }
+}

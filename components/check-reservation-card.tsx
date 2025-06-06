@@ -172,29 +172,12 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                     action={changeResultFormAction}
                     className="flex-col items-stretch justify-start gap-4"
                   >
-                    {props.collectionId === CHECK1_COLLECTION ? (
-                      <>
-                        <Checkbox className="flex" name="startSize">
-                          スタート寸法
-                        </Checkbox>
-                        <Checkbox className="flex" name="r1ExpandSize">
-                          R1展開寸法
-                        </Checkbox>
-                      </>
-                    ) : null}
-                    <Checkbox className="flex" name="totalWeight">
-                      総重量
+                    <Checkbox className="flex" name="r1ok">
+                      R1 OK
                     </Checkbox>
-                    {props.collectionId === CHECK1_COLLECTION ? (
-                      <>
-                        <Checkbox className="flex" name="powerVoltage">
-                          電源電圧
-                        </Checkbox>
-                        <Checkbox className="flex" name="emergencyStop">
-                          緊急停止
-                        </Checkbox>
-                      </>
-                    ) : null}
+                    <Checkbox className="flex" name="r2ok">
+                      R2 OK
+                    </Checkbox>
                     <Textarea
                       className="mt-4 flex"
                       label="メモ"
@@ -301,38 +284,14 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
           <TableColumn>結果</TableColumn>
         </TableHeader>
         <TableBody>
-          {props.collectionId === CHECK1_COLLECTION ? (
-            <>
-              <TableRow key="スタート寸法">
-                <TableCell>スタート寸法</TableCell>
-                <TableCell>{reservation.startSize ? "OK" : "NG"}</TableCell>
-              </TableRow>
-              <TableRow key="R1展開寸法">
-                <TableCell>R1展開寸法</TableCell>
-                <TableCell>{reservation.r1ExpandSize ? "OK" : "NG"}</TableCell>
-              </TableRow>
-            </>
-          ) : (
-            <></>
-          )}
-          <TableRow key="総重量">
-            <TableCell>総重量</TableCell>
-            <TableCell>{reservation.totalWeight ? "OK" : "NG"}</TableCell>
+          <TableRow key="R1 OK">
+            <TableCell>R1 OK</TableCell>
+            <TableCell>{reservation.r1ok ? "OK" : "NG"}</TableCell>
           </TableRow>
-          {props.collectionId === CHECK1_COLLECTION ? (
-            <>
-              <TableRow key="電源電圧">
-                <TableCell>電源電圧</TableCell>
-                <TableCell>{reservation.powerVoltage ? "OK" : "NG"}</TableCell>
-              </TableRow>
-              <TableRow key="緊急停止">
-                <TableCell>緊急停止</TableCell>
-                <TableCell>{reservation.emergencyStop ? "OK" : "NG"}</TableCell>
-              </TableRow>
-            </>
-          ) : (
-            <></>
-          )}
+          <TableRow key="R2 OK">
+            <TableCell>R2 OK</TableCell>
+            <TableCell>{reservation.r2ok ? "OK" : "NG"}</TableCell>
+          </TableRow>
           <TableRow key="メモ">
             <TableCell>メモ</TableCell>
             <TableCell>{reservation.memo}</TableCell>

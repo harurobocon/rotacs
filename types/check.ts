@@ -22,11 +22,8 @@ export const CheckSides = ["ピット"] as const;
 export type CheckSide = (typeof CheckSides)[number];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
-  startSize: boolean;
-  r1ExpandSize: boolean;
-  totalWeight: boolean;
-  powerVoltage: boolean;
-  emergencyStop: boolean;
+  r1ok: boolean;
+  r2ok: boolean;
   memo: string;
   recheckItems: string;
 
@@ -40,11 +37,8 @@ export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
     },
   ) {
     super(options);
-    this.startSize = options.startSize || false;
-    this.r1ExpandSize = options.r1ExpandSize || false;
-    this.totalWeight = options.totalWeight || false;
-    this.powerVoltage = options.powerVoltage || false;
-    this.emergencyStop = options.emergencyStop || false;
+    this.r1ok = options.r1ok || false;
+    this.r2ok = options.r2ok || false;
     this.memo = options.memo || "";
     this.recheckItems = options.recheckItems || "";
   }
