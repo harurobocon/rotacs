@@ -6,7 +6,6 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
-  orderBy,
   query,
   QuerySnapshot,
   where,
@@ -20,7 +19,6 @@ import {
 } from "@/types/check";
 import { firestore } from "@/lib/firebase/clientApp";
 import { reservationDataConverter } from "@/lib/client/reservation";
-import { TESTRUN_COLLECTION } from "@/types/testrun";
 
 export async function getCheckReservation(
   id: string,
@@ -32,7 +30,7 @@ export async function getCheckReservation(
   const check = await getDoc(docRef);
 
   if (!check.exists()) {
-    console.info(`ID: ${id} のテストラン予約は存在しません`);
+    console.info(`ID: ${id} の計量計測予約は存在しません`);
 
     return null;
   }

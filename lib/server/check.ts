@@ -57,6 +57,7 @@ export async function createCheck(
   try {
     const firestore = await getFirestore();
     const retryCount = 0;
+    let shouldNotifyNewReservation = false;
 
     const result = await firestore.runTransaction(async (transaction) => {
       if (retryCount > 0) {
@@ -86,6 +87,11 @@ export async function createCheck(
         return { errors: "既に予約が存在します" };
       }
 
+      // 予約作成前のアクティブな予約数をチェック（今後実施が予定されている予約）
+      const activeRef = collection.where("status", "in", existsStatus);
+      const activeSnapshot = await transaction.get(activeRef);
+      const currentActiveCount = activeSnapshot.size;
+
       const finishedRef = collection
         .where("user_id", "==", booker.id)
         .where("status", "in", ["合格", "再検査"]);
@@ -104,10 +110,24 @@ export async function createCheck(
       const reservationRef = collection.doc(check.id);
 
       transaction.set(reservationRef, check);
+
+      // アクティブな予約が空だった場合（現在の予約が最初の1件）の場合に通知フラグを設定
+      if (currentActiveCount === 0) {
+        shouldNotifyNewReservation = true;
+      }
     });
 
     if (result?.errors) {
       return result;
+    }
+
+    // アクティブな予約が空だった場合に管理者に通知
+    if (shouldNotifyNewReservation) {
+      try {
+        await sendNewReservationNotification(booker, collectionId);
+      } catch (e: any) {
+        console.trace(`通知送信エラー: ${e.toString()}`);
+      }
     }
   } catch (e: any) {
     console.dir(e);
@@ -336,6 +356,39 @@ https://rotacs.yuchi.jp/check1`;
   });
 
   await Promise.all(sidesPromises);
+}
+
+async function sendNewReservationNotification(
+  booker: User,
+  collectionId: string,
+) {
+  let collectionName = "";
+
+  if (collectionId === process.env.NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION) {
+    collectionName = "計量計測1";
+  } else if (
+    collectionId === process.env.NEXT_PUBLIC_CHECK2_RESERVATION_COLLECTION
+  ) {
+    collectionName = "計量計測2";
+  }
+
+  const checkUrl =
+    collectionId === process.env.NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION
+      ? "/check1"
+      : "/check2";
+
+  const message = `${collectionName}に新規予約[${booker.display_name}]が入りました。実施予定の予約が空の状態からの最初の予約です。予約を確認して実施準備をお願いします。\nhttps://rotacs.yuchi.jp${checkUrl}`;
+
+  try {
+    await sendSlackNotifyMessage({
+      receiver: `計量計測`,
+      markdown_text: message,
+      at_channel: true,
+    });
+  } catch (e: any) {
+    console.trace(`新規予約通知送信エラー: ${e.toString()}`);
+    throw e;
+  }
 }
 
 export async function createCheckMessageCard(
