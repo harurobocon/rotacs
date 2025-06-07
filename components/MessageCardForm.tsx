@@ -1,7 +1,7 @@
 import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Button, Input } from "@heroui/react";
+import { Button, Input, RadioGroup, Radio } from "@heroui/react";
 import { ActionResult } from "@/types/actions";
 
 interface HiddenField {
@@ -16,6 +16,7 @@ interface MessageCardFormProps {
   hiddenFields?: HiddenField[];
   label?: string;
   buttonText?: string;
+  enableSideSelect?: boolean;
 }
 
 const initialState: ActionResult = { errors: "" };
@@ -27,10 +28,12 @@ const MessageCardForm: React.FC<MessageCardFormProps> = ({
   hiddenFields = [],
   label = "メッセージ",
   buttonText = "カードを作成する",
+  enableSideSelect = false,
 }) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formState, formAction] = useFormState(action, initialState);
+  const [side, setSide] = React.useState<string>("赤");
 
   React.useEffect(() => {
     if (isSubmitting) {
@@ -55,7 +58,19 @@ const MessageCardForm: React.FC<MessageCardFormProps> = ({
       className="flex flex-col gap-3"
       onSubmit={handleSubmit}
     >
+      {enableSideSelect && (
+        <RadioGroup
+          label="フィールドの色を選択してください"
+          name="side-radio"
+          onValueChange={setSide}
+          value={side}
+        >
+          <Radio value="赤">赤</Radio>
+          <Radio value="青">青</Radio>
+        </RadioGroup>
+      )}
       <Input label={label} name="message" />
+      {enableSideSelect && <input type="hidden" name="side" value={side} />}
       {hiddenFields.map((field) => (
         <input
           key={field.name}

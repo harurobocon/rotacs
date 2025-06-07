@@ -137,7 +137,7 @@ export default function NewTestrun() {
             action={createTestrunMessageCard}
             successRedirect="/testrun/new/success?message=カードを作成しました"
             failedRedirect="/testrun/new/failed"
-            hiddenFields={[{ name: "side", value: side || "赤" }]}
+            enableSideSelect={true}
           />
         </div>
       ) : null}
