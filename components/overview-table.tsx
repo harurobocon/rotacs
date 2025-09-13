@@ -12,29 +12,29 @@ import {
 } from "@heroui/react";
 import React from "react";
 
-import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
-
 import { CheckCell } from "./overview-table/check-cell";
 import { TestrunCell } from "./overview-table/testrun-cell";
 
+import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
+
 const TEAM_NAMES = [
-  { displayName: "東北大", id: 1 },
-  { displayName: "工学院大", id: 2 },
-  { displayName: "電気通信大", id: 3 },
-  { displayName: "東京工科大", id: 4 },
-  { displayName: "東京科学大", id: 5 },
-  { displayName: "東京大", id: 6 },
-  { displayName: "東京農工大", id: 7 },
-  { displayName: "早稲田大", id: 8 },
-  { displayName: "長岡技科大", id: 9 },
-  { displayName: "金沢工業大", id: 10 },
-  { displayName: "豊橋技科大", id: 11 },
-  { displayName: "立命館大", id: 12 },
-  { displayName: "京都大", id: 13 },
-  { displayName: "京都工繊大", id: 14 },
-  { displayName: "大阪大", id: 15 },
-  { displayName: "大阪工業大", id: 16 },
-  { displayName: "九州大", id: 17 },
+  { displayName: "Technologier", id: 1 },
+  { displayName: "情メカ", id: 2 },
+  { displayName: "おいでよ！常盤の森", id: 3 },
+  { displayName: "とびだせ ! 常盤の森", id: 4 },
+  { displayName: "あつまれ！常盤の森", id: 5 },
+  { displayName: "Ti-Robot", id: 6 },
+  { displayName: "Maqui", id: 7 },
+  { displayName: "Nista", id: 8 },
+  { displayName: "つくばろぼっとサークル", id: 9 },
+  { displayName: "野沢菜☆サイボーグ", id: 10 },
+  { displayName: "群情", id: 11 },
+  { displayName: "信州の夏休み", id: 12 },
+  { displayName: "HAMTAN'S", id: 13 },
+  { displayName: "Bee取る`s", id: 14 },
+  { displayName: "Ai-Robot", id: 15 },
+  { displayName: "小金井ビートルズ", id: 16 },
+  { displayName: "昆虫ハンター ヒガコ", id: 17 },
 ];
 
 const columns = [
@@ -63,11 +63,11 @@ export default function OverviewTable() {
           return teamName;
         case "check1":
           return (
-            <CheckCell teamName={teamName} collectionId={CHECK1_COLLECTION} />
+            <CheckCell collectionId={CHECK1_COLLECTION} teamName={teamName} />
           );
         case "check2":
           return (
-            <CheckCell teamName={teamName} collectionId={CHECK2_COLLECTION} />
+            <CheckCell collectionId={CHECK2_COLLECTION} teamName={teamName} />
           );
         case "testrun1":
           return <TestrunCell teamName={teamName} testrunNumber={1} />;
@@ -100,7 +100,7 @@ export default function OverviewTable() {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={TEAM_NAMES} emptyContent={"No teams found"}>
+      <TableBody emptyContent={"No teams found"} items={TEAM_NAMES}>
         {(item) => (
           <TableRow key={item.id}>
             {(columnKey) => (
