@@ -34,6 +34,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Specstory
+.specstory/
+
 *-firebase-adminsdk-*.json
 sprc2025_accounts.csv
 gakusei2025-teams.csv
+smrc2025_accounts.csv
