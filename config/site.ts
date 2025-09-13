@@ -56,6 +56,14 @@ export const routes: Route = {
       label: "ユーザー",
       href: "/settings/users",
     },
+    reservations: {
+      label: "予約設定",
+      href: "/settings/reservations",
+      control: {
+        label: "予約受付設定",
+        href: "/settings/reservations/control",
+      },
+    },
   },
   login: {
     label: "ログイン",
@@ -90,7 +98,11 @@ export const siteConfig = {
   ],
   userMenuItems: [routes.settings, routes.logout],
   settingTabItems: [routes.settings.notification],
-  adminSettingTabItems: [routes.settings.notification, routes.settings.users],
+  adminSettingTabItems: [
+    routes.settings.notification,
+    routes.settings.users,
+    routes.settings.reservations.control,
+  ],
   links: {
     github: "https://github.com/nextui-org/nextui",
     twitter: "https://twitter.com/getnextui",

@@ -3,8 +3,6 @@
 import "client-only";
 
 import {
-  Chip,
-  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -13,15 +11,11 @@ import {
   TableRow,
 } from "@heroui/react";
 import React from "react";
-import { useAsyncList } from "@react-stately/data";
 
 import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
-import { getCheckStatus, onCheckCollectionChange } from "@/lib/client/check";
-import { TestrunStatus } from "@/types/testrun";
-import {
-  getTestrunStatus,
-  onTestrunCollectionChange,
-} from "@/lib/client/testrun";
+
+import { CheckCell } from "./overview-table/check-cell";
+import { TestrunCell } from "./overview-table/testrun-cell";
 
 const TEAM_NAMES = [
   { displayName: "東北大", id: 1 },
@@ -55,176 +49,38 @@ const columns = [
   { name: "テストラン5", uid: "testrun5" },
 ];
 
-type OverviewItem = {
-  id: number;
-  teamName: string;
-  check1: string;
-  check2: string;
-  testrun1: string;
-  testrun2: string;
-  testrun3: string;
-  testrun4: string;
-  testrun5: string;
-};
+type TeamInfo = (typeof TEAM_NAMES)[number];
 
 export default function OverviewTable() {
-  const [isTableLoading, setIsTableLoading] = React.useState(true);
-
-  const overviewList = useAsyncList<OverviewItem>({
-    async load() {
-      // Load data from server
-      const promises = TEAM_NAMES.map(async (teamName) => {
-        const check1 = await getCheckStatus(
-          teamName.displayName,
-          CHECK1_COLLECTION,
-        );
-        const check2 = await getCheckStatus(
-          teamName.displayName,
-          CHECK2_COLLECTION,
-        );
-
-        let testrunStatus: (TestrunStatus | "未予約")[] = [];
-
-        for (let i = 1; i <= 5; i++) {
-          testrunStatus[i] = await getTestrunStatus(teamName.displayName, i);
-        }
-
-        const overviewItem: OverviewItem = {
-          id: teamName.id,
-          teamName: teamName.displayName,
-          check1: check1,
-          check2: check2,
-          testrun1: testrunStatus[1],
-          testrun2: testrunStatus[2],
-          testrun3: testrunStatus[3],
-          testrun4: testrunStatus[4],
-          testrun5: testrunStatus[5],
-        };
-
-        return overviewItem;
-      });
-
-      const overviewList = await Promise.all(promises);
-
-      setIsTableLoading(false);
-
-      return {
-        items: overviewList,
-      };
-    },
-  });
-
-  // チーム別表示のアップデートイベントハンドラ登録
-  React.useEffect(() => {
-    setIsTableLoading(true);
-
-    return onCheckCollectionChange(CHECK1_COLLECTION, () => {
-      overviewList.reload();
-    });
-  }, []);
-
-  React.useEffect(() => {
-    setIsTableLoading(true);
-
-    return onCheckCollectionChange(CHECK2_COLLECTION, () => {
-      overviewList.reload();
-    });
-  }, []);
-
-  React.useEffect(() => {
-    setIsTableLoading(true);
-
-    return onTestrunCollectionChange(() => {
-      overviewList.reload();
-    });
-  }, []);
-
   const renderCell = React.useCallback(
-    (item: OverviewItem, columnKey: keyof OverviewItem) => {
+    (item: TeamInfo, columnKey: React.Key) => {
+      const teamName = item.displayName;
+
       switch (columnKey) {
+        case "id":
+          return item.id;
+        case "teamName":
+          return teamName;
         case "check1":
+          return (
+            <CheckCell teamName={teamName} collectionId={CHECK1_COLLECTION} />
+          );
         case "check2":
-          switch (item[columnKey]) {
-            case "順番待ち":
-            case "呼出中":
-            case "移動中":
-              return (
-                <Chip color="secondary" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "実施中":
-              return (
-                <Chip color="primary" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "合格":
-              return (
-                <Chip color="success" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "再検査":
-              return (
-                <Chip color="warning" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "キャンセル":
-              return (
-                <Chip color="danger" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            default:
-              return (
-                <Chip color="default" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-          }
+          return (
+            <CheckCell teamName={teamName} collectionId={CHECK2_COLLECTION} />
+          );
         case "testrun1":
+          return <TestrunCell teamName={teamName} testrunNumber={1} />;
         case "testrun2":
+          return <TestrunCell teamName={teamName} testrunNumber={2} />;
         case "testrun3":
+          return <TestrunCell teamName={teamName} testrunNumber={3} />;
         case "testrun4":
+          return <TestrunCell teamName={teamName} testrunNumber={4} />;
         case "testrun5":
-          switch (item[columnKey]) {
-            case "順番待ち":
-            case "呼出中":
-            case "移動中":
-              return (
-                <Chip color="secondary" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "実施中":
-              return (
-                <Chip color="primary" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "終了":
-              return (
-                <Chip color="success" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            case "キャンセル":
-              return (
-                <Chip color="danger" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-            default:
-              return (
-                <Chip color="default" size="sm">
-                  <span className="font-bold">{item[columnKey]}</span>
-                </Chip>
-              );
-          }
+          return <TestrunCell teamName={teamName} testrunNumber={5} />;
         default:
-          return item[columnKey as keyof OverviewItem];
+          return null;
       }
     },
     [],
@@ -238,24 +94,17 @@ export default function OverviewTable() {
       className="w-full"
     >
       <TableHeader columns={columns}>
-        {(columns) => (
-          <TableColumn key={columns.uid} align="center">
-            {columns.name}
+        {(column) => (
+          <TableColumn key={column.uid} align="center">
+            {column.name}
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody
-        emptyContent={"No teams found"}
-        isLoading={isTableLoading}
-        items={overviewList.items}
-        loadingContent={<Spinner label="ロード中..." />}
-      >
+      <TableBody items={TEAM_NAMES} emptyContent={"No teams found"}>
         {(item) => (
-          <TableRow key={item.teamName}>
+          <TableRow key={item.id}>
             {(columnKey) => (
-              <TableCell key={columnKey}>
-                {renderCell(item, columnKey as keyof OverviewItem)}
-              </TableCell>
+              <TableCell>{renderCell(item, columnKey)}</TableCell>
             )}
           </TableRow>
         )}

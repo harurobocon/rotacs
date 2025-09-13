@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# コンポーネントの格納場所
+
+- すべてのReactコンポーネントは`@/components`ディレクトリに配置してください。
+- これはプロジェクトルートの`components/`ディレクトリに対応します。
+- 正確なパスエイリアスの設定については`tsconfig.json`を確認してください。 

@@ -16,6 +16,7 @@ import {
 import { getAllUsersJson } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/client/auth";
 import MessageCardForm from "@/components/MessageCardForm";
+import { useReservationControl } from "@/hooks/useReservationControl";
 
 const initialState: ActionResult = {
   errors: "",
@@ -29,6 +30,8 @@ export default function NewPractice() {
     null,
   );
   const [formState, formAction] = useFormState(createPractice, initialState);
+  const { isDisabled: isReservationDisabled, message: reservationMessage } =
+    useReservationControl("practice");
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -95,9 +98,19 @@ export default function NewPractice() {
             />
           ) : null}
           <input name="side" type="hidden" value="default" />
-          <Button color="primary" isLoading={isSubmitting} type="submit">
+          <Button
+            color="primary"
+            isLoading={isSubmitting}
+            type="submit"
+            isDisabled={isReservationDisabled || isSubmitting}
+          >
             予約する
           </Button>
+          {reservationMessage && (
+            <p className="pt-2 text-center text-sm text-danger">
+              {reservationMessage}
+            </p>
+          )}
         </form>
       </div>
       {isAdmin() ? (
