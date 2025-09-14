@@ -20,21 +20,21 @@ import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
 const TEAM_NAMES = [
   { displayName: "Technologier", id: 1 },
   { displayName: "情メカ", id: 2 },
-  { displayName: "おいでよ！常盤の森", id: 3 },
-  { displayName: "とびだせ ! 常盤の森", id: 4 },
-  { displayName: "あつまれ！常盤の森", id: 5 },
+  { displayName: "おいでよ常盤の森", id: 3 },
+  { displayName: "とびだせ常盤の森", id: 4 },
+  { displayName: "あつまれ常盤の森", id: 5 },
   { displayName: "Ti-Robot", id: 6 },
   { displayName: "Maqui", id: 7 },
   { displayName: "Nista", id: 8 },
   { displayName: "つくばろぼっとサークル", id: 9 },
-  { displayName: "野沢菜☆サイボーグ", id: 10 },
+  { displayName: "野沢菜サイボーグ", id: 10 },
   { displayName: "群情", id: 11 },
   { displayName: "信州の夏休み", id: 12 },
-  { displayName: "HAMTAN'S", id: 13 },
-  { displayName: "Bee取る`s", id: 14 },
+  { displayName: "HAMTANS", id: 13 },
+  { displayName: "Bee取るs", id: 14 },
   { displayName: "Ai-Robot", id: 15 },
   { displayName: "小金井ビートルズ", id: 16 },
-  { displayName: "昆虫ハンター ヒガコ", id: 17 },
+  { displayName: "昆虫ハンターヒガコ", id: 17 },
 ];
 
 const columns = [
