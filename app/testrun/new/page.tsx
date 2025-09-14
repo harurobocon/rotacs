@@ -46,10 +46,11 @@ export default function NewTestrun() {
   };
 
   React.useEffect(() => {
-    if (isSubmitting && "errors" in testrunFormState) {
+    if (isSubmitting) {
       if (testrunFormState.errors) {
         router.push("/testrun/new/failed?message=" + testrunFormState.errors);
-      } else if (testrunFormState.errors === "") {
+      } else if (!testrunFormState.errors) {
+        // errorsがundefinedまたは空文字列の場合は成功と判定
         router.push("/testrun/new/success");
       }
     }
