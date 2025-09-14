@@ -3,13 +3,14 @@
 import "server-cli-only";
 
 import { redirect } from "next/navigation";
+
 import { validateRequest } from "@/lib/server/auth";
 import {
   sendLineNotifyMessage,
   startLineNotifyAuthorize,
 } from "@/lib/server/line-notify";
 import { getUserFromFirestore } from "@/lib/server/firestoreUser";
-import { postSlackMessage, findSlackChannelId } from "@/lib/server/slack";
+import { postSlackMessage } from "@/lib/server/slack";
 
 export async function startLineLogin(formData: FormData) {
   const { user, session } = await validateRequest();
@@ -56,22 +57,18 @@ export async function handleSlackTestMessageSend() {
     return { ok: false, error: "ユーザー情報がFirestoreに存在しません" };
   }
 
-  // pit_numberを2桁0埋め
-  const pitNumberStr = firestoreUser.pit_number.toString().padStart(2, "0");
-  const displayName = firestoreUser.display_name.toLowerCase();
+  const slackChannelId = firestoreUser.slack_channel_id;
 
-  // チャンネルIDを取得
-  const channelId = await findSlackChannelId(displayName);
-
-  if (!channelId) {
+  if (!slackChannelId) {
     return {
       ok: false,
-      error: `Slackチャンネルが見つかりません: #${pitNumberStr}-${displayName}`,
+      error:
+        "Slackチャンネル情報が未設定です。管理者にチャンネルID取得の実行を依頼してください。",
     };
   }
 
   await postSlackMessage({
-    channel: channelId,
+    channel: slackChannelId,
     markdown_text:
       "RoTACS (Robocon Testrun And Check Scheduler)からのSlackテスト通知です。",
     at_channel: false,

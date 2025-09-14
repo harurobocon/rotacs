@@ -70,6 +70,10 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
         }),
       };
     },
+    initialSortDescriptor: {
+      column: "display_name",
+      direction: "ascending",
+    },
   });
 
   const handleDeleteSelectedUsers = () => {
@@ -180,6 +184,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
           classNames={{
             wrapper: "max-h-[382px] bg-transparent p-0 border-none shadow-none",
           }}
+          id="user-settings-table"
           selectedKeys={selectedKeys}
           selectionMode="multiple"
           sortDescriptor={userList.sortDescriptor}
@@ -206,9 +211,11 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
             loadingContent={<Spinner label="ロード中..." />}
           >
             {(item) => (
-              <TableRow key={item.id}>
+              <TableRow key={`user-row-${item.id}`}>
                 {(columnKey) => (
-                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                  <TableCell key={`cell-${item.id}-${columnKey}`}>
+                    {renderCell(item, columnKey)}
+                  </TableCell>
                 )}
               </TableRow>
             )}

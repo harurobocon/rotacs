@@ -1,4 +1,10 @@
 import { ChatPostMessageArguments, WebClient } from "@slack/web-api";
+import { Timestamp } from "firebase-admin/firestore";
+
+import { FirestoreUser } from "@/types/user";
+import { getFirestore } from "@/lib/firebase/serverApp";
+
+const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
 
 // 環境変数からSlack Bot Tokenを取得
 const slackToken = process.env.SLACK_BOT_TOKEN;
@@ -12,7 +18,8 @@ export const slackClient = new WebClient(slackToken);
 
 /**
  * 指定したSlackチャンネルにメッセージを投稿する
- * @param channel SlackチャンネルIDまたはチャンネル名
+ * chat:write.publicの権限を使用してjoinなしで投稿
+ * @param channel SlackチャンネルIDまたはチャンネル名（#prefix付きも可）
  * @param markdown_text メッセージ内容 (mrkdwn形式)
  * @param at_channel @channelで通知する場合true
  */
@@ -37,61 +44,13 @@ export async function postSlackMessage({
     mrkdwn: true,
   };
 
-  console.log(options);
-
-  try {
-    await slackClient.chat.postMessage(options);
-  } catch (error: any) {
-    // not_in_channelエラー時はjoinしてリトライ
-    if (error.data?.error === "not_in_channel") {
-      try {
-        await slackClient.conversations.join({ channel });
-        await slackClient.chat.postMessage({
-          channel,
-          text,
-          mrkdwn: true,
-        });
-      } catch (joinError) {
-        throw joinError;
-      }
-    } else {
-      throw error;
-    }
-  }
-}
-
-/**
- * display_nameを含むSlackチャンネル名を検索し、最初に一致したチャンネルのIDを返す
- * @param namePart チャンネル名の一部の文字列
- * @returns チャンネルID（見つからなければnull）
- */
-export async function findSlackChannelId(
-  namePart: string,
-): Promise<string | null> {
-  let cursor: string | undefined = undefined;
-
-  do {
-    const res = await slackClient.conversations.list({
-      exclude_archived: true,
-      limit: 1000,
-      cursor,
-      types: "public_channel,private_channel",
-    });
-
-    if (!res.channels) break;
-    for (const channel of res.channels) {
-      if (channel.name && channel.name.toLowerCase().includes(namePart)) {
-        return channel.id ?? null;
-      }
-    }
-    cursor = res.response_metadata?.next_cursor;
-  } while (cursor);
-
-  return null;
+  // chat:write.publicの権限でjoinなしで直接投稿
+  await slackClient.chat.postMessage(options);
 }
 
 /**
  * User型(receiver)にSlack通知を送信する
+ * Firebaseに保存されたchannel_idを使用して直接投稿
  * @param receiver User型 (luciaのUser)
  * @param markdown_text メッセージ内容 (mrkdwn形式)
  * @param at_channel @channelで通知する場合true (デフォルト: false)
@@ -111,15 +70,118 @@ export async function sendSlackNotifyMessage({
     throw new Error("receiver.display_nameが未設定です");
   }
 
-  const channelId = await findSlackChannelId(channelNamePart);
+  // Firebaseからユーザー情報とslack_channel_idを取得
+  const db = await getFirestore();
+  const usersSnapshot = await db
+    .collection(COLLECTION_NAME)
+    .where("display_name", "==", channelNamePart)
+    .limit(1)
+    .get();
 
-  if (!channelId) {
-    throw new Error(`Slackチャンネルが見つかりません: #${channelNamePart}`);
-  } else {
-    await postSlackMessage({
-      channel: channelId,
-      markdown_text,
-      at_channel,
-    });
+  if (usersSnapshot.empty) {
+    throw new Error(`ユーザーが見つかりません: ${channelNamePart}`);
   }
+
+  const userData = usersSnapshot.docs[0].data() as FirestoreUser;
+  const slackChannelId = userData.slack_channel_id;
+
+  if (!slackChannelId) {
+    throw new Error(
+      `Slackチャンネル情報が未設定です: ${channelNamePart}。管理者にチャンネルID取得の実行を依頼してください。`,
+    );
+  }
+
+  // 保存されたチャンネルIDで直接投稿
+  await postSlackMessage({
+    channel: slackChannelId,
+    markdown_text,
+    at_channel,
+  });
+}
+
+/**
+ * 全ユーザーのSlackチャンネルIDを取得してFirebaseに保存する
+ * admin用の管理機能
+ */
+export async function fetchAndSaveAllSlackChannelIds(): Promise<{
+  success: number;
+  failed: number;
+  errors: string[];
+}> {
+  const db = await getFirestore();
+  const errors: string[] = [];
+  let success = 0;
+  let failed = 0;
+
+  try {
+    // 全チャンネルを一度に取得
+    const channels = await getAllSlackChannels();
+
+    // 全ユーザーを取得
+    const usersSnapshot = await db.collection(COLLECTION_NAME).get();
+
+    // 各ユーザーに対してチャンネルIDを検索・保存
+    for (const userDoc of usersSnapshot.docs) {
+      const userData = userDoc.data() as FirestoreUser;
+      const displayName = userData.display_name?.toLowerCase();
+
+      if (!displayName) {
+        errors.push(`ユーザー ${userData.id}: display_nameが未設定`);
+        failed++;
+        continue;
+      }
+
+      // display_nameを含むチャンネルを検索
+      const matchedChannel = channels.find(
+        (channel) =>
+          channel.name && channel.name.toLowerCase().includes(displayName),
+      );
+
+      if (matchedChannel && matchedChannel.id) {
+        // チャンネルIDをFirebaseに保存
+        await userDoc.ref.update({
+          slack_channel_id: matchedChannel.id,
+          updatedAt: Timestamp.now(),
+        });
+        success++;
+      } else {
+        errors.push(
+          `ユーザー ${userData.display_name}: チャンネルが見つかりません`,
+        );
+        failed++;
+      }
+    }
+
+    return { success, failed, errors };
+  } catch (error) {
+    throw new Error(`チャンネルID取得処理中にエラーが発生しました: ${error}`);
+  }
+}
+
+/**
+ * 全Slackチャンネルを一度に取得する
+ * conversations.listを使用するが、この関数は管理者が手動実行時のみ使用
+ */
+async function getAllSlackChannels(): Promise<
+  Array<{ id?: string; name?: string }>
+> {
+  const channels: Array<{ id?: string; name?: string }> = [];
+  let cursor: string | undefined = undefined;
+
+  do {
+    const res = await slackClient.conversations.list({
+      exclude_archived: true,
+      limit: 1000,
+      cursor,
+      types: "public_channel,private_channel",
+    });
+
+    if (res.channels) {
+      channels.push(...res.channels);
+    }
+
+    cursor = res.response_metadata?.next_cursor;
+  } while (cursor);
+
+  return channels;
 }

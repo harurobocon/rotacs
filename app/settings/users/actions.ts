@@ -14,6 +14,7 @@ import {
   deleteUserFromFirestore,
   upsertUserToFirestore,
 } from "@/lib/server/firestoreUser";
+import { fetchAndSaveAllSlackChannelIds } from "@/lib/server/slack";
 
 export async function createUsers(
   state: ActionResult,
@@ -109,4 +110,25 @@ export async function deleteUsers(formData: FormData) {
   await Promise.all(userIds.map((id) => deleteUserFromFirestore(id)));
 
   return redirect("/settings/users/delete/success");
+}
+
+export async function fetchSlackChannelIds(): Promise<ActionResult> {
+  try {
+    const result = await fetchAndSaveAllSlackChannelIds();
+
+    if (result.failed > 0) {
+      return {
+        errors: `失敗詳細:\n${result.errors.join("\n")}`,
+        success: `チャンネルID取得完了: 成功 ${result.success}件, 失敗 ${result.failed}件`,
+      };
+    }
+
+    return {
+      success: `チャンネルID取得完了: 全 ${result.success}件のユーザーで成功しました`,
+    };
+  } catch (error) {
+    return {
+      errors: `チャンネルID取得に失敗しました: ${error}`,
+    };
+  }
 }

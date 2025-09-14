@@ -6,6 +6,7 @@ import { User as LuciaUser } from "lucia";
 import UserSettingsTable from "@/components/settings/user-table";
 import { db } from "@/lib/server/db";
 import NewUsersTextarea from "@/components/settings/new-users-textarea";
+import SlackChannelIdButton from "@/components/settings/slack-channel-id-button";
 import {
   settingsPageSubtitle,
   settingsPageTitle,
@@ -27,6 +28,13 @@ export default async function UserSettings() {
           CSV形式でユーザーを追加できます．
         </p>
         <NewUsersTextarea />
+      </div>
+      <div className="p-2">
+        <p className={settingsPageTitle()}>Slack設定</p>
+        <p className={settingsPageSubtitle()}>
+          全ユーザーのSlackチャンネルIDを取得してFirebaseに保存します．
+        </p>
+        <SlackChannelIdButton />
       </div>
     </div>
   );

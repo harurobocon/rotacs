@@ -8,6 +8,7 @@ export interface DatabaseUserAttributes {
   role: UserRole;
   pit_side: CheckSide;
   pit_number: number;
+  slack_channel_id?: string;
 }
 
 export interface UserTable {
@@ -18,6 +19,7 @@ export interface UserTable {
   role: UserRole;
   pit_side: CheckSide;
   pit_number: number;
+  slack_channel_id?: string;
 }
 
 export type UserRole = "admin" | "user";
