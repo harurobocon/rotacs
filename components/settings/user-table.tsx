@@ -137,9 +137,12 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
 
   const userIdHiddenInputs = React.useMemo(() => {
     if (selectedKeys !== "all") {
-      return Array.from(selectedKeys.values()).map((key) => (
-        <input key={key} name="user_id" type="hidden" value={key.toString()} />
-      ));
+      return Array.from(selectedKeys.values()).map((key) => {
+        // "user-row-" プレフィックスを除去して実際のユーザーIDを取得
+        const userId = key.toString().replace(/^user-row-/, "");
+
+        return <input key={key} name="user_id" type="hidden" value={userId} />;
+      });
     } else if (selectedKeys === "all") {
       return Array.from(userList.items).map((user) => (
         <input key={user.id} name="user_id" type="hidden" value={user.id} />

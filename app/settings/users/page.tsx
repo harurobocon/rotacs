@@ -7,6 +7,8 @@ import UserSettingsTable from "@/components/settings/user-table";
 import { db } from "@/lib/server/db";
 import NewUsersTextarea from "@/components/settings/new-users-textarea";
 import SlackChannelIdButton from "@/components/settings/slack-channel-id-button";
+import SlackChannelCreateButton from "@/components/settings/slack-channel-create-button";
+import SlackChannelDeleteButton from "@/components/settings/slack-channel-delete-button";
 import {
   settingsPageSubtitle,
   settingsPageTitle,
@@ -32,9 +34,22 @@ export default async function UserSettings() {
       <div className="p-2">
         <p className={settingsPageTitle()}>Slack設定</p>
         <p className={settingsPageSubtitle()}>
-          全ユーザーのSlackチャンネルIDを取得してFirebaseに保存します．
+          全ユーザーのSlackチャンネルを作成し、チャンネルIDをFirebaseに保存します。
         </p>
-        <SlackChannelIdButton />
+        <div className="space-y-4">
+          <div>
+            <p className="mb-2 text-sm font-medium">チャンネル作成</p>
+            <SlackChannelCreateButton />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium">チャンネル削除</p>
+            <SlackChannelDeleteButton />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium">チャンネルID取得</p>
+            <SlackChannelIdButton />
+          </div>
+        </div>
       </div>
     </div>
   );

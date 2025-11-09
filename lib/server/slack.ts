@@ -6,6 +6,13 @@ import { getFirestore } from "@/lib/firebase/serverApp";
 
 const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
 
+// システムチャンネル（予約通知用）
+const SYSTEM_CHANNELS = [
+  { name: "00_計量計測", description: "計量計測の予約通知用" },
+  { name: "00_赤テストラン", description: "赤テストランの予約通知用" },
+  { name: "00_青テストラン", description: "青テストランの予約通知用" },
+] as const;
+
 // 環境変数からSlack Bot Tokenを取得
 const slackToken = process.env.SLACK_BOT_TOKEN;
 
@@ -100,6 +107,108 @@ export async function sendSlackNotifyMessage({
 }
 
 /**
+ * 指定されたユーザーのSlackチャンネルを作成する
+ * @param user ユーザー情報
+ * @returns 作成されたチャンネルID
+ */
+export async function createSlackChannelForUser(user: {
+  username: string;
+  display_name: string;
+}): Promise<string> {
+  // usernameから先頭2桁を抽出 (例: "01_asahikawa" -> "01")
+  const prefix = user.username.match(/^(\d{2})_/)?.[1];
+
+  if (!prefix) {
+    throw new Error(
+      `ユーザー名の形式が不正です: ${user.username}（先頭2桁の数字とアンダースコアが必要）`,
+    );
+  }
+
+  // チャンネル名を生成: {username_prefix}_{display_name}
+  // Slackは小文字、数字、ハイフン、アンダースコアのみ許可（日本語も許可されるが、英数字は小文字に変換）
+  const channelName = `${prefix}_${user.display_name}`.toLowerCase();
+
+  try {
+    // Public channelとして作成
+    const result = await slackClient.conversations.create({
+      name: channelName,
+      is_private: false,
+    });
+
+    if (!result.channel?.id) {
+      throw new Error("チャンネルIDの取得に失敗しました");
+    }
+
+    return result.channel.id;
+  } catch (error: any) {
+    // チャンネルが既に存在する場合
+    if (error.data?.error === "name_taken") {
+      // 既存チャンネルを検索してIDを返す
+      const channels = await getAllSlackChannels();
+      const existingChannel = channels.find(
+        (ch) => ch.name?.toLowerCase() === channelName.toLowerCase(),
+      );
+
+      if (existingChannel?.id) {
+        // 既存チャンネルが見つかった場合はそのIDを返す
+        return existingChannel.id;
+      }
+
+      throw new Error(
+        `チャンネル "${channelName}" は既に存在しますが、IDの取得に失敗しました`,
+      );
+    }
+
+    throw new Error(
+      `チャンネル作成失敗 (${channelName}): ${error.message || error}`,
+    );
+  }
+}
+
+/**
+ * システムチャンネル（予約通知用）を作成する
+ * @returns 作成結果
+ */
+export async function createSystemChannels(): Promise<{
+  success: number;
+  failed: number;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+  let success = 0;
+  let failed = 0;
+
+  for (const channel of SYSTEM_CHANNELS) {
+    try {
+      const channelName = channel.name.toLowerCase();
+      const result = await slackClient.conversations.create({
+        name: channelName,
+        is_private: false,
+      });
+
+      if (result.channel?.id) {
+        success++;
+      } else {
+        errors.push(`${channel.name}: チャンネルIDの取得に失敗`);
+        failed++;
+      }
+    } catch (error: any) {
+      // チャンネルが既に存在する場合はスキップ
+      if (error.data?.error === "name_taken") {
+        success++;
+      } else {
+        errors.push(
+          `${channel.name}: ${error.message || error}`,
+        );
+        failed++;
+      }
+    }
+  }
+
+  return { success, failed, errors };
+}
+
+/**
  * 全ユーザーのSlackチャンネルIDを取得してFirebaseに保存する
  * admin用の管理機能
  */
@@ -155,6 +264,98 @@ export async function fetchAndSaveAllSlackChannelIds(): Promise<{
     return { success, failed, errors };
   } catch (error) {
     throw new Error(`チャンネルID取得処理中にエラーが発生しました: ${error}`);
+  }
+}
+
+/**
+ * システムが作成した全ユーザーチャンネルを削除する
+ * チャンネル名が "NN_" で始まるパターン(NN = 00-99の数字)のみ削除
+ * アーカイブ後、古い名前をリネームして名前の重複を防ぐ
+ * @param channelNamesToExclude 削除対象から除外するチャンネル名のリスト
+ */
+export async function deleteAllUserSlackChannels(
+  channelNamesToExclude: string[] = [],
+): Promise<{
+  success: number;
+  failed: number;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+  let success = 0;
+  let failed = 0;
+
+  try {
+    // 全チャンネルを取得
+    const channels = await getAllSlackChannels();
+
+    // システムが作成したチャンネルのパターン: "NN_" で始まる(NNは2桁の数字)
+    const userChannelPattern = /^\d{2}_/;
+
+    // 除外リストを小文字に変換
+    const excludeSet = new Set(
+      channelNamesToExclude.map((name) => name.toLowerCase()),
+    );
+
+    // 削除対象のチャンネルをフィルタリング
+    const channelsToDelete = channels.filter(
+      (channel) =>
+        channel.name &&
+        channel.id &&
+        userChannelPattern.test(channel.name) &&
+        !excludeSet.has(channel.name.toLowerCase()),
+    );
+
+    // 並列で削除（ただし同時実行数を制限）
+    const BATCH_SIZE = 5;
+
+    for (let i = 0; i < channelsToDelete.length; i += BATCH_SIZE) {
+      const batch = channelsToDelete.slice(i, i + BATCH_SIZE);
+
+      await Promise.all(
+        batch.map(async (channel) => {
+          try {
+            // チャンネルをアーカイブ
+            await slackClient.conversations.archive({
+              channel: channel.id!,
+            });
+
+            // アーカイブ後、古い名前を「archived-YYYYMMDD-元の名前」にリネーム
+            // これにより同じ名前で新規作成可能になる
+            const timestamp = new Date()
+              .toISOString()
+              .slice(0, 10)
+              .replace(/-/g, "");
+            const newName = `archived-${timestamp}-${channel.name}`.substring(
+              0,
+              80,
+            ); // Slackの80文字制限
+
+            try {
+              await slackClient.conversations.rename({
+                channel: channel.id!,
+                name: newName,
+              });
+            } catch (renameError: any) {
+              // リネーム失敗は警告として記録（削除自体は成功）
+              errors.push(
+                `チャンネル ${channel.name} をアーカイブしましたが、リネームに失敗しました: ${renameError.message || renameError}`,
+              );
+            }
+
+            success++;
+          } catch (error: any) {
+            errors.push(
+              `チャンネル ${channel.name} の削除失敗: ${error.message || error}`,
+            );
+            failed++;
+          }
+        }),
+      );
+    }
+
+    return { success, failed, errors };
+  } catch (error) {
+    throw new Error(`チャンネル削除処理中にエラーが発生しました: ${error}`);
   }
 }
 
