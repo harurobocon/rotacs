@@ -11,7 +11,6 @@ import {
   CheckSide,
   CheckStatus,
   CheckSchedule,
-  CheckSides,
   getCheckSides,
 } from "@/types/check";
 import { ActionResult } from "@/types/actions";
@@ -228,7 +227,7 @@ export async function updateCheckStatus(
   }
 
   try {
-    Promise.all([
+    await Promise.all([
       sendCall(0, "順番待ち", collectionId),
       sendCall(0, "呼出中", collectionId),
       sendCall(1, "呼出中", collectionId),
@@ -277,13 +276,15 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
     .withConverter(checkDataConverter())
     .get();
   const reservations = reservationDocs.docs.map((doc) => doc.data());
-  const schedule = CheckSchedule.fromUnsorted(reservations);
 
   // 計量計測モード設定を取得して使用するsides配列を決定
   const checkSettings = await getCheckLocationSettings();
   const checkType = collectionId === CHECK1_COLLECTION ? "check1" : "check2";
   const mode = checkSettings[checkType];
   const sides = getCheckSides(mode);
+
+  // modeを渡してスケジュールを作成
+  const schedule = CheckSchedule.fromUnsorted(reservations, mode);
 
   const sidesPromises = sides.map(async (side) => {
     const waiting = schedule.get(side, status);
@@ -322,11 +323,32 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       return;
     }
 
-    let receivers: string[] = [];
+    // 通知先のチャンネル名を決定
+    let collectionName = "";
+
+    if (collectionId === CHECK1_COLLECTION) {
+      collectionName = "計量計測1";
+    } else if (collectionId === CHECK2_COLLECTION) {
+      collectionName = "計量計測2";
+    }
+
+    // モード設定を取得
+    const checkSettings = await getCheckLocationSettings();
+    const checkType = collectionId === CHECK1_COLLECTION ? "check1" : "check2";
+    const mode = checkSettings[checkType];
+
+    type ReceiverInfo = { receiver: string; side?: string };
+    let receivers: ReceiverInfo[] = [];
 
     if (status === "呼出中") {
       // 呼出中時のみ管理者にも通知
-      receivers.push(`計量計測`);
+      if (mode === "dual" && target.side !== "ピット") {
+        // dualモードの場合は予約のsideに対応するシステムチャンネルに通知
+        receivers.push({ receiver: collectionName, side: target.side });
+      } else {
+        // singleモードの場合はsideなしで通知
+        receivers.push({ receiver: collectionName });
+      }
     }
 
     const targetUser = await db
@@ -336,11 +358,11 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       .executeTakeFirst();
 
     if (targetUser && targetUser.role !== "admin") {
-      receivers.push(targetUser.display_name);
+      receivers.push({ receiver: targetUser.display_name });
     }
 
     // 通知を送信
-    const p = receivers.map((receiver) => {
+    const p = receivers.map(({ receiver, side }) => {
       // 通知内容を作成
       let message = "";
 
@@ -359,7 +381,7 @@ https://rotacs.yuchi.jp/check1`;
         receiver,
         markdown_text: message,
         at_channel: true,
-        side: target.side !== "ピット" ? target.side : undefined,
+        side,
       });
     });
 
@@ -410,12 +432,30 @@ async function sendNewReservationNotification(
   const message = `${collectionName}に新規予約[${booker.display_name}]が入りました。実施予定の予約が空の状態からの最初の予約です。予約を確認して実施準備をお願いします。\nhttps://rotacs.yuchi.jp${checkUrl}`;
 
   try {
-    await sendSlackNotifyMessage({
-      receiver: collectionName,
-      markdown_text: message,
-      at_channel: true,
-      side: mode === "dual" ? booker.pit_side : undefined,
-    });
+    if (mode === "dual") {
+      // dualモードの場合は東と西の両方のシステムチャンネルに通知
+      await Promise.all([
+        sendSlackNotifyMessage({
+          receiver: collectionName,
+          markdown_text: message,
+          at_channel: true,
+          side: "東",
+        }),
+        sendSlackNotifyMessage({
+          receiver: collectionName,
+          markdown_text: message,
+          at_channel: true,
+          side: "西",
+        }),
+      ]);
+    } else {
+      // singleモードの場合はsideなしで通知
+      await sendSlackNotifyMessage({
+        receiver: collectionName,
+        markdown_text: message,
+        at_channel: true,
+      });
+    }
   } catch (e: any) {
     console.trace(`新規予約通知送信エラー: ${e.toString()}`);
     throw e;
