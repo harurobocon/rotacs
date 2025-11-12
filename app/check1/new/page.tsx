@@ -16,6 +16,11 @@ import { CHECK1_COLLECTION } from "@/types/check";
 import { createCheckMessageCard } from "@/lib/server/check";
 import MessageCardForm from "@/components/MessageCardForm";
 import { useReservationControl } from "@/hooks/useReservationControl";
+import {
+  getCheckLocationSettings,
+  listenCheckLocationSettings,
+} from "@/lib/client/settings";
+import { CheckLocationMode } from "@/types/settings";
 
 const initialState: ActionResult = {
   errors: "",
@@ -28,6 +33,7 @@ export default function NewCheck() {
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
+  const [mode, setMode] = React.useState<CheckLocationMode>("single");
   const [formState, formAction] = useFormState(createCheck, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("check1");
@@ -50,6 +56,20 @@ export default function NewCheck() {
     getAllUsersJson().then((usersJson: string) => {
       setUsers(JSON.parse(usersJson));
     });
+
+    // 計量計測モード設定を取得
+    getCheckLocationSettings().then((settings) => {
+      setMode(settings.check1);
+    });
+
+    // モード設定の変更をリスニング
+    const unsubscribe = listenCheckLocationSettings((settings) => {
+      setMode(settings.check1);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const usersDropdown = React.useMemo(() => {
@@ -83,7 +103,11 @@ export default function NewCheck() {
     <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
         <p className="pb-2 text-xl font-medium">新規計量計測1予約（前日）</p>
-        <p className="text-sm text-default-500">計量計測エリアは1つです．</p>
+        <p className="text-sm text-default-500">
+          {mode === "dual"
+            ? "計量計測場所は西・東の2箇所です。ピットサイドに応じて自動的に振り分けられます。"
+            : "計量計測エリアは1つです。"}
+        </p>
         <form
           action={formAction}
           className="flex flex-col gap-3"

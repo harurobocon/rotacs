@@ -4,7 +4,10 @@ import React from "react";
 import { Button, Checkbox, CheckboxGroup } from "@heroui/react";
 import { useFormState } from "react-dom";
 
-import { deleteSlackChannelsForAllUsers } from "@/app/settings/users/actions";
+import {
+  deleteSlackChannelsForAllUsers,
+  getTeamChannels,
+} from "@/app/settings/users/actions";
 import { ActionResult } from "@/types/actions";
 import {
   getCheckLocationSettings,
@@ -12,6 +15,12 @@ import {
 } from "@/lib/client/settings";
 
 const initialState: ActionResult = {};
+
+// チームチャンネル情報の型
+type TeamChannel = {
+  name: string;
+  displayName: string;
+};
 
 export default function SlackChannelDeleteButton() {
   const [isLoading, setIsLoading] = React.useState(false);
@@ -21,6 +30,7 @@ export default function SlackChannelDeleteButton() {
   const [systemChannels, setSystemChannels] = React.useState<
     Array<{ name: string; description: string }>
   >([]);
+  const [teamChannels, setTeamChannels] = React.useState<TeamChannel[]>([]);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [state, formAction] = useFormState(
     deleteSlackChannelsForAllUsers,
@@ -32,6 +42,11 @@ export default function SlackChannelDeleteButton() {
     setShowConfirm(false);
   }, [state]);
 
+  // チームチャンネル一覧を取得
+  React.useEffect(() => {
+    getTeamChannels().then(setTeamChannels);
+  }, []);
+
   // モード設定に応じてシステムチャンネルリストを動的に生成
   React.useEffect(() => {
     const updateSystemChannels = (settings: any) => {
@@ -41,11 +56,11 @@ export default function SlackChannelDeleteButton() {
       if (settings.check1 === "dual") {
         channels.push(
           {
-            name: "00_計量計測1西",
+            name: "00_西_計量計測1",
             description: "計量計測1（西）の予約通知用",
           },
           {
-            name: "00_計量計測1東",
+            name: "00_東_計量計測1",
             description: "計量計測1（東）の予約通知用",
           },
         );
@@ -60,11 +75,11 @@ export default function SlackChannelDeleteButton() {
       if (settings.check2 === "dual") {
         channels.push(
           {
-            name: "00_計量計測2西",
+            name: "00_西_計量計測2",
             description: "計量計測2（西）の予約通知用",
           },
           {
-            name: "00_計量計測2東",
+            name: "00_東_計量計測2",
             description: "計量計測2（東）の予約通知用",
           },
         );
@@ -114,6 +129,34 @@ export default function SlackChannelDeleteButton() {
     }
   };
 
+  // チームチャンネルの一括選択/解除
+  const handleTeamChannelsToggle = (checked: boolean) => {
+    const teamChannelNames = teamChannels.map((t) => t.name);
+
+    if (checked) {
+      // すべてのチームチャンネルを追加
+      setExcludedChannels((prev) => [
+        ...prev.filter((ch) => !teamChannelNames.includes(ch)),
+        ...teamChannelNames,
+      ]);
+    } else {
+      // すべてのチームチャンネルを削除
+      setExcludedChannels((prev) =>
+        prev.filter((ch) => !teamChannelNames.includes(ch)),
+      );
+    }
+  };
+
+  // チームチャンネルがすべて選択されているか
+  const allTeamChannelsSelected =
+    teamChannels.length > 0 &&
+    teamChannels.every((t) => excludedChannels.includes(t.name));
+
+  // チームチャンネルが一部選択されているか
+  const someTeamChannelsSelected =
+    teamChannels.some((t) => excludedChannels.includes(t.name)) &&
+    !allTeamChannelsSelected;
+
   return (
     <div className="space-y-4">
       <form ref={formRef} action={formAction} onSubmit={handleSubmit}>
@@ -122,16 +165,53 @@ export default function SlackChannelDeleteButton() {
           <p className="mb-2 text-sm font-medium">
             削除から除外するチャンネル:
           </p>
-          <CheckboxGroup
-            value={excludedChannels}
-            onValueChange={setExcludedChannels}
-          >
-            {systemChannels.map((channel) => (
-              <Checkbox key={channel.name} name="exclude" value={channel.name}>
-                {channel.name} ({channel.description})
+          <div className="space-y-3">
+            {/* システムチャンネル */}
+            <div>
+              <p className="mb-1 text-xs font-semibold text-gray-600">
+                システムチャンネル
+              </p>
+              <CheckboxGroup
+                value={excludedChannels}
+                onValueChange={setExcludedChannels}
+              >
+                {systemChannels.map((channel) => (
+                  <Checkbox
+                    key={channel.name}
+                    name="exclude"
+                    value={channel.name}
+                    className="ml-4"
+                  >
+                    {channel.name} ({channel.description})
+                  </Checkbox>
+                ))}
+              </CheckboxGroup>
+            </div>
+
+            {/* チームチャンネル */}
+            <div>
+              <Checkbox
+                isSelected={allTeamChannelsSelected}
+                isIndeterminate={someTeamChannelsSelected}
+                onValueChange={handleTeamChannelsToggle}
+              >
+                <span className="text-xs font-semibold text-gray-600">
+                  チームチャンネル
+                </span>
               </Checkbox>
-            ))}
-          </CheckboxGroup>
+              <CheckboxGroup
+                value={excludedChannels}
+                onValueChange={setExcludedChannels}
+                className="ml-4 mt-1"
+              >
+                {teamChannels.map((team) => (
+                  <Checkbox key={team.name} name="exclude" value={team.name}>
+                    {team.name}
+                  </Checkbox>
+                ))}
+              </CheckboxGroup>
+            </div>
+          </div>
         </div>
 
         <Button

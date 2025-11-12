@@ -24,29 +24,73 @@ import {
   CHECK2_COLLECTION,
   CheckSchedule,
   CheckSide,
-  CheckSides,
   CheckStatus,
+  getCheckSides,
 } from "@/types/check";
+import {
+  getCheckLocationSettings,
+  listenCheckLocationSettings,
+} from "@/lib/client/settings";
+import { CheckLocationMode } from "@/types/settings";
 
 export default function Check() {
   const [schedule, setSchedule] = React.useState<CheckSchedule | undefined>(
     undefined,
   );
+  const [sides, setSides] = React.useState<CheckSide[]>(["ピット"]);
+  const [mode, setMode] = React.useState<CheckLocationMode>("single");
 
   React.useEffect(() => {
-    getCheckSchedule(CHECK2_COLLECTION).then((_newSchedule) => {
-      const newSchedule = new CheckSchedule(_newSchedule);
+    // 計量計測モード設定を取得
+    getCheckLocationSettings().then((settings) => {
+      const currentMode = settings.check2;
 
-      setSchedule(newSchedule);
-    });
+      setMode(currentMode);
+      setSides(getCheckSides(currentMode));
 
-    return onCheckCollectionChange(CHECK2_COLLECTION, (_) => {
-      getCheckSchedule(CHECK2_COLLECTION).then((_newSchedule) => {
+      // モード設定後にスケジュールを取得
+      getCheckSchedule(CHECK2_COLLECTION, currentMode).then((_newSchedule) => {
         const newSchedule = new CheckSchedule(_newSchedule);
 
         setSchedule(newSchedule);
       });
     });
+
+    // モード設定の変更をリスニング
+    const unsubscribeSettings = listenCheckLocationSettings((settings) => {
+      const currentMode = settings.check2;
+
+      setMode(currentMode);
+      setSides(getCheckSides(currentMode));
+
+      // モード変更時にスケジュールを再取得
+      getCheckSchedule(CHECK2_COLLECTION, currentMode).then((_newSchedule) => {
+        const newSchedule = new CheckSchedule(_newSchedule);
+
+        setSchedule(newSchedule);
+      });
+    });
+
+    const unsubscribeSchedule = onCheckCollectionChange(
+      CHECK2_COLLECTION,
+      (_) => {
+        // 現在のモードを使用してスケジュールを更新
+        getCheckLocationSettings().then((settings) => {
+          getCheckSchedule(CHECK2_COLLECTION, settings.check2).then(
+            (_newSchedule) => {
+              const newSchedule = new CheckSchedule(_newSchedule);
+
+              setSchedule(newSchedule);
+            },
+          );
+        });
+      },
+    );
+
+    return () => {
+      unsubscribeSettings();
+      unsubscribeSchedule();
+    };
   }, []);
 
   const statusOrder: CheckStatus[] = [
@@ -59,8 +103,12 @@ export default function Check() {
     "キャンセル",
   ];
 
-  function getBgColor(side: CheckSide, status: CheckStatus) {
-    return side === "ピット" ? "bg-warning-50" : "bg-success-50";
+  function getBgColor(side: CheckSide, _status: CheckStatus) {
+    if (mode === "dual") {
+      return side === "東" ? "bg-warning-50" : "bg-success-50";
+    }
+
+    return "bg-warning-50";
   }
 
   const scheduleView =
@@ -83,9 +131,11 @@ export default function Check() {
           >
             <div
               key={`${status}-items`}
-              className="my-4 grid grid-cols-1 gap-4 md:gap-8"
+              className={`my-4 grid gap-4 md:gap-8 ${
+                mode === "dual" ? "grid-cols-2" : "grid-cols-1"
+              }`}
             >
-              {CheckSides.map((side) => (
+              {sides.map((side) => (
                 <div
                   key={side}
                   className="grid grid-cols-1 place-content-start gap-4"

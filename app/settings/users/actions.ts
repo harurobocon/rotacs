@@ -21,8 +21,32 @@ import {
   createSlackChannelForUser,
   deleteAllUserSlackChannels,
   createSystemChannels,
+  fetchAndSaveSystemChannelIds,
 } from "@/lib/server/slack";
 import { getFirestore } from "@/lib/firebase/serverApp";
+
+export async function getTeamChannels(): Promise<
+  Array<{ name: string; displayName: string }>
+> {
+  const users = await db
+    .selectFrom("user")
+    .select(["username", "display_name"])
+    .where("role", "=", "user")
+    .orderBy("username", "asc")
+    .execute();
+
+  return users.map((user) => {
+    // usernameから先頭2桁を抽出 (例: "01_asahikawa" -> "01")
+    const prefix = user.username.match(/^(\d{2})_/)?.[1] || user.username;
+    // チャンネル名を生成: {prefix}_{display_name}
+    const channelName = `${prefix}_${user.display_name}`.toLowerCase();
+
+    return {
+      name: channelName,
+      displayName: user.display_name,
+    };
+  });
+}
 
 export async function createUsers(
   state: ActionResult,
@@ -159,6 +183,36 @@ export async function fetchSlackChannelIds(): Promise<ActionResult> {
   } catch (error) {
     return {
       errors: `チャンネルID取得に失敗しました: ${error}`,
+    };
+  }
+}
+
+export async function fetchSystemChannelIds(): Promise<ActionResult> {
+  // Admin権限チェック
+  const { user } = await validateRequest();
+
+  if (!user || user.role !== "admin") {
+    return {
+      errors: "権限がありません。管理者のみがこの操作を実行できます。",
+    };
+  }
+
+  try {
+    const result = await fetchAndSaveSystemChannelIds();
+
+    if (result.failed > 0) {
+      return {
+        errors: `失敗詳細:\n${result.errors.join("\n")}`,
+        success: `システムチャンネルID取得完了: 成功 ${result.success}件, 失敗 ${result.failed}件`,
+      };
+    }
+
+    return {
+      success: `システムチャンネルID取得完了: 全 ${result.success}件のチャンネルで成功しました`,
+    };
+  } catch (error) {
+    return {
+      errors: `システムチャンネルID取得に失敗しました: ${error}`,
     };
   }
 }

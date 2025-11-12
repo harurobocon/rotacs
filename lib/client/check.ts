@@ -41,6 +41,7 @@ export async function getCheckReservation(
 
 export async function getCheckSchedule(
   collectionId: string,
+  mode: "single" | "dual",
 ): Promise<CheckSchedule> {
   const q = collection(firestore, collectionId).withConverter(
     checkDataConverter(),
@@ -48,7 +49,7 @@ export async function getCheckSchedule(
   const snapshot = await getDocs(q);
   const reservations = snapshot.docs.map((doc) => doc.data());
 
-  let schedule = CheckSchedule.fromUnsorted(reservations);
+  let schedule = CheckSchedule.fromUnsorted(reservations, mode);
 
   return schedule;
 }

@@ -48,6 +48,7 @@ oauth_config:
     bot:
       - channels:manage      # Create and manage public channels
       - channels:read        # View basic information about public channels
+      - channels:join        # Join public channels
       - chat:write           # Send messages as @rotacs-bot
       - chat:write.public    # Send messages to channels without joining
       - groups:read          # View basic information about private channels

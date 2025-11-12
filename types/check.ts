@@ -18,8 +18,16 @@ export const CheckStatuses = [
 ] as const;
 export type CheckStatus = (typeof CheckStatuses)[number];
 
-export const CheckSides = ["ピット"] as const;
-export type CheckSide = (typeof CheckSides)[number];
+// CheckSideは動的に変化するため、型定義のみ
+export type CheckSide = "ピット" | "西" | "東";
+
+// 実行時の実際のsides配列を返すヘルパー関数
+export function getCheckSides(mode: "single" | "dual"): CheckSide[] {
+  return mode === "dual" ? ["西", "東"] : ["ピット"];
+}
+
+// 下位互換性のため、デフォルト値として維持
+export const CheckSides: CheckSide[] = ["ピット"];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
   r1ok: boolean;
@@ -49,16 +57,21 @@ export class CheckSchedule extends Schedule<CheckStatus, CheckSide> {
     super(initial);
   }
 
-  static fromUnsorted(reservations: CheckReservation[]) {
+  static fromUnsorted(
+    reservations: CheckReservation[],
+    mode: "single" | "dual",
+  ) {
     const schedule = new CheckSchedule();
 
     if (reservations.length === 0) {
-      console.info("まだ計量計測予約がありません");
-
+      // まだ計量計測予約がありません
       return schedule;
     }
 
-    CheckSides.forEach((side) => {
+    // モード設定に基づいて有効なsideを決定
+    const validSides = getCheckSides(mode);
+
+    validSides.forEach((side) => {
       CheckStatuses.forEach((status) => {
         const filtered = reservations.filter((reservation) => {
           return reservation.side === side && reservation.status === status;

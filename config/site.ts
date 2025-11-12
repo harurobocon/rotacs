@@ -56,6 +56,10 @@ export const routes: Route = {
       label: "ユーザー",
       href: "/settings/users",
     },
+    checkMode: {
+      label: "計量計測モード",
+      href: "/settings/check-mode",
+    },
     reservations: {
       label: "予約設定",
       href: "/settings/reservations",
@@ -101,6 +105,7 @@ export const siteConfig = {
   adminSettingTabItems: [
     routes.settings.notification,
     routes.settings.users,
+    routes.settings.checkMode,
     routes.settings.reservations.control,
   ],
   links: {

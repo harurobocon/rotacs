@@ -3,15 +3,55 @@ import { Timestamp } from "firebase-admin/firestore";
 
 import { FirestoreUser } from "@/types/user";
 import { getFirestore } from "@/lib/firebase/serverApp";
+import { getCheckLocationSettings } from "@/lib/server/settings";
+import {
+  RESERVATION_SETTINGS_COLLECTION,
+  SYSTEM_SLACK_CHANNELS_DOCUMENT_ID,
+} from "@/types/settings";
 
 const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
 
-// システムチャンネル（予約通知用）
-const SYSTEM_CHANNELS = [
-  { name: "00_計量計測", description: "計量計測の予約通知用" },
-  { name: "00_赤テストラン", description: "赤テストランの予約通知用" },
-  { name: "00_青テストラン", description: "青テストランの予約通知用" },
-] as const;
+// システムチャンネル（予約通知用）を動的に生成する関数
+async function getSystemChannels(): Promise<
+  Array<{ name: string; description: string }>
+> {
+  const settings = await getCheckLocationSettings();
+  const channels: Array<{ name: string; description: string }> = [];
+
+  // 計量計測1のモードに応じてチャンネルを追加
+  if (settings.check1 === "dual") {
+    channels.push(
+      { name: "00_西_計量計測1", description: "計量計測1（西）の予約通知用" },
+      { name: "00_東_計量計測1", description: "計量計測1（東）の予約通知用" },
+    );
+  } else {
+    channels.push({
+      name: "00_計量計測1",
+      description: "計量計測1の予約通知用",
+    });
+  }
+
+  // 計量計測2のモードに応じてチャンネルを追加
+  if (settings.check2 === "dual") {
+    channels.push(
+      { name: "00_西_計量計測2", description: "計量計測2（西）の予約通知用" },
+      { name: "00_東_計量計測2", description: "計量計測2（東）の予約通知用" },
+    );
+  } else {
+    channels.push({
+      name: "00_計量計測2",
+      description: "計量計測2の予約通知用",
+    });
+  }
+
+  // テストランチャンネルを追加
+  channels.push(
+    { name: "00_赤テストラン", description: "赤テストランの予約通知用" },
+    { name: "00_青テストラン", description: "青テストランの予約通知用" },
+  );
+
+  return channels;
+}
 
 // 環境変数からSlack Bot Tokenを取得
 const slackToken = process.env.SLACK_BOT_TOKEN;
@@ -22,6 +62,82 @@ if (!slackToken) {
 
 // WebClientインスタンス生成
 export const slackClient = new WebClient(slackToken);
+
+/**
+ * システムチャンネルのIDを取得する
+ * Firestoreにキャッシュされたチャンネル IDを使用
+ */
+async function getSystemChannelId(
+  channelDisplayName: string,
+  side?: string,
+): Promise<string> {
+  const db = await getFirestore();
+  const settings = await getCheckLocationSettings();
+
+  // チャンネル表示名からSlackチャンネル名を生成
+  let channelName = "";
+
+  if (channelDisplayName.includes("計量計測1")) {
+    if (settings.check1 === "dual" && side) {
+      channelName = `00_${side}_計量計測1`;
+    } else {
+      channelName = "00_計量計測1";
+    }
+  } else if (channelDisplayName.includes("計量計測2")) {
+    if (settings.check2 === "dual" && side) {
+      channelName = `00_${side}_計量計測2`;
+    } else {
+      channelName = "00_計量計測2";
+    }
+  } else if (channelDisplayName.includes("赤テストラン")) {
+    channelName = "00_赤テストラン";
+  } else if (channelDisplayName.includes("青テストラン")) {
+    channelName = "00_青テストラン";
+  }
+
+  if (!channelName) {
+    throw new Error(`不明なシステムチャンネル: ${channelDisplayName}`);
+  }
+
+  // Firestoreからシステムチャンネル情報を取得
+  const channelDoc = await db
+    .collection(RESERVATION_SETTINGS_COLLECTION)
+    .doc(SYSTEM_SLACK_CHANNELS_DOCUMENT_ID)
+    .get();
+
+  if (channelDoc.exists) {
+    const data = channelDoc.data();
+    if (data?.[channelName]) {
+      return data[channelName];
+    }
+  }
+
+  // キャッシュがない場合は検索して保存
+  const channels = await getAllSlackChannels();
+  const targetChannel = channels.find(
+    (ch) => ch.name?.toLowerCase() === channelName.toLowerCase(),
+  );
+
+  if (!targetChannel?.id) {
+    throw new Error(`システムチャンネルが見つかりません: ${channelName}`);
+  }
+
+  // Firestoreに保存（既存データとマージ）
+  const existingData = channelDoc.exists ? channelDoc.data() : {};
+  await db
+    .collection(RESERVATION_SETTINGS_COLLECTION)
+    .doc(SYSTEM_SLACK_CHANNELS_DOCUMENT_ID)
+    .set(
+      {
+        ...existingData,
+        [channelName]: targetChannel.id,
+        [`${channelName}_updated_at`]: Timestamp.now(),
+      },
+      { merge: true },
+    );
+
+  return targetChannel.id;
+}
 
 /**
  * 指定したSlackチャンネルにメッセージを投稿する
@@ -61,15 +177,18 @@ export async function postSlackMessage({
  * @param receiver User型 (luciaのUser)
  * @param markdown_text メッセージ内容 (mrkdwn形式)
  * @param at_channel @channelで通知する場合true (デフォルト: false)
+ * @param side 計量計測のside情報（"西" | "東" | undefined）
  */
 export async function sendSlackNotifyMessage({
   receiver,
   markdown_text,
   at_channel = false,
+  side,
 }: {
   receiver: string;
   markdown_text: string;
   at_channel?: boolean;
+  side?: string;
 }): Promise<void> {
   const channelNamePart = receiver ?? "";
 
@@ -77,8 +196,23 @@ export async function sendSlackNotifyMessage({
     throw new Error("receiver.display_nameが未設定です");
   }
 
-  // Firebaseからユーザー情報とslack_channel_idを取得
   const db = await getFirestore();
+
+  // システムチャンネル（計量計測など）の場合
+  if (
+    channelNamePart.includes("計量計測") ||
+    channelNamePart.includes("テストラン")
+  ) {
+    const channelId = await getSystemChannelId(channelNamePart, side);
+    await postSlackMessage({
+      channel: channelId,
+      markdown_text,
+      at_channel,
+    });
+    return;
+  }
+
+  // 通常のユーザーチャンネルの場合
   const usersSnapshot = await db
     .collection(COLLECTION_NAME)
     .where("display_name", "==", channelNamePart)
@@ -178,7 +312,10 @@ export async function createSystemChannels(): Promise<{
   let success = 0;
   let failed = 0;
 
-  for (const channel of SYSTEM_CHANNELS) {
+  // 現在のモード設定に応じたシステムチャンネル一覧を取得
+  const systemChannels = await getSystemChannels();
+
+  for (const channel of systemChannels) {
     try {
       const channelName = channel.name.toLowerCase();
       const result = await slackClient.conversations.create({
@@ -197,9 +334,7 @@ export async function createSystemChannels(): Promise<{
       if (error.data?.error === "name_taken") {
         success++;
       } else {
-        errors.push(
-          `${channel.name}: ${error.message || error}`,
-        );
+        errors.push(`${channel.name}: ${error.message || error}`);
         failed++;
       }
     }
@@ -268,6 +403,56 @@ export async function fetchAndSaveAllSlackChannelIds(): Promise<{
 }
 
 /**
+ * 全システムチャンネルのIDを取得してFirestoreに保存する
+ */
+export async function fetchAndSaveSystemChannelIds(): Promise<{
+  success: number;
+  failed: number;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+  let success = 0;
+  let failed = 0;
+
+  try {
+    const channels = await getAllSlackChannels();
+    const systemChannels = await getSystemChannels();
+    const db = await getFirestore();
+
+    const channelIdMap: Record<string, any> = {};
+
+    for (const sysChannel of systemChannels) {
+      const channelName = sysChannel.name.toLowerCase();
+      const slackChannel = channels.find(
+        (ch) => ch.name?.toLowerCase() === channelName,
+      );
+
+      if (slackChannel?.id) {
+        channelIdMap[sysChannel.name] = slackChannel.id;
+        channelIdMap[`${sysChannel.name}_updated_at`] = Timestamp.now();
+        success++;
+      } else {
+        errors.push(`${sysChannel.name}: チャンネルが見つかりません`);
+        failed++;
+      }
+    }
+
+    // 一括で保存
+    if (Object.keys(channelIdMap).length > 0) {
+      await db
+        .collection(RESERVATION_SETTINGS_COLLECTION)
+        .doc(SYSTEM_SLACK_CHANNELS_DOCUMENT_ID)
+        .set(channelIdMap, { merge: true });
+    }
+  } catch (error: any) {
+    errors.push(`エラー: ${error.message || error}`);
+    failed++;
+  }
+
+  return { success, failed, errors };
+}
+
+/**
  * システムが作成した全ユーザーチャンネルを削除する
  * チャンネル名が "NN_" で始まるパターン(NN = 00-99の数字)のみ削除
  * アーカイブ後、古い名前をリネームして名前の重複を防ぐ
@@ -314,12 +499,7 @@ export async function deleteAllUserSlackChannels(
       await Promise.all(
         batch.map(async (channel) => {
           try {
-            // チャンネルをアーカイブ
-            await slackClient.conversations.archive({
-              channel: channel.id!,
-            });
-
-            // アーカイブ後、古い名前を「archived-YYYYMMDD-元の名前」にリネーム
+            // まず、古い名前を「archived-YYYYMMDD-元の名前」にリネーム
             // これにより同じ名前で新規作成可能になる
             const timestamp = new Date()
               .toISOString()
@@ -330,17 +510,15 @@ export async function deleteAllUserSlackChannels(
               80,
             ); // Slackの80文字制限
 
-            try {
-              await slackClient.conversations.rename({
-                channel: channel.id!,
-                name: newName,
-              });
-            } catch (renameError: any) {
-              // リネーム失敗は警告として記録（削除自体は成功）
-              errors.push(
-                `チャンネル ${channel.name} をアーカイブしましたが、リネームに失敗しました: ${renameError.message || renameError}`,
-              );
-            }
+            await slackClient.conversations.rename({
+              channel: channel.id!,
+              name: newName,
+            });
+
+            // リネーム後にチャンネルをアーカイブ
+            await slackClient.conversations.archive({
+              channel: channel.id!,
+            });
 
             success++;
           } catch (error: any) {

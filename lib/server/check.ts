@@ -12,6 +12,7 @@ import {
   CheckStatus,
   CheckSchedule,
   CheckSides,
+  getCheckSides,
 } from "@/types/check";
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
@@ -19,6 +20,8 @@ import { validateRequest } from "@/lib/server/auth";
 import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { checkDataConverter } from "@/lib/server/converters";
 import { db } from "@/lib/server/db";
+import { getCheckLocationSettings } from "@/lib/server/settings";
+import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
 
 async function validateFormData(formData: FormData, currentUser: User) {
   let { booker, collectionId } = await _validateFormData<CheckSide>(
@@ -98,12 +101,27 @@ export async function createCheck(
       const finishedSnapshot = await transaction.get(finishedRef);
       const reservationCount = finishedSnapshot.size + 1;
 
+      // 計量計測モード設定を取得してsideを決定
+      const checkSettings = await getCheckLocationSettings();
+      const checkType =
+        collectionId === CHECK1_COLLECTION ? "check1" : "check2";
+      const mode = checkSettings[checkType];
+
+      let side: CheckSide;
+      if (mode === "dual") {
+        // 2箇所モード: ユーザーのpit_sideを使用（西/東）
+        side = booker.pit_side as CheckSide;
+      } else {
+        // 1箇所モード: "ピット"を使用
+        side = "ピット";
+      }
+
       const check = new CheckReservation({
         user_id: booker.id,
         user_display_name: booker.display_name,
         reservation_count: reservationCount,
         status: "順番待ち",
-        side: booker.pit_side,
+        side: side,
         pit_number: booker.pit_number,
       });
 
@@ -261,7 +279,13 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
   const reservations = reservationDocs.docs.map((doc) => doc.data());
   const schedule = CheckSchedule.fromUnsorted(reservations);
 
-  const sidesPromises = CheckSides.map(async (side) => {
+  // 計量計測モード設定を取得して使用するsides配列を決定
+  const checkSettings = await getCheckLocationSettings();
+  const checkType = collectionId === CHECK1_COLLECTION ? "check1" : "check2";
+  const mode = checkSettings[checkType];
+  const sides = getCheckSides(mode);
+
+  const sidesPromises = sides.map(async (side) => {
     const waiting = schedule.get(side, status);
 
     if (waiting.length < at + 1) {
@@ -335,6 +359,7 @@ https://rotacs.yuchi.jp/check1`;
         receiver,
         markdown_text: message,
         at_channel: true,
+        side: target.side !== "ピット" ? target.side : undefined,
       });
     });
 
@@ -362,6 +387,11 @@ async function sendNewReservationNotification(
   booker: User,
   collectionId: string,
 ) {
+  // モード設定を取得
+  const checkSettings = await getCheckLocationSettings();
+  const checkType = collectionId === CHECK1_COLLECTION ? "check1" : "check2";
+  const mode = checkSettings[checkType];
+
   let collectionName = "";
 
   if (collectionId === process.env.NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION) {
@@ -381,9 +411,10 @@ async function sendNewReservationNotification(
 
   try {
     await sendSlackNotifyMessage({
-      receiver: `計量計測`,
+      receiver: collectionName,
       markdown_text: message,
       at_channel: true,
+      side: mode === "dual" ? booker.pit_side : undefined,
     });
   } catch (e: any) {
     console.trace(`新規予約通知送信エラー: ${e.toString()}`);

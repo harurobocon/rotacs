@@ -9,6 +9,9 @@ import {
   RESERVATION_SETTINGS_DOCUMENT_ID,
   RESERVATION_TYPES,
   ReservationSettings,
+  CHECK_LOCATION_SETTINGS_COLLECTION,
+  CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
+  CheckLocationSettings,
 } from "@/types/settings";
 
 const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
@@ -57,4 +60,46 @@ export async function getReservationSettings(): Promise<ReservationSettings> {
   } else {
     return defaultSettings;
   }
+}
+
+// 計量計測モード設定
+const defaultCheckLocationSettings: CheckLocationSettings = {
+  check1: "single",
+  check2: "single",
+};
+
+export async function getCheckLocationSettings(): Promise<CheckLocationSettings> {
+  const settingsRef = doc(
+    firestore,
+    CHECK_LOCATION_SETTINGS_COLLECTION,
+    CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<CheckLocationSettings>());
+
+  const docSnap = await getDoc(settingsRef);
+
+  if (docSnap.exists()) {
+    return docSnap.data();
+  } else {
+    return defaultCheckLocationSettings;
+  }
+}
+
+export function listenCheckLocationSettings(
+  callback: (settings: CheckLocationSettings) => void,
+): () => void {
+  const settingsRef = doc(
+    firestore,
+    CHECK_LOCATION_SETTINGS_COLLECTION,
+    CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<CheckLocationSettings>());
+
+  const unsubscribe = onSnapshot(settingsRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data());
+    } else {
+      callback(defaultCheckLocationSettings);
+    }
+  });
+
+  return unsubscribe;
 }
