@@ -20,6 +20,8 @@ import {
 import { capitalize } from "@heroui/shared-utils";
 import { User as LuciaUser } from "lucia";
 import { useAsyncList } from "@react-stately/data";
+import { useFormState, useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 
 import { UserRole } from "@/types/auth";
 import { deleteUsers } from "@/app/settings/users/actions";
@@ -43,12 +45,29 @@ const roleColorMap: Record<UserRole, ChipProps["color"]> = {
   user: "default",
 };
 
+// フォーム内でuseFormStatusを使用するための削除ボタンコンポーネント
+function DeleteButton({ isUserSelected }: { isUserSelected: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      color="danger"
+      isDisabled={!isUserSelected}
+      isLoading={pending}
+      type="submit"
+    >
+      選択したユーザーを削除
+    </Button>
+  );
+}
+
 export default function UserSettingsTable(props: UserSettingsTableProps) {
   const [isTableLoading, setIsTableLoading] = React.useState(true);
-  const [isDeleting, setIsDeleting] = React.useState(false);
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
     new Set([]),
   );
+  const router = useRouter();
+  const [state, formAction, isPending] = useFormState(deleteUsers, {});
 
   let userList = useAsyncList<LuciaUser>({
     async load() {
@@ -76,9 +95,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
     },
   });
 
-  const handleDeleteSelectedUsers = () => {
-    setIsDeleting(true);
-  };
+
 
   const renderCell = React.useCallback(
     (user: LuciaUser, columnKey: React.Key) => {
@@ -154,22 +171,27 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
 
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex w-full justify-end gap-3">
-        <form action={deleteUsers} onSubmit={handleDeleteSelectedUsers}>
-          <Button
-            color="danger"
-            isDisabled={!isUserSelected}
-            isLoading={isDeleting}
-            type="submit"
-          >
-            選択したユーザーを削除
-          </Button>
-          {/* Hidden input for selected user ids */}
-          {userIdHiddenInputs}
-        </form>
+      <div className="flex w-full flex-col gap-3">
+        {state?.errors && (
+          <div className="rounded-lg bg-danger-50 p-3 text-sm text-danger">
+            {state.errors}
+          </div>
+        )}
+        {state?.success && (
+          <div className="rounded-lg bg-success-50 p-3 text-sm text-success">
+            {state.success}
+          </div>
+        )}
+        <div className="flex w-full justify-end">
+          <form action={formAction}>
+            <DeleteButton isUserSelected={isUserSelected} />
+            {/* Hidden input for selected user ids */}
+            {userIdHiddenInputs}
+          </form>
+        </div>
       </div>
     );
-  }, [handleDeleteSelectedUsers]);
+  }, [formAction, isUserSelected, userIdHiddenInputs, state]);
 
   return (
     <Card className={cardStyles()} shadow="none">

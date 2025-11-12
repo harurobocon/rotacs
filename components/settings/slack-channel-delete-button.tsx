@@ -6,21 +6,21 @@ import { useFormState } from "react-dom";
 
 import { deleteSlackChannelsForAllUsers } from "@/app/settings/users/actions";
 import { ActionResult } from "@/types/actions";
+import {
+  getCheckLocationSettings,
+  listenCheckLocationSettings,
+} from "@/lib/client/settings";
 
 const initialState: ActionResult = {};
-
-// システムチャンネルのリスト（クライアントサイドで使用）
-const SYSTEM_CHANNEL_LIST = [
-  { name: "00_計量計測", description: "計量計測の予約通知用" },
-  { name: "00_赤テストラン", description: "赤テストランの予約通知用" },
-  { name: "00_青テストラン", description: "青テストランの予約通知用" },
-];
 
 export default function SlackChannelDeleteButton() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [showDetails, setShowDetails] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [excludedChannels, setExcludedChannels] = React.useState<string[]>([]);
+  const [systemChannels, setSystemChannels] = React.useState<
+    Array<{ name: string; description: string }>
+  >([]);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [state, formAction] = useFormState(
     deleteSlackChannelsForAllUsers,
@@ -31,6 +31,69 @@ export default function SlackChannelDeleteButton() {
     setIsLoading(false);
     setShowConfirm(false);
   }, [state]);
+
+  // モード設定に応じてシステムチャンネルリストを動的に生成
+  React.useEffect(() => {
+    const updateSystemChannels = (settings: any) => {
+      const channels: Array<{ name: string; description: string }> = [];
+
+      // 計量計測1のモードに応じて
+      if (settings.check1 === "dual") {
+        channels.push(
+          {
+            name: "00_計量計測1西",
+            description: "計量計測1（西）の予約通知用",
+          },
+          {
+            name: "00_計量計測1東",
+            description: "計量計測1（東）の予約通知用",
+          },
+        );
+      } else {
+        channels.push({
+          name: "00_計量計測1",
+          description: "計量計測1の予約通知用",
+        });
+      }
+
+      // 計量計測2のモードに応じて
+      if (settings.check2 === "dual") {
+        channels.push(
+          {
+            name: "00_計量計測2西",
+            description: "計量計測2（西）の予約通知用",
+          },
+          {
+            name: "00_計量計測2東",
+            description: "計量計測2（東）の予約通知用",
+          },
+        );
+      } else {
+        channels.push({
+          name: "00_計量計測2",
+          description: "計量計測2の予約通知用",
+        });
+      }
+
+      // テストランチャンネルを追加
+      channels.push(
+        { name: "00_赤テストラン", description: "赤テストランの予約通知用" },
+        { name: "00_青テストラン", description: "青テストランの予約通知用" },
+      );
+
+      setSystemChannels(channels);
+    };
+
+    // 初期読み込み
+    getCheckLocationSettings().then(updateSystemChannels);
+
+    // モード設定の変更をリスニング
+    const unsubscribe = listenCheckLocationSettings(updateSystemChannels);
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     if (!showConfirm) {
@@ -63,7 +126,7 @@ export default function SlackChannelDeleteButton() {
             value={excludedChannels}
             onValueChange={setExcludedChannels}
           >
-            {SYSTEM_CHANNEL_LIST.map((channel) => (
+            {systemChannels.map((channel) => (
               <Checkbox key={channel.name} name="exclude" value={channel.name}>
                 {channel.name} ({channel.description})
               </Checkbox>

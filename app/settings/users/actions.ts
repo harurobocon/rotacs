@@ -109,7 +109,10 @@ export async function createUsers(
   return redirect("/settings/users/create/success");
 }
 
-export async function deleteUsers(formData: FormData) {
+export async function deleteUsers(
+  state: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
   const userIds = formData.getAll("user_id").map((id) => id.toString());
 
   if (userIds.length === 0) {
@@ -119,19 +122,22 @@ export async function deleteUsers(formData: FormData) {
   }
 
   try {
-    // PostgreSQLから削除
+    // まず関連するセッションを削除（外部キー制約を満たすため）
+    await db.deleteFrom("session").where("user_id", "in", userIds).execute();
+
+    // PostgreSQLからユーザーを削除
     await db.deleteFrom("user").where("id", "in", userIds).execute();
 
     // Firestoreからも削除
     await Promise.all(userIds.map((id) => deleteUserFromFirestore(id)));
+
+    // ページキャッシュを無効化してデータを再読み込み
+    revalidatePath("/settings/users");
   } catch (error) {
     return {
       errors: `ユーザー削除に失敗しました: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
-
-  // ページキャッシュを無効化してデータを再読み込み
-  revalidatePath("/settings/users");
 
   redirect("/settings/users/delete/success");
 }
