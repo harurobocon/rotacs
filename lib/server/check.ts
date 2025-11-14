@@ -256,8 +256,12 @@ export async function updateCheckResults(
 
   const update: Partial<CheckReservation> = {
     status: formData.get("status")?.toString() as CheckStatus,
-    r1ok: formData.has("r1ok"),
-    r2ok: formData.has("r2ok"),
+    size: formData.has("size"),
+    weight: formData.has("weight"),
+    emergencyStop: formData.has("emergencyStop"),
+    led: formData.has("led"),
+    power: formData.has("power"),
+    compressedAir: formData.has("compressedAir"),
     memo: formData.get("memo")?.toString() ?? "",
     recheckItems: formData.get("recheckItems")?.toString() ?? "",
   };

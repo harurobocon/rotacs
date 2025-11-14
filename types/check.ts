@@ -30,8 +30,12 @@ export function getCheckSides(mode: "single" | "dual"): CheckSide[] {
 export const CheckSides: CheckSide[] = ["ピット"];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
-  r1ok: boolean;
-  r2ok: boolean;
+  size: boolean;
+  weight: boolean;
+  emergencyStop: boolean;
+  led: boolean;
+  power: boolean;
+  compressedAir: boolean;
   memo: string;
   recheckItems: string;
 
@@ -45,8 +49,12 @@ export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
     },
   ) {
     super(options);
-    this.r1ok = options.r1ok || false;
-    this.r2ok = options.r2ok || false;
+    this.size = options.size || false;
+    this.weight = options.weight || false;
+    this.emergencyStop = options.emergencyStop || false;
+    this.led = options.led || false;
+    this.power = options.power || false;
+    this.compressedAir = options.compressedAir || false;
     this.memo = options.memo || "";
     this.recheckItems = options.recheckItems || "";
   }

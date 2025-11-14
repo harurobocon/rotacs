@@ -175,11 +175,23 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                     action={changeResultFormAction}
                     className="flex-col items-stretch justify-start gap-4"
                   >
-                    <Checkbox className="flex" name="r1ok">
-                      R1 OK
+                    <Checkbox className="flex" name="size">
+                      サイズ
                     </Checkbox>
-                    <Checkbox className="flex" name="r2ok">
-                      R2 OK
+                    <Checkbox className="flex" name="weight">
+                      重量
+                    </Checkbox>
+                    <Checkbox className="flex" name="emergencyStop">
+                      非常停止
+                    </Checkbox>
+                    <Checkbox className="flex" name="led">
+                      LED
+                    </Checkbox>
+                    <Checkbox className="flex" name="power">
+                      電源
+                    </Checkbox>
+                    <Checkbox className="flex" name="compressedAir">
+                      圧縮空気
                     </Checkbox>
                     <Textarea
                       className="mt-4 flex"
@@ -287,13 +299,29 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
           <TableColumn>結果</TableColumn>
         </TableHeader>
         <TableBody>
-          <TableRow key="R1 OK">
-            <TableCell>R1 OK</TableCell>
-            <TableCell>{reservation.r1ok ? "OK" : "NG"}</TableCell>
+          <TableRow key="サイズ">
+            <TableCell>サイズ</TableCell>
+            <TableCell>{reservation.size ? "OK" : "NG"}</TableCell>
           </TableRow>
-          <TableRow key="R2 OK">
-            <TableCell>R2 OK</TableCell>
-            <TableCell>{reservation.r2ok ? "OK" : "NG"}</TableCell>
+          <TableRow key="重量">
+            <TableCell>重量</TableCell>
+            <TableCell>{reservation.weight ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="非常停止">
+            <TableCell>非常停止</TableCell>
+            <TableCell>{reservation.emergencyStop ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="LED">
+            <TableCell>LED</TableCell>
+            <TableCell>{reservation.led ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="電源">
+            <TableCell>電源</TableCell>
+            <TableCell>{reservation.power ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="圧縮空気">
+            <TableCell>圧縮空気</TableCell>
+            <TableCell>{reservation.compressedAir ? "OK" : "NG"}</TableCell>
           </TableRow>
           <TableRow key="メモ">
             <TableCell>メモ</TableCell>
