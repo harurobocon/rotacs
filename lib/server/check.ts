@@ -368,12 +368,12 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目] 計量計測の順番になりました．「${target.side}」計量計測エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] 計量計測の順番になりました．まもなくスタッフが誘導に伺いますので，準備をお願いします．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
         message = `[${target.user_display_name} ${target.reservation_count}回目] 計量計測が近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，順番表を確認してください．
-https://rotacs.yuchi.jp/check1`;
+https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/${checkType}`;
       }
 
       // 通知を送信
@@ -429,7 +429,7 @@ async function sendNewReservationNotification(
       ? "/check1"
       : "/check2";
 
-  const message = `${collectionName}に新規予約[${booker.display_name}]が入りました。実施予定の予約が空の状態からの最初の予約です。予約を確認して実施準備をお願いします。\nhttps://rotacs.yuchi.jp${checkUrl}`;
+  const message = `${collectionName}に新規予約[${booker.display_name}]が入りました。実施予定の予約が空の状態からの最初の予約です。予約を確認して実施準備をお願いします。\nhttps://${process.env.NEXT_PUBLIC_APP_DOMAIN}${checkUrl}`;
 
   try {
     if (mode === "dual") {

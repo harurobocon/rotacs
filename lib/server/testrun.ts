@@ -336,12 +336,12 @@ async function sendCall(at: number, status: TestrunStatus) {
 
       if (status === "呼出中") {
         // 呼び出し通知
-        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] テストランの順番になりました．「${target.side}」テストラン待機エリアに移動してください．`;
+        message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] テストランの順番になりました．まもなくスタッフが誘導に伺いますので，準備をお願いします．`;
       } else if (status === "順番待ち" && at === 0) {
         // 事前通知
         message = `[${target.user_display_name} ${target.reservation_count}回目 ${target.side}] テストランが近づいています．呼び出された時に移動できるよう準備をお願いします．
 他チームの予約状況により順番が前後することもあるため，テストラン一覧を確認してください．
-https://rotacs.yuchi.jp/testrun`;
+https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/testrun`;
       }
 
       // 通知を送信
