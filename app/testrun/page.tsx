@@ -98,12 +98,23 @@ export default function Testrun() {
                   key={side}
                   className="grid grid-cols-1 place-content-start gap-4"
                 >
-                  {schedule.get(side, status).map((r) => (
-                    <TestrunReservationCard
-                      key={r}
-                      bgColor={getBgColor(side, status)}
-                      reservationId={r}
-                    />
+                  {schedule.get(side, status).map((r, index) => (
+                    <React.Fragment key={r}>
+                      <TestrunReservationCard
+                        bgColor={getBgColor(side, status)}
+                        reservationId={r}
+                      />
+                      {status === "順番待ち" && index === 1 && (
+                        <div className="relative my-2">
+                          <Divider className="bg-danger" />
+                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                            <span className="text-sm font-bold text-danger">
+                              キャンセル期限
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
                 </div>
               ))}
