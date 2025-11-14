@@ -51,6 +51,7 @@ export default function TestrunReservationCard(
 ) {
   const [reservation, setReservation] =
     React.useState<TestrunReservation | null>(null);
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const {
@@ -60,6 +61,8 @@ export default function TestrunReservationCard(
   } = useDisclosure();
 
   React.useEffect(() => {
+    setIsAdminUser(isAdmin());
+
     getTestrunReservation(props.reservationId).then((reservation) => {
       setReservation(reservation);
     });
@@ -112,7 +115,7 @@ export default function TestrunReservationCard(
 
     let changeStatusButton = null;
 
-    if (isAdmin()) {
+    if (isAdminUser) {
       switch (reservation.status) {
         case "順番待ち":
           changeStatusButton = (
@@ -195,7 +198,7 @@ export default function TestrunReservationCard(
             ) : null}
           </div>
           <div className="h-full w-full items-start justify-end">
-            {isAdmin() ? (
+            {isAdminUser ? (
               <div className="flex items-center justify-end">
                 <Dropdown>
                   <DropdownTrigger>
@@ -259,7 +262,7 @@ export default function TestrunReservationCard(
             ) : null}
           </div>
         </CardHeader>
-        {isAdmin() && changeStatusButton ? (
+        {isAdminUser && changeStatusButton ? (
           <>
             <Spacer y={2} />
             <Divider />

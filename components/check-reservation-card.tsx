@@ -67,6 +67,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
   const [reservation, setReservation] = React.useState<CheckReservation | null>(
     null,
   );
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [checkResultRadio, setCheckResultRadio] = React.useState<string | null>(
@@ -88,6 +89,8 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
   );
 
   React.useEffect(() => {
+    setIsAdminUser(isAdmin());
+
     getCheckReservation(props.reservationId, props.collectionId).then(
       (reservation) => {
         setReservation(reservation);
@@ -230,7 +233,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
     );
     let changeStatusButton = null;
 
-    if (isAdmin()) {
+    if (isAdminUser) {
       switch (reservation.status) {
         case "順番待ち":
           changeStatusButton = (
@@ -331,7 +334,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
             ) : null}
           </div>
           <div className="h-full w-full items-start justify-end">
-            {isAdmin() ? (
+            {isAdminUser ? (
               <div className="flex items-center justify-end">
                 <Dropdown>
                   <DropdownTrigger>
@@ -402,7 +405,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
             ) : null}
           </div>
         </CardHeader>
-        {isAdmin() ? (
+        {isAdminUser ? (
           <>
             <Spacer y={2} />
             <Divider />

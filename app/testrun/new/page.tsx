@@ -34,6 +34,7 @@ export default function NewTestrun() {
     null,
   );
   const [side, setSide] = React.useState<string>("");
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [testrunFormState, testrunFormAction] = useFormState(
     createTestrun,
     initialState,
@@ -57,10 +58,16 @@ export default function NewTestrun() {
   }, [testrunFormState]);
 
   React.useEffect(() => {
-    getAllUsersJson().then((usersJson: string) => {
-      setUsers(JSON.parse(usersJson));
-    });
+    setIsAdminUser(isAdmin());
   }, []);
+
+  React.useEffect(() => {
+    if (isAdminUser) {
+      getAllUsersJson().then((usersJson: string) => {
+        setUsers(JSON.parse(usersJson));
+      });
+    }
+  }, [isAdminUser]);
 
   const usersDropdown = React.useMemo(() => {
     const items = users?.map((user) => ({
@@ -106,8 +113,8 @@ export default function NewTestrun() {
             <Radio value="赤">赤</Radio>
             <Radio value="青">青</Radio>
           </RadioGroup>
-          {isAdmin() ? usersDropdown : null}
-          {isAdmin() && selectedUser ? (
+          {isAdminUser ? usersDropdown : null}
+          {isAdminUser && selectedUser ? (
             <input
               defaultValue={selectedUser.toString()}
               name="bookerId"
@@ -129,7 +136,7 @@ export default function NewTestrun() {
           )}
         </form>
       </div>
-      {isAdmin() ? (
+      {isAdminUser ? (
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
           <p className="pb-2 text-xl font-medium">
             任意名のカードを作成（休憩・対戦形式など）

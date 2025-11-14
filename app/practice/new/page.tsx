@@ -29,6 +29,7 @@ export default function NewPractice() {
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [formState, formAction] = useFormState(createPractice, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("practice");
@@ -48,10 +49,16 @@ export default function NewPractice() {
   }, [formState]);
 
   React.useEffect(() => {
-    getAllUsersJson().then((usersJson: string) => {
-      setUsers(JSON.parse(usersJson));
-    });
+    setIsAdminUser(isAdmin());
   }, []);
+
+  React.useEffect(() => {
+    if (isAdminUser) {
+      getAllUsersJson().then((usersJson: string) => {
+        setUsers(JSON.parse(usersJson));
+      });
+    }
+  }, [isAdminUser]);
 
   const usersDropdown = React.useMemo(() => {
     const items = users?.map((user) => ({
@@ -89,8 +96,8 @@ export default function NewPractice() {
           className="flex flex-col gap-3"
           onSubmit={handleSubmit}
         >
-          {isAdmin() ? usersDropdown : null}
-          {isAdmin() && selectedUser ? (
+          {isAdminUser ? usersDropdown : null}
+          {isAdminUser && selectedUser ? (
             <input
               defaultValue={selectedUser.toString()}
               name="bookerId"
@@ -113,7 +120,7 @@ export default function NewPractice() {
           )}
         </form>
       </div>
-      {isAdmin() ? (
+      {isAdminUser ? (
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
           <p className="pb-2 text-xl font-medium">
             任意名のカードを作成（休憩・対戦形式など）

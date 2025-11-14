@@ -51,6 +51,7 @@ export default function PracticeReservationCard(
 ) {
   const [reservation, setReservation] =
     React.useState<PracticeReservation | null>(null);
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const {
@@ -60,6 +61,8 @@ export default function PracticeReservationCard(
   } = useDisclosure();
 
   React.useEffect(() => {
+    setIsAdminUser(isAdmin());
+
     getPracticeReservation(props.reservationId).then((reservation) => {
       setReservation(reservation);
     });
@@ -115,7 +118,7 @@ export default function PracticeReservationCard(
 
     let changeStatusButton = null;
 
-    if (isAdmin()) {
+    if (isAdminUser) {
       switch (reservation.status) {
         case "順番待ち":
           changeStatusButton = (
@@ -198,7 +201,7 @@ export default function PracticeReservationCard(
             ) : null}
           </div>
           <div className="h-full w-full items-start justify-end">
-            {isAdmin() ? (
+            {isAdminUser ? (
               <div className="flex items-center justify-end">
                 <Dropdown>
                   <DropdownTrigger>
@@ -262,7 +265,7 @@ export default function PracticeReservationCard(
             ) : null}
           </div>
         </CardHeader>
-        {isAdmin() ? (
+        {isAdminUser ? (
           <>
             <Divider />
             <CardBody className="flex-col items-stretch justify-start gap-2">

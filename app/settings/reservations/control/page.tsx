@@ -50,13 +50,17 @@ function SubmitButton() {
 
 export default function ReservationControlPage() {
   const [settings, setSettings] = useState<ReservationSettings | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [formState, formAction] = useFormState(
     updateReservationSettings,
     initialState,
   );
 
   useEffect(() => {
-    if (!isAdmin()) {
+    const adminStatus = isAdmin();
+    setIsAdminUser(adminStatus);
+
+    if (!adminStatus) {
       redirect("/");
     }
 
@@ -79,7 +83,7 @@ export default function ReservationControlPage() {
     }
   };
 
-  if (!settings) {
+  if (!isAdminUser || !settings) {
     return <div>読み込み中...</div>;
   }
 

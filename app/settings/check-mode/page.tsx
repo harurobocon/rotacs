@@ -35,13 +35,17 @@ function SubmitButton() {
 
 export default function CheckModePage() {
   const [settings, setSettings] = useState<CheckLocationSettings | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [formState, formAction] = useFormState(
     updateCheckLocationSettings,
     initialState,
   );
 
   useEffect(() => {
-    if (!isAdmin()) {
+    const adminStatus = isAdmin();
+    setIsAdminUser(adminStatus);
+
+    if (!adminStatus) {
       redirect("/");
     }
 
@@ -60,7 +64,7 @@ export default function CheckModePage() {
     }
   };
 
-  if (!settings) {
+  if (!isAdminUser || !settings) {
     return <div>読み込み中...</div>;
   }
 

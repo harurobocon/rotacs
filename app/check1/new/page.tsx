@@ -34,6 +34,7 @@ export default function NewCheck() {
     null,
   );
   const [mode, setMode] = React.useState<CheckLocationMode>("single");
+  const [isAdminUser, setIsAdminUser] = React.useState(false);
   const [formState, formAction] = useFormState(createCheck, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("check1");
@@ -53,9 +54,7 @@ export default function NewCheck() {
   }, [formState]);
 
   React.useEffect(() => {
-    getAllUsersJson().then((usersJson: string) => {
-      setUsers(JSON.parse(usersJson));
-    });
+    setIsAdminUser(isAdmin());
 
     // 計量計測モード設定を取得
     getCheckLocationSettings().then((settings) => {
@@ -71,6 +70,14 @@ export default function NewCheck() {
       unsubscribe();
     };
   }, []);
+
+  React.useEffect(() => {
+    if (isAdminUser) {
+      getAllUsersJson().then((usersJson: string) => {
+        setUsers(JSON.parse(usersJson));
+      });
+    }
+  }, [isAdminUser]);
 
   const usersDropdown = React.useMemo(() => {
     const items = users?.map((user) => ({
@@ -113,8 +120,8 @@ export default function NewCheck() {
           className="flex flex-col gap-3"
           onSubmit={handleSubmit}
         >
-          {isAdmin() ? usersDropdown : null}
-          {isAdmin() && selectedUser ? (
+          {isAdminUser ? usersDropdown : null}
+          {isAdminUser && selectedUser ? (
             <input
               defaultValue={selectedUser.toString()}
               name="bookerId"
@@ -141,7 +148,7 @@ export default function NewCheck() {
           )}
         </form>
       </div>
-      {isAdmin() ? (
+      {isAdminUser ? (
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
           <p className="pb-2 text-xl font-medium">
             任意名のカードを作成（休憩・対戦形式など）
