@@ -93,7 +93,9 @@ export default function TestrunReservationCard(
 
   if (reservation) {
     if (
-      ["呼出中", "移動中", "実施中"].includes(reservation.status) &&
+      ["呼出中", "移動中", "スタンバイ中", "実施中"].includes(
+        reservation.status,
+      ) &&
       reservation.fixed_at
     ) {
       updateTime =
@@ -144,6 +146,19 @@ export default function TestrunReservationCard(
           );
           break;
         case "移動中":
+          changeStatusButton = (
+            <Button
+              className="flex"
+              color="primary"
+              isLoading={isSubmitting}
+              size="sm"
+              onPress={() => handleStatusUpdate("スタンバイ中")}
+            >
+              スタンバイ完了
+            </Button>
+          );
+          break;
+        case "スタンバイ中":
           changeStatusButton = (
             <Button
               className="flex"
@@ -233,6 +248,13 @@ export default function TestrunReservationCard(
                         onPress={() => handleStatusUpdate("移動中")}
                       >
                         移動中
+                      </DropdownItem>
+                      <DropdownItem
+                        key="スタンバイ中"
+                        color="primary"
+                        onPress={() => handleStatusUpdate("スタンバイ中")}
+                      >
+                        スタンバイ中
                       </DropdownItem>
                       <DropdownItem
                         key="実施中"

@@ -54,13 +54,14 @@ export default function Testrun() {
   const statusOrder: TestrunStatus[] = [
     "終了",
     "実施中",
+    "スタンバイ中",
     "移動中",
     "呼出中",
     "順番待ち",
     "キャンセル",
   ];
 
-  function getBgColor(side: TestrunSide, status: TestrunStatus) {
+  function getBgColor(side: TestrunSide, _status: TestrunStatus) {
     return side === "赤" ? "bg-danger-50" : "bg-primary-50";
   }
 
@@ -69,7 +70,13 @@ export default function Testrun() {
       <Spinner className="flex py-4" label="読み込み中..." />
     ) : (
       <Accordion
-        defaultExpandedKeys={["実施中", "移動中", "呼出中", "順番待ち"]}
+        defaultExpandedKeys={[
+          "実施中",
+          "スタンバイ中",
+          "移動中",
+          "呼出中",
+          "順番待ち",
+        ]}
         selectionMode="multiple"
       >
         {statusOrder.map((status) => (

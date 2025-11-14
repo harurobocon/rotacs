@@ -34,6 +34,7 @@ export function TestrunCell({ teamName, testrunNumber }: TestrunCellProps) {
     case "順番待ち":
     case "呼出中":
     case "移動中":
+    case "スタンバイ中":
       return (
         <Chip color="secondary" size="sm">
           <span className="font-bold">{status}</span>

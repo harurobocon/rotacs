@@ -8,6 +8,7 @@ export const TestrunStatuses = [
   "順番待ち",
   "呼出中",
   "移動中",
+  "スタンバイ中",
   "実施中",
   "終了",
   "キャンセル",
@@ -74,6 +75,7 @@ export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
             break;
           case "呼出中":
           case "移動中":
+          case "スタンバイ中":
           case "実施中":
             sorted = filtered.sort((a, b) => {
               const aFixedAt = a.fixed_at;

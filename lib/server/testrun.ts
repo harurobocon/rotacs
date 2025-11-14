@@ -73,6 +73,7 @@ export async function createTestrun(
         "順番待ち",
         "呼出中",
         "移動中",
+        "スタンバイ中",
         "実施中",
       ];
 
@@ -219,14 +220,16 @@ export async function updateTestrunStatus(
 
       if (
         prevState === "順番待ち" &&
-        ["呼出中", "移動中", "実施中"].includes(newState)
+        ["呼出中", "移動中", "スタンバイ中", "実施中"].includes(newState)
       ) {
         update.fixed_at = new Date();
       }
 
       // 順番待ちに戻す時は固定時刻と通知フラグをリセット
       if (
-        ["呼出中", "移動中", "実施中"].includes(prevState || "") &&
+        ["呼出中", "移動中", "スタンバイ中", "実施中"].includes(
+          prevState || "",
+        ) &&
         newState === "順番待ち"
       ) {
         update.fixed_at = null;
