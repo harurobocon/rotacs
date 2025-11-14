@@ -44,7 +44,12 @@ export default function SlackChannelDeleteButton() {
 
   // チームチャンネル一覧を取得
   React.useEffect(() => {
-    getTeamChannels().then(setTeamChannels);
+    getTeamChannels()
+      .then(setTeamChannels)
+      .catch((error) => {
+        console.error("Failed to fetch team channels:", error);
+        setTeamChannels([]);
+      });
   }, []);
 
   // モード設定に応じてシステムチャンネルリストを動的に生成
