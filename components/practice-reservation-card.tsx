@@ -34,7 +34,7 @@ import {
   onPracticeReservationChange,
 } from "@/lib/client/practice";
 import { updatePracticeStatus } from "@/lib/server/practice";
-import { isAdmin } from "@/lib/client/auth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface PracticeReservationCardProps {
   className?: string;
@@ -51,7 +51,7 @@ export default function PracticeReservationCard(
 ) {
   const [reservation, setReservation] =
     React.useState<PracticeReservation | null>(null);
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const {
@@ -61,8 +61,6 @@ export default function PracticeReservationCard(
   } = useDisclosure();
 
   React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-
     getPracticeReservation(props.reservationId).then((reservation) => {
       setReservation(reservation);
     });

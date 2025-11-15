@@ -46,7 +46,7 @@ import {
   onCheckReservationChange,
 } from "@/lib/client/check";
 import { updateCheckResults, updateCheckStatus } from "@/lib/server/check";
-import { isAdmin } from "@/lib/client/auth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface CheckReservationCardProps {
   className?: string;
@@ -67,7 +67,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
   const [reservation, setReservation] = React.useState<CheckReservation | null>(
     null,
   );
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [checkResultRadio, setCheckResultRadio] = React.useState<string | null>(
@@ -89,8 +89,6 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
   );
 
   React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-
     getCheckReservation(props.reservationId, props.collectionId).then(
       (reservation) => {
         setReservation(reservation);

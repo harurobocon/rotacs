@@ -34,7 +34,7 @@ import {
   onTestrunReservationChange,
 } from "@/lib/client/testrun";
 import { updateTestrunStatus } from "@/lib/server/testrun";
-import { isAdmin } from "@/lib/client/auth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface TestrunReservationCardProps {
   className?: string;
@@ -51,7 +51,7 @@ export default function TestrunReservationCard(
 ) {
   const [reservation, setReservation] =
     React.useState<TestrunReservation | null>(null);
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const {
@@ -61,8 +61,6 @@ export default function TestrunReservationCard(
   } = useDisclosure();
 
   React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-
     getTestrunReservation(props.reservationId).then((reservation) => {
       setReservation(reservation);
     });

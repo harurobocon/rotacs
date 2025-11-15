@@ -16,11 +16,14 @@ import {
 import { User } from "lucia";
 
 import { ActionResult } from "@/types/actions";
-import { createTestrun, createTestrunMessageCard } from "@/lib/server/testrun";
+import {
+  createTestrun,
+  createTestrunMessageCard,
+} from "@/lib/server/testrun";
 import { getAllUsersJson } from "@/lib/server/auth";
-import { isAdmin } from "@/lib/client/auth";
 import MessageCardForm from "@/components/MessageCardForm";
 import { useReservationControl } from "@/hooks/useReservationControl";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const initialState: ActionResult = {
   errors: "",
@@ -34,7 +37,7 @@ export default function NewTestrun() {
     null,
   );
   const [side, setSide] = React.useState<string>("");
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [testrunFormState, testrunFormAction] = useFormState(
     createTestrun,
     initialState,
@@ -56,10 +59,6 @@ export default function NewTestrun() {
       }
     }
   }, [testrunFormState]);
-
-  React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-  }, []);
 
   React.useEffect(() => {
     if (isAdminUser) {

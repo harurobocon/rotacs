@@ -11,7 +11,6 @@ import { User } from "lucia";
 import { ActionResult } from "@/types/actions";
 import { createCheck } from "@/lib/server/check";
 import { getAllUsersJson } from "@/lib/server/auth";
-import { isAdmin } from "@/lib/client/auth";
 import { CHECK1_COLLECTION } from "@/types/check";
 import { createCheckMessageCard } from "@/lib/server/check";
 import MessageCardForm from "@/components/MessageCardForm";
@@ -21,6 +20,7 @@ import {
   listenCheckLocationSettings,
 } from "@/lib/client/settings";
 import { CheckLocationMode } from "@/types/settings";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const initialState: ActionResult = {
   errors: "",
@@ -34,7 +34,7 @@ export default function NewCheck() {
     null,
   );
   const [mode, setMode] = React.useState<CheckLocationMode>("single");
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [formState, formAction] = useFormState(createCheck, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("check1");
@@ -54,8 +54,6 @@ export default function NewCheck() {
   }, [formState]);
 
   React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-
     // 計量計測モード設定を取得
     getCheckLocationSettings().then((settings) => {
       setMode(settings.check1);

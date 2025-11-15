@@ -14,9 +14,9 @@ import {
   createPracticeMessageCard,
 } from "@/lib/server/practice";
 import { getAllUsersJson } from "@/lib/server/auth";
-import { isAdmin } from "@/lib/client/auth";
 import MessageCardForm from "@/components/MessageCardForm";
 import { useReservationControl } from "@/hooks/useReservationControl";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const initialState: ActionResult = {
   errors: "",
@@ -29,7 +29,7 @@ export default function NewPractice() {
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
-  const [isAdminUser, setIsAdminUser] = React.useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [formState, formAction] = useFormState(createPractice, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("practice");
@@ -47,10 +47,6 @@ export default function NewPractice() {
       }
     }
   }, [formState]);
-
-  React.useEffect(() => {
-    setIsAdminUser(isAdmin());
-  }, []);
 
   React.useEffect(() => {
     if (isAdminUser) {

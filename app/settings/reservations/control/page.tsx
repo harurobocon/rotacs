@@ -16,7 +16,6 @@ import {
 } from "@heroui/react";
 import { redirect } from "next/navigation";
 
-import { isAdmin } from "@/lib/client/auth";
 import { getReservationSettings } from "@/lib/client/settings";
 import { updateReservationSettings } from "@/lib/server/settings";
 import {
@@ -26,6 +25,7 @@ import {
   ReservationControlMode,
 } from "@/types/settings";
 import { ActionResult } from "@/types/actions";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const initialState: ActionResult = {
   errors: "",
@@ -50,22 +50,19 @@ function SubmitButton() {
 
 export default function ReservationControlPage() {
   const [settings, setSettings] = useState<ReservationSettings | null>(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [formState, formAction] = useFormState(
     updateReservationSettings,
     initialState,
   );
 
   useEffect(() => {
-    const adminStatus = isAdmin();
-    setIsAdminUser(adminStatus);
-
-    if (!adminStatus) {
+    if (!isAdminUser && isAdminUser !== undefined) {
       redirect("/");
     }
 
     getReservationSettings().then(setSettings);
-  }, []);
+  }, [isAdminUser]);
 
   const handleSettingChange = (
     type: ReservationType,

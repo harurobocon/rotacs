@@ -15,11 +15,11 @@ import {
 } from "@heroui/react";
 import { redirect } from "next/navigation";
 
-import { isAdmin } from "@/lib/client/auth";
 import { getCheckLocationSettings } from "@/lib/client/settings";
 import { updateCheckLocationSettings } from "@/lib/server/settings";
 import { CheckLocationSettings, CheckLocationMode } from "@/types/settings";
 import { ActionResult } from "@/types/actions";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const initialState: ActionResult = {
   errors: "",
@@ -35,22 +35,19 @@ function SubmitButton() {
 
 export default function CheckModePage() {
   const [settings, setSettings] = useState<CheckLocationSettings | null>(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
+  const { isAdmin: isAdminUser } = useIsAdmin();
   const [formState, formAction] = useFormState(
     updateCheckLocationSettings,
     initialState,
   );
 
   useEffect(() => {
-    const adminStatus = isAdmin();
-    setIsAdminUser(adminStatus);
-
-    if (!adminStatus) {
+    if (!isAdminUser && isAdminUser !== undefined) {
       redirect("/");
     }
 
     getCheckLocationSettings().then(setSettings);
-  }, []);
+  }, [isAdminUser]);
 
   const handleSettingChange = (
     checkType: "check1" | "check2",
