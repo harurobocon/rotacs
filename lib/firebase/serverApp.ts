@@ -8,6 +8,7 @@ import { credential } from "firebase-admin";
 import { initializeApp, getApp, ServiceAccount } from "firebase-admin/app";
 import { getStorage as _getStorage } from "firebase-admin/storage";
 import { getFirestore as _getFirestore } from "firebase-admin/firestore";
+import { getAuth as _getAuth } from "firebase-admin/auth";
 
 import { firebaseConfig } from "./clientConfig";
 import { firebaseAdminConfig } from "./serverConfig";
@@ -37,4 +38,10 @@ export async function getFirestore() {
   let app = await getFirebaseAdminApp();
 
   return _getFirestore(app);
+}
+
+export async function getAuth() {
+  let app = await getFirebaseAdminApp();
+
+  return _getAuth(app);
 }
