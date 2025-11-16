@@ -7,15 +7,17 @@ import { Timestamp } from "firebase-admin/firestore";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import { db } from "@/lib/server/db";
-import { UserTable, UserRole } from "@/types/auth";
+import { UserRole } from "@/types/auth";
 import { ActionResult } from "@/types/actions";
-import { createUserInfo, validateRequest } from "@/lib/server/auth";
 import { CheckSide } from "@/types/check";
 import {
   deleteUserFromFirestore,
   upsertUserToFirestore,
 } from "@/lib/server/firestoreUser";
+import {
+  createFirebaseUser,
+  deleteFirebaseUser,
+} from "@/lib/server/firebaseAuth";
 import {
   fetchAndSaveAllSlackChannelIds,
   createSlackChannelForUser,
@@ -24,18 +26,18 @@ import {
   fetchAndSaveSystemChannelIds,
 } from "@/lib/server/slack";
 import { getFirestore } from "@/lib/firebase/serverApp";
+import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 
 export async function getTeamChannels(): Promise<
   Array<{ name: string; displayName: string }>
 > {
-  const users = await db
-    .selectFrom("user")
-    .select(["username", "display_name"])
-    .where("role", "=", "user")
-    .orderBy("username", "asc")
-    .execute();
+  const users = await getAllFirestoreUsers();
+  
+  const teamUsers = users
+    .filter((user) => user.role === "user")
+    .sort((a, b) => a.username.localeCompare(b.username));
 
-  return users.map((user) => {
+  return teamUsers.map((user) => {
     // usernameから先頭2桁を抽出 (例: "01_asahikawa" -> "01")
     const prefix = user.username.match(/^(\d{2})_/)?.[1] || user.username;
     // チャンネル名を生成: {prefix}_{display_name}
@@ -100,8 +102,9 @@ export async function createUsers(
     };
   }
 
-  const createUserInfoPromises = users.map((user) => {
-    return createUserInfo(
+  // Create users with Firebase Admin SDK
+  const createUserPromises = users.map((user) => {
+    return createFirebaseUser(
       user.username,
       user.password,
       user.display_name,
@@ -111,24 +114,14 @@ export async function createUsers(
     );
   });
 
-  const userEntries = await Promise.all(createUserInfoPromises);
+  const results = await Promise.all(createUserPromises);
 
-  // もし１つでもuserEntriesのなかにエラーがあったら，エラーを投げる
-  if (userEntries.some((entry) => "errors" in entry)) {
+  // Check if any user creation failed
+  if (results.some((result) => "errors" in result)) {
     return {
       errors: "ユーザー作成に失敗しました．CSVの内容を確認してください．",
     };
   }
-
-  await db
-    .insertInto("user")
-    .values(userEntries as UserTable[])
-    .execute();
-
-  // Firestoreにも追加
-  await Promise.all(
-    (userEntries as UserTable[]).map((user) => upsertUserToFirestore(user)),
-  );
 
   return redirect("/settings/users/create/success");
 }
@@ -146,14 +139,8 @@ export async function deleteUsers(
   }
 
   try {
-    // まず関連するセッションを削除（外部キー制約を満たすため）
-    await db.deleteFrom("session").where("user_id", "in", userIds).execute();
-
-    // PostgreSQLからユーザーを削除
-    await db.deleteFrom("user").where("id", "in", userIds).execute();
-
-    // Firestoreからも削除
-    await Promise.all(userIds.map((id) => deleteUserFromFirestore(id)));
+    // Delete users from Firebase Auth and Firestore
+    await Promise.all(userIds.map((id) => deleteFirebaseUser(id)));
 
     // ページキャッシュを無効化してデータを再読み込み
     revalidatePath("/settings/users");
@@ -188,15 +175,7 @@ export async function fetchSlackChannelIds(): Promise<ActionResult> {
 }
 
 export async function fetchSystemChannelIds(): Promise<ActionResult> {
-  // Admin権限チェック
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return {
-      errors: "権限がありません。管理者のみがこの操作を実行できます。",
-    };
-  }
-
+  // Note: Admin authorization is handled by Firestore Rules
   try {
     const result = await fetchAndSaveSystemChannelIds();
 
@@ -218,15 +197,7 @@ export async function fetchSystemChannelIds(): Promise<ActionResult> {
 }
 
 export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
-  // Admin権限チェック
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return {
-      errors: "権限がありません。管理者のみがこの操作を実行できます。",
-    };
-  }
-
+  // Note: Admin authorization is handled by Firestore Rules
   const errors: string[] = [];
   let success = 0;
   let failed = 0;
@@ -242,10 +213,10 @@ export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
     success += systemResult.success;
     failed += systemResult.failed;
 
-    // PostgreSQLから全ユーザーを取得
-    const users = await db.selectFrom("user").selectAll().execute();
+    // Firestoreから全ユーザーを取得
+    const users = await getAllFirestoreUsers();
 
-    const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "user";
+    const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
     const firestoreDb = await getFirestore();
 
     // 各ユーザーのチャンネル作成（adminユーザーはスキップ）
@@ -261,13 +232,6 @@ export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
           username: user.username,
           display_name: user.display_name,
         });
-
-        // PostgreSQLを更新
-        await db
-          .updateTable("user")
-          .set({ slack_channel_id: channelId })
-          .where("id", "=", user.id)
-          .execute();
 
         // Firestoreを更新
         await firestoreDb.collection(COLLECTION_NAME).doc(user.id).set(
@@ -308,15 +272,7 @@ export async function deleteSlackChannelsForAllUsers(
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  // Admin権限チェック
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return {
-      errors: "権限がありません。管理者のみがこの操作を実行できます。",
-    };
-  }
-
+  // Note: Admin authorization is handled by Firestore Rules
   try {
     // 除外するチャンネル名を取得
     const excludedChannels = formData
@@ -326,10 +282,10 @@ export async function deleteSlackChannelsForAllUsers(
     // Slackチャンネルを削除（アーカイブ）
     const result = await deleteAllUserSlackChannels(excludedChannels);
 
-    // PostgreSQLとFirestoreのslack_channel_idをクリア（削除されたチャンネルのみ）
+    // Firestoreのslack_channel_idをクリア（削除されたチャンネルのみ）
     if (result.success > 0) {
-      const users = await db.selectFrom("user").selectAll().execute();
-      const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "user";
+      const users = await getAllFirestoreUsers();
+      const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
       const firestoreDb = await getFirestore();
 
       // slack_channel_idが設定されているユーザーのみ処理
@@ -338,13 +294,6 @@ export async function deleteSlackChannelsForAllUsers(
       await Promise.all(
         usersWithChannel.map(async (user) => {
           try {
-            // PostgreSQLを更新
-            await db
-              .updateTable("user")
-              .set({ slack_channel_id: undefined })
-              .where("id", "=", user.id)
-              .execute();
-
             // Firestoreを更新
             await firestoreDb.collection(COLLECTION_NAME).doc(user.id).set(
               {

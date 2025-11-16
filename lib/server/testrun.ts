@@ -2,7 +2,7 @@
 
 import "server-cli-only";
 
-import { User } from "lucia";
+import { UserTable as User } from "@/types/auth";
 
 import { sendSlackNotifyMessage } from "./slack";
 
@@ -16,10 +16,8 @@ import {
 } from "@/types/testrun";
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
-import { validateRequest } from "@/lib/server/auth";
 import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { testrunDataConverter } from "@/lib/server/converters";
-import { db } from "@/lib/server/db";
 
 export async function validateFormData(formData: FormData, currentUser: User) {
   let { side, booker } = await _validateFormData<TestrunSide>(

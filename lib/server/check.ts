@@ -2,7 +2,7 @@
 
 import "server-cli-only";
 
-import { User } from "lucia";
+import { UserTable as User } from "@/types/auth";
 
 import { sendSlackNotifyMessage } from "./slack";
 
@@ -15,10 +15,8 @@ import {
 } from "@/types/check";
 import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
-import { validateRequest } from "@/lib/server/auth";
 import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { checkDataConverter } from "@/lib/server/converters";
-import { db } from "@/lib/server/db";
 import { getCheckLocationSettings } from "@/lib/server/settings";
 import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
 

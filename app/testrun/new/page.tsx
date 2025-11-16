@@ -13,7 +13,7 @@ import {
   Radio,
   RadioGroup,
 } from "@heroui/react";
-import { User } from "lucia";
+import { UserTable as User } from "@/types/auth";
 
 import { ActionResult } from "@/types/actions";
 import {

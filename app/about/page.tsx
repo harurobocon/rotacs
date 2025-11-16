@@ -1,18 +1,17 @@
-import { redirect } from "next/navigation";
+"use client";
 
 import { homeTitle } from "@/components/primitives";
-import { validateRequest } from "@/lib/server/auth";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { AuthGuard } from "@/components/AuthGuard";
 
-export default async function AboutPage() {
-  const { user } = await validateRequest();
-
-  if (!user) {
-    return redirect("/login");
-  }
+export default function AboutPage() {
+  const { user } = useAuth();
 
   return (
-    <div>
-      <h1 className={homeTitle()}>Hello, {user.username}!</h1>
-    </div>
+    <AuthGuard requireAuth>
+      <div>
+        <h1 className={homeTitle()}>Hello, {user?.email?.split('@')[0] || 'User'}!</h1>
+      </div>
+    </AuthGuard>
   );
 }

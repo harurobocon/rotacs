@@ -1,7 +1,7 @@
 import "server-cli-only";
 
 import React from "react";
-import { User as LuciaUser } from "lucia";
+import { UserTable as LuciaUser } from "@/types/auth";
 
 import UserSettingsTable from "@/components/settings/user-table";
 import { db } from "@/lib/server/db";

@@ -18,7 +18,7 @@ import {
   Spinner,
 } from "@heroui/react";
 import { capitalize } from "@heroui/shared-utils";
-import { User as LuciaUser } from "lucia";
+import { UserTable as LuciaUser } from "@/types/auth";
 import { useAsyncList } from "@react-stately/data";
 import { useFormState, useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";

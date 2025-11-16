@@ -6,7 +6,7 @@ import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Autocomplete, AutocompleteItem, Button } from "@heroui/react";
-import { User } from "lucia";
+import { UserTable as User } from "@/types/auth";
 
 import { ActionResult } from "@/types/actions";
 import { createCheck } from "@/lib/server/check";
