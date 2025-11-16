@@ -1,5 +1,3 @@
-"use server";
-
 import { CheckSide } from "@/types/check";
 
 export interface DatabaseUserAttributes {
@@ -14,7 +12,6 @@ export interface DatabaseUserAttributes {
 export interface UserTable {
   id: string;
   username: string;
-  password_hash: string;
   display_name: string;
   role: UserRole;
   pit_side: CheckSide;
@@ -23,9 +20,3 @@ export interface UserTable {
 }
 
 export type UserRole = "admin" | "user";
-
-export interface SessionTable {
-  id: string;
-  user_id: string;
-  expires_at: Date;
-}
