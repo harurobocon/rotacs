@@ -1,6 +1,5 @@
 "use server";
 
-// import NotificationTable from "@/components/settings/notification-table";
 import {
   settingsPageSubtitle,
   settingsPageTitle,
@@ -12,21 +11,8 @@ import SlackChannelDeleteButton from "@/components/settings/slack-channel-delete
 import SystemChannelIdButton from "@/components/settings/system-channel-id-button";
 
 export default async function Page() {
-  // const { user } = await validateRequest();
-
-  // let tokens: LineNotifyToken[] = [];
-
-  // if (user) {
-  //   tokens = await getUserTokens(user);
-  // }
-
   return (
     <div>
-      {/* <div className="p-2">
-        <p className={settingsPageTitle()}>LINE通知設定</p>
-        <p className={settingsPageSubtitle()}>LINEへの通知の設定をします．</p>
-        <NotificationTable tokenJson={JSON.stringify(tokens)} />
-      </div> */}
       <div className="p-2">
         <p className={settingsPageTitle()}>Slack通知設定</p>
         <p className={settingsPageSubtitle()}>
