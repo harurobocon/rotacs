@@ -7,16 +7,15 @@ import {
   NavbarMenuItem,
   Link,
 } from "@heroui/react";
-import { User } from "lucia";
 
 import { siteConfig } from "@/config/site";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function NavbarMenu(props: {
-  userJson?: string;
   setIsMenuOpen: () => void;
 }) {
   const pathname = usePathname();
-  const user = props.userJson ? (JSON.parse(props.userJson) as User) : null;
+  const { user } = useAuth();
 
   const navMenuItems = user
     ? siteConfig.navMenuItemsSignedIn

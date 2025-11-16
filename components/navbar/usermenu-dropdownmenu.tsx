@@ -1,16 +1,16 @@
 "use client";
 
 import { DropdownItem, DropdownMenu } from "@heroui/react";
-import { User } from "lucia";
 
 import { siteConfig } from "@/config/site";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
-export default function UserMenuDropdownMenu(props: { userJson: string }) {
-  const user = JSON.parse(props.userJson) as User;
+export default function UserMenuDropdownMenu() {
+  const { user } = useAuth();
 
   const items = [
     <DropdownItem key="profile" className="h-14 gap-2" textValue="プロフィール">
-      <p className="font-semibold">{user.username}</p>
+      <p className="font-semibold">{user?.email?.split('@')[0] || 'User'}</p>
     </DropdownItem>,
   ];
 
