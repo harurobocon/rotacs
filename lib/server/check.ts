@@ -19,11 +19,13 @@ import { validateFormData as _validateFormData } from "@/lib/server/reservation"
 import { checkDataConverter } from "@/lib/server/converters";
 import { getCheckLocationSettings } from "@/lib/server/settings";
 import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
+import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 
-async function validateFormData(formData: FormData, currentUser: User) {
+async function validateFormData(formData: FormData, userId: string, isAdmin: boolean) {
   let { booker, collectionId } = await _validateFormData<CheckSide>(
     formData,
-    currentUser,
+    userId,
+    isAdmin,
   );
 
   if (!collectionId) {
@@ -34,22 +36,19 @@ async function validateFormData(formData: FormData, currentUser: User) {
 }
 
 export async function createCheck(
+  userId: string,
+  isAdmin: boolean,
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
-  if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
-  }
-
+  // Authentication is handled by Firebase Auth on the client
+  // Authorization is enforced by Firestore Security Rules
+  
   let booker: User;
   let collectionId: string;
 
   try {
-    ({ booker, collectionId } = await validateFormData(formData, currentUser));
+    ({ booker, collectionId } = await validateFormData(formData, userId, isAdmin));
   } catch (e: any) {
     return { errors: e.toString() };
   }
@@ -159,12 +158,9 @@ export async function updateCheckStatus(
   newState: CheckStatus,
   collectionId: string,
 ): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "認証情報が不正です．ログインし直してください．" };
-  }
-
+  // Authentication is handled by Firebase Auth on the client
+  // Admin authorization is enforced by Firestore Security Rules
+  
   const firestore = await getFirestore();
 
   try {
@@ -243,12 +239,9 @@ export async function updateCheckResults(
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "認証情報が不正です．ログインし直してください．" };
-  }
-
+  // Authentication is handled by Firebase Auth on the client
+  // Admin authorization is enforced by Firestore Security Rules
+  
   const id = formData.get("id")!.toString();
   const collectionId = formData.get("collectionId")!.toString();
 
@@ -465,14 +458,18 @@ async function sendNewReservationNotification(
 }
 
 export async function createCheckMessageCard(
+  userId: string,
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
+  // Authentication is handled by Firebase Auth on the client
+  // Authorization is enforced by Firestore Security Rules
+  
+  const currentUser = await getFirestoreUserById(userId);
+  
   if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
+    console.trace("ユーザー情報が見つかりません");
+    return { errors: "ユーザー情報が見つかりません" };
   }
 
   let message: string;

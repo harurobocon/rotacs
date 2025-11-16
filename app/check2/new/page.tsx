@@ -19,7 +19,7 @@ import {
   listenCheckLocationSettings,
 } from "@/lib/client/settings";
 import { CheckLocationMode } from "@/types/settings";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const initialState: ActionResult = {
   errors: "",
@@ -27,14 +27,37 @@ const initialState: ActionResult = {
 
 export default function NewCheck() {
   const router = useRouter();
+  const { user, isAdmin: isAdminUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [users, setUsers] = React.useState<User[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
   const [mode, setMode] = React.useState<CheckLocationMode>("single");
-  const { isAdmin: isAdminUser } = useIsAdmin();
-  const [formState, formAction] = useFormState(createCheck, initialState);
+  
+  // Wrap createCheck with userId and isAdmin
+  const createCheckWithAuth = React.useCallback(
+    (state: ActionResult, formData: FormData) => {
+      if (!user) {
+        return Promise.resolve({ errors: "ログインが必要です" });
+      }
+      return createCheck(user.uid, isAdminUser, state, formData);
+    },
+    [user, isAdminUser]
+  );
+  
+  // Wrap createCheckMessageCard with userId
+  const createCheckMessageCardWithAuth = React.useCallback(
+    (state: ActionResult, formData: FormData) => {
+      if (!user) {
+        return Promise.resolve({ errors: "ログインが必要です" });
+      }
+      return createCheckMessageCard(user.uid, state, formData);
+    },
+    [user]
+  );
+  
+  const [formState, formAction] = useFormState(createCheckWithAuth, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("check2");
 
@@ -151,7 +174,7 @@ export default function NewCheck() {
             任意名のカードを作成（休憩・対戦形式など）
           </p>
           <MessageCardForm
-            action={createCheckMessageCard}
+            action={createCheckMessageCardWithAuth}
             successRedirect="/check2/new/success?message=カードを作成しました"
             failedRedirect="/check2/new/failed"
             hiddenFields={[{ name: "collectionId", value: CHECK2_COLLECTION }]}

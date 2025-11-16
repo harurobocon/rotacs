@@ -18,11 +18,13 @@ import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { practiceDataConverter } from "@/lib/server/converters";
+import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 
-export async function validateFormData(formData: FormData, currentUser: User) {
+export async function validateFormData(formData: FormData, userId: string, isAdmin: boolean) {
   let { side, booker } = await _validateFormData<PracticeSide>(
     formData,
-    currentUser,
+    userId,
+    isAdmin,
   );
 
   if (!side) {
@@ -33,22 +35,19 @@ export async function validateFormData(formData: FormData, currentUser: User) {
 }
 
 export async function createPractice(
+  userId: string,
+  isAdmin: boolean,
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
-  if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
-  }
-
+  // Authentication is handled by Firebase Auth on the client
+  // Authorization is enforced by Firestore Security Rules
+  
   let side: PracticeSide;
   let booker: User;
 
   try {
-    ({ side, booker } = await validateFormData(formData, currentUser));
+    ({ side, booker } = await validateFormData(formData, userId, isAdmin));
   } catch (e: any) {
     return { errors: e.toString() };
   }
@@ -124,12 +123,9 @@ export async function updatePracticeStatus(
   id: string,
   newState: PracticeStatus,
 ): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "認証情報が不正です．ログインし直してください．" };
-  }
-
+  // Authentication is handled by Firebase Auth on the client
+  // Admin authorization is enforced by Firestore Security Rules
+  
   const firestore = await getFirestore();
 
   try {
@@ -307,14 +303,18 @@ https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/practice`;
 }
 
 export async function createPracticeMessageCard(
+  userId: string,
   state: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
+  // Authentication is handled by Firebase Auth on the client
+  // Authorization is enforced by Firestore Security Rules
+  
+  const currentUser = await getFirestoreUserById(userId);
+  
   if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
+    console.trace("ユーザー情報が見つかりません");
+    return { errors: "ユーザー情報が見つかりません" };
   }
 
   let message: string;
