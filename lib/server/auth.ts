@@ -21,4 +21,20 @@ import "server-cli-only";
  * - Firebase Admin SDK verifyIdToken() for server-side validation if needed
  */
 
-export {}; // Make this a module
+/**
+ * @deprecated This function is deprecated and should not be used.
+ * It's kept temporarily for backward compatibility during migration.
+ * Server Actions should accept userId from the client instead.
+ * 
+ * TODO: Remove all calls to this function from:
+ * - lib/server/check.ts
+ * - lib/server/practice.ts
+ * - lib/server/testrun.ts
+ */
+export async function validateRequest(): Promise<{ user: null; session: null }> {
+  console.warn('validateRequest is deprecated. Server Actions should accept userId from Firebase Auth on the client side.');
+  return {
+    user: null,
+    session: null,
+  };
+}

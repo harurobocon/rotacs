@@ -4,7 +4,7 @@ import React from "react";
 import { UserTable as LuciaUser } from "@/types/auth";
 
 import UserSettingsTable from "@/components/settings/user-table";
-import { db } from "@/lib/server/db";
+import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 import NewUsersTextarea from "@/components/settings/new-users-textarea";
 import {
   settingsPageSubtitle,
@@ -12,7 +12,7 @@ import {
 } from "@/components/settings/styles";
 
 export default async function UserSettings() {
-  const users: LuciaUser[] = await db.selectFrom("user").selectAll().execute();
+  const users: LuciaUser[] = await getAllFirestoreUsers();
 
   return (
     <div>
