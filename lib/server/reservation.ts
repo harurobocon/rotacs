@@ -6,17 +6,18 @@ import {
   Timestamp,
   WithFieldValue,
 } from "firebase-admin/firestore";
-import { User } from "lucia";
 
 import { Reservation } from "@/types/reservation";
-import { db } from "@/lib/server/db";
+import { FirestoreUser } from "@/types/user";
+import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 
 export async function validateFormData<SideType extends string>(
   formData: FormData,
-  currentUser: User,
+  currentUserId: string,
+  isAdmin: boolean,
 ): Promise<{
   side: SideType | undefined;
-  booker: User;
+  booker: FirestoreUser;
   collectionId: string | undefined;
 }> {
   // formDataの検証
@@ -40,17 +41,20 @@ export async function validateFormData<SideType extends string>(
     collectionId = formData.get("collectionId")?.toString();
   }
 
+  // Get current user from Firestore
+  const currentUser = await getFirestoreUserById(currentUserId);
+
+  if (!currentUser) {
+    throw Error("ユーザー情報が見つかりません");
+  }
+
   // Adminは他のユーザの予約を作成できる
   // 指定されたユーザーの予約を作成する権限があるかを検証
-  let booker: User = currentUser;
+  let booker: FirestoreUser = currentUser;
 
-  if (currentUser.role === "admin") {
+  if (isAdmin) {
     if (bookerId) {
-      const _booker = await db
-        .selectFrom("user")
-        .where("id", "=", bookerId)
-        .selectAll()
-        .executeTakeFirst();
+      const _booker = await getFirestoreUserById(bookerId);
 
       if (!_booker) {
         console.trace("指定されたユーザが存在しません");
@@ -61,7 +65,7 @@ export async function validateFormData<SideType extends string>(
       booker = _booker;
     }
   } else {
-    if (bookerId && bookerId !== currentUser.id) {
+    if (bookerId && bookerId !== currentUserId) {
       console.trace("他のユーザの予約を作成することはできません");
 
       throw Error("他のユーザの予約を作成することはできません");
