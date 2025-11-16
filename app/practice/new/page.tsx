@@ -16,7 +16,7 @@ import {
 import { getAllUsersJson } from "@/lib/server/auth";
 import MessageCardForm from "@/components/MessageCardForm";
 import { useReservationControl } from "@/hooks/useReservationControl";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useAuth } from "@/lib/contexts/AuthContext";
 
 const initialState: ActionResult = {
   errors: "",
@@ -24,13 +24,36 @@ const initialState: ActionResult = {
 
 export default function NewPractice() {
   const router = useRouter();
+  const { user, isAdmin: isAdminUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [users, setUsers] = React.useState<User[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<React.Key | null>(
     null,
   );
-  const { isAdmin: isAdminUser } = useIsAdmin();
-  const [formState, formAction] = useFormState(createPractice, initialState);
+  
+  // Wrap createPractice with userId and isAdmin
+  const createPracticeWithAuth = React.useCallback(
+    (state: ActionResult, formData: FormData) => {
+      if (!user) {
+        return Promise.resolve({ errors: "ログインが必要です" });
+      }
+      return createPractice(user.uid, isAdminUser, state, formData);
+    },
+    [user, isAdminUser]
+  );
+  
+  // Wrap createPracticeMessageCard with userId
+  const createPracticeMessageCardWithAuth = React.useCallback(
+    (state: ActionResult, formData: FormData) => {
+      if (!user) {
+        return Promise.resolve({ errors: "ログインが必要です" });
+      }
+      return createPracticeMessageCard(user.uid, state, formData);
+    },
+    [user]
+  );
+  
+  const [formState, formAction] = useFormState(createPracticeWithAuth, initialState);
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
     useReservationControl("practice");
 
@@ -122,7 +145,7 @@ export default function NewPractice() {
             任意名のカードを作成（休憩・対戦形式など）
           </p>
           <MessageCardForm
-            action={createPracticeMessageCard}
+            action={createPracticeMessageCardWithAuth}
             failedRedirect="/practice/new/failed"
             hiddenFields={[{ name: "side", value: "default" }]}
             successRedirect="/practice/new/success?message=カードを作成しました"
