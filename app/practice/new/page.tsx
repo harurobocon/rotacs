@@ -14,6 +14,7 @@ import {
   where,
 } from "firebase/firestore";
 
+import { AuthGuard } from "@/components/AuthGuard";
 import { FirestoreUser as User } from "@/types/user";
 import { triggerNewPracticeReservationNotification } from "@/lib/server/practice";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
@@ -214,48 +215,53 @@ export default function NewPractice() {
   }, [users]);
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-        <p className="pb-2 text-xl font-medium">新規試走場予約</p>
-        <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-          {isAdminUser ? usersDropdown : null}
-          <Button
-            color="primary"
-            isDisabled={isReservationDisabled || isSubmitting}
-            isLoading={isSubmitting}
-            type="submit"
-          >
-            予約する
-          </Button>
-          {reservationMessage && (
-            <p className="pt-2 text-center text-sm text-danger">
-              {reservationMessage}
-            </p>
-          )}
-        </form>
-      </div>
-      {isAdminUser ? (
+    <AuthGuard requireAuth>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4">
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-          <p className="pb-2 text-xl font-medium">
-            任意名のカードを作成（休憩・対戦形式など）
-          </p>
-          <form className="flex flex-col gap-3" onSubmit={handleMessageSubmit}>
-            <Input required label="メッセージ" name="message" />
+          <p className="pb-2 text-xl font-medium">新規試走場予約</p>
+          <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+            {isAdminUser ? usersDropdown : null}
             <Button
               color="primary"
-              isLoading={isMessageSubmitting}
+              isDisabled={isReservationDisabled || isSubmitting}
+              isLoading={isSubmitting}
               type="submit"
             >
-              カードを作成する
+              予約する
             </Button>
-            {messageError && (
+            {reservationMessage && (
               <p className="pt-2 text-center text-sm text-danger">
-                {messageError}
+                {reservationMessage}
               </p>
             )}
           </form>
         </div>
-      ) : null}
-    </div>
+        {isAdminUser ? (
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+            <p className="pb-2 text-xl font-medium">
+              任意名のカードを作成（休憩・対戦形式など）
+            </p>
+            <form
+              className="flex flex-col gap-3"
+              onSubmit={handleMessageSubmit}
+            >
+              <Input required label="メッセージ" name="message" />
+              <Button
+                color="primary"
+                isLoading={isMessageSubmitting}
+                type="submit"
+              >
+                カードを作成する
+              </Button>
+              {messageError && (
+                <p className="pt-2 text-center text-sm text-danger">
+                  {messageError}
+                </p>
+              )}
+            </form>
+          </div>
+        ) : null}
+      </div>
+    </AuthGuard>
   );
 }

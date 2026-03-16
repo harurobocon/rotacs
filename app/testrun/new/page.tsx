@@ -21,6 +21,7 @@ import {
   where,
 } from "firebase/firestore";
 
+import { AuthGuard } from "@/components/AuthGuard";
 import { FirestoreUser as User } from "@/types/user";
 import {
   TestrunReservation,
@@ -223,64 +224,69 @@ export default function NewTestrun() {
   }, [users]);
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-        <p className="pb-2 text-xl font-medium">新規テストラン予約</p>
-        <form className="flex flex-col gap-3" onSubmit={handleTestrunSubmit}>
-          <RadioGroup
-            label="フィールドの色を選択してください"
-            name="side"
-            onValueChange={setSide}
-          >
-            <Radio value="赤">赤</Radio>
-            <Radio value="青">青</Radio>
-          </RadioGroup>
-          {isAdminUser ? usersDropdown : null}
-          <Button
-            color="primary"
-            isDisabled={side === "" || isReservationDisabled || isSubmitting}
-            isLoading={isSubmitting}
-            type="submit"
-          >
-            予約する
-          </Button>
-          {reservationMessage && (
-            <p className="pt-2 text-center text-sm text-danger">
-              {reservationMessage}
-            </p>
-          )}
-        </form>
-      </div>
-      {isAdminUser ? (
+    <AuthGuard requireAuth>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4">
         <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
-          <p className="pb-2 text-xl font-medium">
-            任意名のカードを作成（休憩・対戦形式など）
-          </p>
-          <form className="flex flex-col gap-3" onSubmit={handleMessageSubmit}>
+          <p className="pb-2 text-xl font-medium">新規テストラン予約</p>
+          <form className="flex flex-col gap-3" onSubmit={handleTestrunSubmit}>
             <RadioGroup
-              defaultValue="赤"
               label="フィールドの色を選択してください"
-              name="side-radio"
+              name="side"
+              onValueChange={setSide}
             >
               <Radio value="赤">赤</Radio>
               <Radio value="青">青</Radio>
             </RadioGroup>
-            <Input required label="メッセージ" name="message" />
+            {isAdminUser ? usersDropdown : null}
             <Button
               color="primary"
-              isLoading={isMessageSubmitting}
+              isDisabled={side === "" || isReservationDisabled || isSubmitting}
+              isLoading={isSubmitting}
               type="submit"
             >
-              カードを作成する
+              予約する
             </Button>
-            {messageError && (
+            {reservationMessage && (
               <p className="pt-2 text-center text-sm text-danger">
-                {messageError}
+                {reservationMessage}
               </p>
             )}
           </form>
         </div>
-      ) : null}
-    </div>
+        {isAdminUser ? (
+          <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+            <p className="pb-2 text-xl font-medium">
+              任意名のカードを作成（休憩・対戦形式など）
+            </p>
+            <form
+              className="flex flex-col gap-3"
+              onSubmit={handleMessageSubmit}
+            >
+              <RadioGroup
+                defaultValue="赤"
+                label="フィールドの色を選択してください"
+                name="side-radio"
+              >
+                <Radio value="赤">赤</Radio>
+                <Radio value="青">青</Radio>
+              </RadioGroup>
+              <Input required label="メッセージ" name="message" />
+              <Button
+                color="primary"
+                isLoading={isMessageSubmitting}
+                type="submit"
+              >
+                カードを作成する
+              </Button>
+              {messageError && (
+                <p className="pt-2 text-center text-sm text-danger">
+                  {messageError}
+                </p>
+              )}
+            </form>
+          </div>
+        ) : null}
+      </div>
+    </AuthGuard>
   );
 }
