@@ -14,7 +14,6 @@ import {
   RadioGroup,
   Snippet,
 } from "@heroui/react";
-import { redirect } from "next/navigation";
 
 import { getReservationSettings } from "@/lib/client/settings";
 import { updateReservationSettings } from "@/lib/server/settings";
@@ -54,6 +53,7 @@ export default function ReservationControlPage() {
     updateReservationSettings,
     initialState,
   );
+
   useEffect(() => {
     getReservationSettings().then(setSettings);
   }, []);

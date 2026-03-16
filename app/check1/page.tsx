@@ -79,7 +79,10 @@ export default function Check() {
       CHECK1_COLLECTION,
       (snapshot) => {
         const reservations = snapshot.docs.map((doc) => doc.data());
-        const newSchedule = CheckSchedule.fromUnsorted(reservations, modeRef.current);
+        const newSchedule = CheckSchedule.fromUnsorted(
+          reservations,
+          modeRef.current,
+        );
 
         setSchedule(newSchedule);
       },

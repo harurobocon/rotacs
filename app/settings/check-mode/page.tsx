@@ -13,7 +13,6 @@ import {
   RadioGroup,
   Snippet,
 } from "@heroui/react";
-import { redirect } from "next/navigation";
 
 import { getCheckLocationSettings } from "@/lib/client/settings";
 import { updateCheckLocationSettings } from "@/lib/server/settings";
@@ -39,6 +38,7 @@ export default function CheckModePage() {
     updateCheckLocationSettings,
     initialState,
   );
+
   useEffect(() => {
     getCheckLocationSettings().then(setSettings);
   }, []);

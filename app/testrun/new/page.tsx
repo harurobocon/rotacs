@@ -66,8 +66,11 @@ export default function NewTestrun() {
         isAdminUser && selectedUser ? selectedUser.toString() : user.uid;
       const bookerDisplayName =
         isAdminUser && selectedUser
-          ? (users?.find((u) => u.id === selectedUser.toString())?.display_name ?? user.displayName ?? "ユーザー")
-          : (user.displayName || "ユーザー");
+          ? (users?.find((u) => u.id === selectedUser.toString())
+              ?.display_name ??
+            user.displayName ??
+            "ユーザー")
+          : user.displayName || "ユーザー";
 
       let shouldNotifyNewReservation = false;
       const existsStatus: TestrunStatus[] = [
@@ -82,11 +85,14 @@ export default function NewTestrun() {
         const reservationsRef = collection(db, TESTRUN_COLLECTION);
 
         // Fetch User Data for `pit_number` and `display_name`
-        const userDocRef = doc(db, process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev", bookerId);
+        const userDocRef = doc(
+          db,
+          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
+          bookerId,
+        );
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
-        const resolvedDisplayName =
-          userData?.display_name || bookerDisplayName;
+        const resolvedDisplayName = userData?.display_name || bookerDisplayName;
         const pitNumber = userData?.pit_number || null;
 
         // 1. Check if an active reservation already exists for this user

@@ -96,7 +96,11 @@ export default function NewPractice() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `display_name`
-        const userDocRef = doc(db, process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev", bookerId);
+        const userDocRef = doc(
+          db,
+          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
+          bookerId,
+        );
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =

@@ -103,7 +103,11 @@ export default function NewCheck() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `pit_side`, `pit_number`, and `display_name`
-        const userDocRef = doc(db, process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev", bookerId);
+        const userDocRef = doc(
+          db,
+          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
+          bookerId,
+        );
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =

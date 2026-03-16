@@ -45,7 +45,9 @@ export default function Page() {
               <SlackChannelIdButton />
             </div>
             <div>
-              <p className="mb-2 text-sm font-medium">システムチャンネルID取得</p>
+              <p className="mb-2 text-sm font-medium">
+                システムチャンネルID取得
+              </p>
               <SystemChannelIdButton />
             </div>
           </div>

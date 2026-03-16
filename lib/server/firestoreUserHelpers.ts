@@ -22,6 +22,7 @@ export async function getFirestoreUserById(
     }
 
     const data = userDoc.data();
+
     if (!data) return null;
 
     if (data.createdAt && typeof data.createdAt.toDate === "function") {
@@ -49,12 +50,14 @@ export async function getAllFirestoreUsers(): Promise<FirestoreUser[]> {
 
     return usersSnapshot.docs.map((doc) => {
       const data = doc.data();
+
       if (data.createdAt && typeof data.createdAt.toDate === "function") {
         data.createdAt = data.createdAt.toDate();
       }
       if (data.updatedAt && typeof data.updatedAt.toDate === "function") {
         data.updatedAt = data.updatedAt.toDate();
       }
+
       return data as FirestoreUser;
     });
   } catch (error) {
