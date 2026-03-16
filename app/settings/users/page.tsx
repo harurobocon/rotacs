@@ -10,6 +10,7 @@ import {
   settingsPageSubtitle,
   settingsPageTitle,
 } from "@/components/settings/styles";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default async function UserSettings() {
   const firestoreUsers = await getAllFirestoreUsers();
@@ -24,19 +25,21 @@ export default async function UserSettings() {
   }));
 
   return (
-    <div>
-      <div className="p-2">
-        <p className={settingsPageTitle()}>ユーザー一覧</p>
-        <p className={settingsPageSubtitle()}>ユーザーの削除を行えます．</p>
-        <UserSettingsTable users={users} />
+    <AuthGuard requireAdmin>
+      <div>
+        <div className="p-2">
+          <p className={settingsPageTitle()}>ユーザー一覧</p>
+          <p className={settingsPageSubtitle()}>ユーザーの削除を行えます．</p>
+          <UserSettingsTable users={users} />
+        </div>
+        <div className="p-2">
+          <p className={settingsPageTitle()}>ユーザーの追加</p>
+          <p className={settingsPageSubtitle()}>
+            CSV形式でユーザーを追加できます．
+          </p>
+          <NewUsersTextarea />
+        </div>
       </div>
-      <div className="p-2">
-        <p className={settingsPageTitle()}>ユーザーの追加</p>
-        <p className={settingsPageSubtitle()}>
-          CSV形式でユーザーを追加できます．
-        </p>
-        <NewUsersTextarea />
-      </div>
-    </div>
+    </AuthGuard>
   );
 }

@@ -25,7 +25,7 @@ import {
   ReservationControlMode,
 } from "@/types/settings";
 import { ActionResult } from "@/types/actions";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { AuthGuard } from "@/components/AuthGuard";
 
 const initialState: ActionResult = {
   errors: "",
@@ -50,19 +50,13 @@ function SubmitButton() {
 
 export default function ReservationControlPage() {
   const [settings, setSettings] = useState<ReservationSettings | null>(null);
-  const { isAdmin: isAdminUser } = useIsAdmin();
   const [formState, formAction] = useFormState(
     updateReservationSettings,
     initialState,
   );
-
   useEffect(() => {
-    if (!isAdminUser && isAdminUser !== undefined) {
-      redirect("/");
-    }
-
     getReservationSettings().then(setSettings);
-  }, [isAdminUser]);
+  }, []);
 
   const handleSettingChange = (
     type: ReservationType,
@@ -80,73 +74,75 @@ export default function ReservationControlPage() {
     }
   };
 
-  if (!isAdminUser || !settings) {
+  if (!settings) {
     return <div>読み込み中...</div>;
   }
 
   return (
-    <div className="flex h-full w-full flex-col items-center gap-4 p-4">
-      <h1 className="text-2xl font-bold">予約受付設定</h1>
-      <form action={formAction} className="w-full max-w-2xl">
-        {formState.errors && (
-          <Snippet className="mb-4" color="danger">
-            {formState.errors}
-          </Snippet>
-        )}
-        <div className="flex flex-col gap-4">
-          {RESERVATION_TYPES.map((type) => (
-            <Card key={type}>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">
-                  {reservationTypeToDisplayName[type]}
-                </h2>
-              </CardHeader>
-              <CardBody className="gap-4">
-                <RadioGroup
-                  label="受付モード"
-                  name={`${type}-mode`}
-                  orientation="horizontal"
-                  value={settings[type].mode}
-                  onValueChange={(v) =>
-                    handleSettingChange(
-                      type,
-                      "mode",
-                      v as ReservationControlMode,
-                    )
-                  }
-                >
-                  <Radio value="disabled">無効</Radio>
-                  <Radio value="enabled">有効</Radio>
-                  <Radio value="timer">タイマー</Radio>
-                </RadioGroup>
-                <div className="flex w-full flex-row items-center gap-2">
-                  <Input
-                    isDisabled={settings[type].mode !== "timer"}
-                    label="開始日 (JST)"
-                    name={`${type}-startDate`}
-                    type="date"
-                    value={settings[type].startDate}
-                    onChange={(e) =>
-                      handleSettingChange(type, "startDate", e.target.value)
+    <AuthGuard requireAdmin>
+      <div className="flex h-full w-full flex-col items-center gap-4 p-4">
+        <h1 className="text-2xl font-bold">予約受付設定</h1>
+        <form action={formAction} className="w-full max-w-2xl">
+          {formState.errors && (
+            <Snippet className="mb-4" color="danger">
+              {formState.errors}
+            </Snippet>
+          )}
+          <div className="flex flex-col gap-4">
+            {RESERVATION_TYPES.map((type) => (
+              <Card key={type}>
+                <CardHeader>
+                  <h2 className="text-xl font-semibold">
+                    {reservationTypeToDisplayName[type]}
+                  </h2>
+                </CardHeader>
+                <CardBody className="gap-4">
+                  <RadioGroup
+                    label="受付モード"
+                    name={`${type}-mode`}
+                    orientation="horizontal"
+                    value={settings[type].mode}
+                    onValueChange={(v) =>
+                      handleSettingChange(
+                        type,
+                        "mode",
+                        v as ReservationControlMode,
+                      )
                     }
-                  />
-                  <Input
-                    isDisabled={settings[type].mode !== "timer"}
-                    label="開始時間 (JST)"
-                    name={`${type}-startTime`}
-                    type="time"
-                    value={settings[type].startTime}
-                    onChange={(e) =>
-                      handleSettingChange(type, "startTime", e.target.value)
-                    }
-                  />
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-        <SubmitButton />
-      </form>
-    </div>
+                  >
+                    <Radio value="disabled">無効</Radio>
+                    <Radio value="enabled">有効</Radio>
+                    <Radio value="timer">タイマー</Radio>
+                  </RadioGroup>
+                  <div className="flex w-full flex-row items-center gap-2">
+                    <Input
+                      isDisabled={settings[type].mode !== "timer"}
+                      label="開始日 (JST)"
+                      name={`${type}-startDate`}
+                      type="date"
+                      value={settings[type].startDate}
+                      onChange={(e) =>
+                        handleSettingChange(type, "startDate", e.target.value)
+                      }
+                    />
+                    <Input
+                      isDisabled={settings[type].mode !== "timer"}
+                      label="開始時間 (JST)"
+                      name={`${type}-startTime`}
+                      type="time"
+                      value={settings[type].startTime}
+                      onChange={(e) =>
+                        handleSettingChange(type, "startTime", e.target.value)
+                      }
+                    />
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+          <SubmitButton />
+        </form>
+      </div>
+    </AuthGuard>
   );
 }
