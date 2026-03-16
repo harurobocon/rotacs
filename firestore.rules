@@ -18,84 +18,88 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Users collection
-    match /users/{userId} {
-      // Users can read their own document
-      // Admins can read all user documents
+    // Users collection (dev & prod)
+    match /users_dev/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      
-      // Only admins can create, update, or delete user documents
+      allow write: if isAdmin();
+    }
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
       allow write: if isAdmin();
     }
     
-    // Check1 reservations
-    match /check1/{reservationId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
-      
-      // Users can create their own reservations
-      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      
-      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
-      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
-      
-      // Users can delete their own
+    // Check1 reservations (dev & prod)
+    match /check1_reservations_dev/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
+      allow delete: if isOwner(resource.data.user_id) || isAdmin();
+    }
+    match /check1_reservations/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
-    // Check2 reservations
-    match /check2/{reservationId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
-      
-      // Users can create their own reservations
-      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      
-      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
-      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
-      
-      // Users can delete their own
+    // Check2 reservations (dev & prod)
+    match /check2_reservations_dev/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
+      allow delete: if isOwner(resource.data.user_id) || isAdmin();
+    }
+    match /check2_reservations/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
-    // Practice reservations
-    match /practice/{reservationId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
-      
-      // Users can create their own reservations
-      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      
-      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
-      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
-      
-      // Users can delete their own
+    // Practice reservations (dev & prod)
+    match /practice_reservations_dev/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
+      allow delete: if isOwner(resource.data.user_id) || isAdmin();
+    }
+    match /practice_reservations/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
-    // Testrun reservations
-    match /testrun/{reservationId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
-      
-      // Users can create their own reservations
-      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      
-      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
-      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
-      
-      // Users can delete their own
+    // Testrun reservations (dev & prod)
+    match /testrun_reservations_dev/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
+      allow delete: if isOwner(resource.data.user_id) || isAdmin();
+    }
+    match /testrun_reservations/{reservationId} {
+      allow read: if true;
+      allow create: if isOwner(request.resource.data.user_id);
+      allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
-    // Reservation settings (admin only)
-    match /reservationSettings/{settingId} {
+    // Reservation settings (admin only, dev & prod)
+    match /reservation_settings_dev/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /reservation_settings/{settingId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
     
-    // Check location settings (admin only)
-    match /checkLocationSettings/{settingId} {
+    // Check location settings (admin only, dev & prod)
+    match /check_location_settings_dev/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /check_location_settings/{settingId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
