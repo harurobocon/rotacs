@@ -3,7 +3,6 @@
 import React from "react";
 import { Button, Link } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import { cn } from "@/lib/cn";
 
 type BannerProps = {
   message: string;

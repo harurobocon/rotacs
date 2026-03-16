@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import ResultCard from "@/components/result-card";
 
-const TestRunFailedPage: React.FC = () => {
+const FailedContent: React.FC = () => {
   const searchParams = useSearchParams();
 
   return (
@@ -18,6 +18,16 @@ const TestRunFailedPage: React.FC = () => {
         title="予約失敗"
       />
     </div>
+  );
+};
+
+FailedContent.displayName = "FailedContent";
+
+const TestRunFailedPage: React.FC = () => {
+  return (
+    <React.Suspense fallback={null}>
+      <FailedContent />
+    </React.Suspense>
   );
 };
 

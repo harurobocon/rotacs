@@ -121,6 +121,7 @@ export default function ReservationControlPage() {
                 </RadioGroup>
                 <div className="flex w-full flex-row items-center gap-2">
                   <Input
+                    isDisabled={settings[type].mode !== "timer"}
                     label="開始日 (JST)"
                     name={`${type}-startDate`}
                     type="date"
@@ -128,9 +129,9 @@ export default function ReservationControlPage() {
                     onChange={(e) =>
                       handleSettingChange(type, "startDate", e.target.value)
                     }
-                    isDisabled={settings[type].mode !== "timer"}
                   />
                   <Input
+                    isDisabled={settings[type].mode !== "timer"}
                     label="開始時間 (JST)"
                     name={`${type}-startTime`}
                     type="time"
@@ -138,7 +139,6 @@ export default function ReservationControlPage() {
                     onChange={(e) =>
                       handleSettingChange(type, "startTime", e.target.value)
                     }
-                    isDisabled={settings[type].mode !== "timer"}
                   />
                 </div>
               </CardBody>

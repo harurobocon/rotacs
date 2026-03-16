@@ -78,11 +78,11 @@ export async function createFirebaseUser(
     return {};
   } catch (error: any) {
     console.error("Error creating user:", error);
-    
+
     if (error.code === "auth/email-already-exists") {
       return { errors: "このユーザー名は既に使用されています" };
     }
-    
+
     return {
       errors: `Failed to create user: ${error.message}`,
     };
@@ -93,7 +93,9 @@ export async function createFirebaseUser(
  * Delete a Firebase user
  * Only admins can call this function (enforced by Firestore Rules)
  */
-export async function deleteFirebaseUser(userId: string): Promise<ActionResult> {
+export async function deleteFirebaseUser(
+  userId: string,
+): Promise<ActionResult> {
   try {
     const auth = await getAuth();
     const firestore = await getFirestore();
@@ -107,6 +109,7 @@ export async function deleteFirebaseUser(userId: string): Promise<ActionResult> 
     return {};
   } catch (error: any) {
     console.error("Error deleting user:", error);
+
     return {
       errors: `Failed to delete user: ${error.message}`,
     };
@@ -138,6 +141,7 @@ export async function updateUserRole(
     return {};
   } catch (error: any) {
     console.error("Error updating user role:", error);
+
     return {
       errors: `Failed to update user role: ${error.message}`,
     };

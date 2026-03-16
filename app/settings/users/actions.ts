@@ -11,10 +11,6 @@ import { UserRole } from "@/types/auth";
 import { ActionResult } from "@/types/actions";
 import { CheckSide } from "@/types/check";
 import {
-  deleteUserFromFirestore,
-  upsertUserToFirestore,
-} from "@/lib/server/firestoreUser";
-import {
   createFirebaseUser,
   deleteFirebaseUser,
 } from "@/lib/server/firebaseAuth";
@@ -32,7 +28,7 @@ export async function getTeamChannels(): Promise<
   Array<{ name: string; displayName: string }>
 > {
   const users = await getAllFirestoreUsers();
-  
+
   const teamUsers = users
     .filter((user) => user.role === "user")
     .sort((a, b) => a.username.localeCompare(b.username));
@@ -285,7 +281,8 @@ export async function deleteSlackChannelsForAllUsers(
     // Firestoreのslack_channel_idをクリア（削除されたチャンネルのみ）
     if (result.success > 0) {
       const users = await getAllFirestoreUsers();
-      const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
+      const COLLECTION_NAME =
+        process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
       const firestoreDb = await getFirestore();
 
       // slack_channel_idが設定されているユーザーのみ処理

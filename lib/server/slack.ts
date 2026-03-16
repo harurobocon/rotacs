@@ -107,6 +107,7 @@ async function getSystemChannelId(
 
   if (channelDoc.exists) {
     const data = channelDoc.data();
+
     if (data?.[channelName]) {
       return data[channelName];
     }
@@ -124,6 +125,7 @@ async function getSystemChannelId(
 
   // Firestoreに保存（既存データとマージ）
   const existingData = channelDoc.exists ? channelDoc.data() : {};
+
   await db
     .collection(RESERVATION_SETTINGS_COLLECTION)
     .doc(SYSTEM_SLACK_CHANNELS_DOCUMENT_ID)
@@ -204,11 +206,13 @@ export async function sendSlackNotifyMessage({
     channelNamePart.includes("テストラン")
   ) {
     const channelId = await getSystemChannelId(channelNamePart, side);
+
     await postSlackMessage({
       channel: channelId,
       markdown_text,
       at_channel,
     });
+
     return;
   }
 

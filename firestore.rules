@@ -34,10 +34,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       
       // Users can create their own reservations
-      // Users can update their own reservations
-      // Admins can do everything
       allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      allow update: if isOwner(resource.data.user_id) || isAdmin();
+      
+      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
+      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
+      
+      // Users can delete their own
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
@@ -47,10 +49,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       
       // Users can create their own reservations
-      // Users can update their own reservations
-      // Admins can do everything
       allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      allow update: if isOwner(resource.data.user_id) || isAdmin();
+      
+      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
+      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
+      
+      // Users can delete their own
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
@@ -60,10 +64,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       
       // Users can create their own reservations
-      // Users can update their own reservations
-      // Admins can do everything
       allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      allow update: if isOwner(resource.data.user_id) || isAdmin();
+      
+      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
+      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
+      
+      // Users can delete their own
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     
@@ -73,10 +79,12 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       
       // Users can create their own reservations
-      // Users can update their own reservations
-      // Admins can do everything
       allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
-      allow update: if isOwner(resource.data.user_id) || isAdmin();
+      
+      // Users can only update matching user_id reservations, and cannot modify user_id. Admins can do anything
+      allow update: if (isOwner(resource.data.user_id) && request.resource.data.user_id == request.auth.uid) || isAdmin();
+      
+      // Users can delete their own
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     

@@ -5,7 +5,6 @@ import "client-only";
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { getMessaging, getToken } from "firebase/messaging";
 
 import { firebaseConfig } from "./clientConfig";
 

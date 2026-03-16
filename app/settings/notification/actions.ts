@@ -2,17 +2,19 @@
 
 import "server-cli-only";
 
-import { redirect } from "next/navigation";
-
 import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 import { postSlackMessage } from "@/lib/server/slack";
 
 /**
  * Send a test Slack message
- * Note: userId parameter should be passed from client-side Firebase Auth currentUser.uid
- * This function no longer uses validateRequest - auth is handled client-side
+ * Note: userId should be provided from client-side Firebase Auth currentUser.uid.
  */
-export async function handleSlackTestMessageSend(userId: string) {
+export async function handleSlackTestMessageSend(
+  _state: Record<string, never>,
+  formData: FormData,
+) {
+  const userId = formData.get("userId")?.toString() ?? "";
+
   if (!userId) {
     return { ok: false, error: "ユーザーIDが指定されていません" };
   }

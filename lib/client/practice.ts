@@ -7,6 +7,8 @@ import {
   getDocs,
   onSnapshot,
   QuerySnapshot,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import { reservationDataConverter } from "@/lib/client/reservation";
@@ -79,6 +81,31 @@ export function onPracticeCollectionChange(
   return onSnapshot(practiceRef, (snapshot) => {
     callback(snapshot);
   });
+}
+
+export async function updatePracticeStatus(id: string, status: PracticeStatus) {
+  try {
+    const docRef = doc(firestore, PRACTICE_COLLECTION, id).withConverter(
+      practiceDataConverter(),
+    );
+    const updateData: any = { status };
+
+    if (status === "呼出中") {
+      updateData.fixed_at = serverTimestamp();
+    } else if (
+      status === "実施中" ||
+      status === "終了" ||
+      status === "キャンセル"
+    ) {
+      updateData.finished_at = serverTimestamp();
+    }
+
+    await updateDoc(docRef, updateData);
+
+    return { ok: true, errors: "" };
+  } catch (error: any) {
+    return { ok: false, errors: error.message };
+  }
 }
 
 function practiceDataConverter(): FirestoreDataConverter<PracticeReservation> {

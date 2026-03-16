@@ -2,14 +2,14 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import { Link, button as buttonStyles } from "@heroui/react";
 import clsx from "clsx";
+import { Icon } from "@iconify/react";
+import { Tooltip } from "@heroui/react";
 
 import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
-import { Icon } from "@iconify/react";
-import { Tooltip } from "@heroui/react";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = {

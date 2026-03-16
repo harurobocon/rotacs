@@ -32,20 +32,16 @@ import {
 } from "@heroui/react";
 import { tv } from "tailwind-variants";
 import { Icon } from "@iconify/react";
-import { useFormState } from "react-dom";
 
 import { cn } from "@/lib/cn";
-import {
-  CHECK1_COLLECTION,
-  CheckReservation,
-  CheckStatus,
-  CheckStatuses,
-} from "@/types/check";
+import { CheckReservation, CheckStatus, CheckStatuses } from "@/types/check";
 import {
   getCheckReservation,
   onCheckReservationChange,
+  updateCheckStatus,
+  updateCheckResults,
 } from "@/lib/client/check";
-import { updateCheckResults, updateCheckStatus } from "@/lib/server/check";
+import { triggerCheckNotification } from "@/lib/server/check";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface CheckReservationCardProps {
@@ -58,10 +54,6 @@ interface CheckReservationCardProps {
 const infoText = tv({
   base: "text-xs block font-semibold text-default-500",
 });
-
-const checkResultInitialState = {
-  errors: "",
-};
 
 export default function CheckReservationCard(props: CheckReservationCardProps) {
   const [reservation, setReservation] = React.useState<CheckReservation | null>(
@@ -83,10 +75,6 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
     onOpen: onOpenResultInput,
     onOpenChange: onOpenChangeResultInput,
   } = useDisclosure();
-  const [changeResultState, changeResultFormAction] = useFormState(
-    updateCheckResults,
-    checkResultInitialState,
-  );
 
   React.useEffect(() => {
     getCheckReservation(props.reservationId, props.collectionId).then(
@@ -113,19 +101,76 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       props.collectionId,
     );
 
+    if (result.errors) {
+      console.error(result.errors);
+      setErrorMessage(result.errors);
+      onOpenErrorDialog();
+      setIsSubmitting(false);
+
+      return;
+    }
+
+    try {
+      await triggerCheckNotification(props.collectionId);
+    } catch (error: any) {
+      console.error(error);
+    }
+
     setIsSubmitting(false);
+  }
+
+  async function handleResultSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const id = formData.get("id") as string;
+    const collectionId = formData.get("collectionId") as string;
+    const status = formData.get("status") as CheckStatus;
+
+    if (!status) {
+      setIsSubmitting(false);
+
+      return;
+    }
+
+    const size = formData.get("size") === "on";
+    const weight = formData.get("weight") === "on";
+    const emergencyStop = formData.get("emergencyStop") === "on";
+    const led = formData.get("led") === "on";
+    const power = formData.get("power") === "on";
+    const compressedAir = formData.get("compressedAir") === "on";
+    const memo = formData.get("memo") as string;
+    const recheckItems = formData.get("recheckItems") as string;
+
+    const result = await updateCheckResults(
+      id,
+      collectionId,
+      status,
+      size,
+      weight,
+      emergencyStop,
+      led,
+      power,
+      compressedAir,
+      memo,
+      recheckItems,
+    );
 
     if (result.errors) {
       console.error(result.errors);
       setErrorMessage(result.errors);
       onOpenErrorDialog();
-
-      return;
+    } else {
+      try {
+        await triggerCheckNotification(props.collectionId);
+      } catch (error: any) {
+        console.error(error);
+      }
+      onOpenChangeResultInput(); // Close dialog on success
     }
-  }
 
-  async function handleResultUpdate() {
-    setIsSubmitting(true);
+    setIsSubmitting(false);
   }
 
   let updateTime = "";
@@ -170,8 +215,8 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                 </ModalHeader>
                 <ModalBody>
                   <form
-                    action={changeResultFormAction}
                     className="flex-col items-stretch justify-start gap-4"
+                    onSubmit={handleResultSubmit}
                   >
                     <Checkbox className="flex" name="size">
                       サイズ
@@ -291,7 +336,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
     }
 
     const results = (
-      <Table className="w-full" aria-label="計量計測の結果">
+      <Table aria-label="計量計測の結果" className="w-full">
         <TableHeader>
           <TableColumn>項目</TableColumn>
           <TableColumn>結果</TableColumn>

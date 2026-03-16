@@ -11,9 +11,7 @@ import {
 import { siteConfig } from "@/config/site";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
-export default function NavbarMenu(props: {
-  setIsMenuOpen: () => void;
-}) {
+export default function NavbarMenu(props: { setIsMenuOpen: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
 

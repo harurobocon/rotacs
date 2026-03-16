@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, IdTokenResult } from "firebase/auth";
-import { auth } from "@/lib/firebase/clientApp";
 import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "@/lib/firebase/clientApp";
 
 interface AuthContextType {
   user: User | null;
@@ -32,10 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      
+
       if (user) {
         try {
           const token = await user.getIdTokenResult();
+
           setTokenResult(token);
           setIsAdmin(token.claims.admin === true);
         } catch (error) {
@@ -47,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTokenResult(null);
         setIsAdmin(false);
       }
-      
+
       setLoading(false);
     });
 

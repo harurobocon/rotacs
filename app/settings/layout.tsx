@@ -11,11 +11,7 @@ import {
 import { AuthGuard } from "@/components/AuthGuard";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useAuth();
 
   return (

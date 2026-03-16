@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
+
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 interface AuthGuardProps {
@@ -10,7 +11,11 @@ interface AuthGuardProps {
   requireAdmin?: boolean;
 }
 
-export function AuthGuard({ children, requireAuth = false, requireAdmin = false }: AuthGuardProps) {
+export function AuthGuard({
+  children,
+  requireAuth = false,
+  requireAdmin = false,
+}: AuthGuardProps) {
   const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -20,11 +25,13 @@ export function AuthGuard({ children, requireAuth = false, requireAdmin = false 
 
     if (requireAuth && !user) {
       router.push(`/login?redirect=${pathname}`);
+
       return;
     }
 
     if (requireAdmin && !isAdmin) {
       router.push("/settings");
+
       return;
     }
   }, [user, loading, isAdmin, requireAuth, requireAdmin, router, pathname]);

@@ -183,9 +183,9 @@ export default function SlackChannelDeleteButton() {
                 {systemChannels.map((channel) => (
                   <Checkbox
                     key={channel.name}
+                    className="ml-4"
                     name="exclude"
                     value={channel.name}
-                    className="ml-4"
                   >
                     {channel.name} ({channel.description})
                   </Checkbox>
@@ -196,8 +196,8 @@ export default function SlackChannelDeleteButton() {
             {/* チームチャンネル */}
             <div>
               <Checkbox
-                isSelected={allTeamChannelsSelected}
                 isIndeterminate={someTeamChannelsSelected}
+                isSelected={allTeamChannelsSelected}
                 onValueChange={handleTeamChannelsToggle}
               >
                 <span className="text-xs font-semibold text-gray-600">
@@ -205,9 +205,9 @@ export default function SlackChannelDeleteButton() {
                 </span>
               </Checkbox>
               <CheckboxGroup
+                className="ml-4 mt-1"
                 value={excludedChannels}
                 onValueChange={setExcludedChannels}
-                className="ml-4 mt-1"
               >
                 {teamChannels.map((team) => (
                   <Checkbox key={team.name} name="exclude" value={team.name}>

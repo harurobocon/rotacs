@@ -17,7 +17,6 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Spacer,
   useDisclosure,
 } from "@heroui/react";
 import { tv } from "tailwind-variants";
@@ -32,8 +31,9 @@ import {
 import {
   getPracticeReservation,
   onPracticeReservationChange,
+  updatePracticeStatus,
 } from "@/lib/client/practice";
-import { updatePracticeStatus } from "@/lib/server/practice";
+import { triggerPracticeNotification } from "@/lib/server/practice";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface PracticeReservationCardProps {
@@ -78,15 +78,22 @@ export default function PracticeReservationCard(
 
     const result = await updatePracticeStatus(props.reservationId, status);
 
-    setIsSubmitting(false);
-
     if (result.errors) {
       console.error(result.errors);
       setErrorMessage(result.errors);
       onOpenErrorDialog();
+      setIsSubmitting(false);
 
       return;
     }
+
+    try {
+      await triggerPracticeNotification();
+    } catch (error: any) {
+      console.error(error);
+    }
+
+    setIsSubmitting(false);
   }
 
   let updateTime = "";
@@ -280,8 +287,8 @@ export default function PracticeReservationCard(
       {card}
       <Modal
         isOpen={isOpenErrorDialog}
-        onOpenChange={onOpenChangeErrorDialog}
         placement="center"
+        onOpenChange={onOpenChangeErrorDialog}
       >
         <ModalContent>
           <ModalHeader>エラー</ModalHeader>
@@ -289,8 +296,8 @@ export default function PracticeReservationCard(
           <ModalFooter>
             <Button
               color="danger"
-              onPress={onOpenChangeErrorDialog}
               variant="light"
+              onPress={onOpenChangeErrorDialog}
             >
               閉じる
             </Button>

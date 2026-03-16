@@ -10,7 +10,9 @@ export default function AboutPage() {
   return (
     <AuthGuard requireAuth>
       <div>
-        <h1 className={homeTitle()}>Hello, {user?.email?.split('@')[0] || 'User'}!</h1>
+        <h1 className={homeTitle()}>
+          Hello, {user?.email?.split("@")[0] || "User"}!
+        </h1>
       </div>
     </AuthGuard>
   );

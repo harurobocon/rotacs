@@ -10,7 +10,7 @@ export default function UserMenuDropdownMenu() {
 
   const items = [
     <DropdownItem key="profile" className="h-14 gap-2" textValue="プロフィール">
-      <p className="font-semibold">{user?.email?.split('@')[0] || 'User'}</p>
+      <p className="font-semibold">{user?.email?.split("@")[0] || "User"}</p>
     </DropdownItem>,
   ];
 

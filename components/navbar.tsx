@@ -22,10 +22,8 @@ import NavbarMenu from "@/components/navbar/navbar-menu";
 import UserMenu from "@/components/navbar/usermenu";
 import Breadcrumbs from "@/components/navbar/breadcrumbs";
 import { ThemeSwitch } from "@/components/navbar/theme-switch";
-import { useAuth } from "@/lib/contexts/AuthContext";
 
 export function Navbar() {
-  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useReducer(
     (current) => !current,
     false,
@@ -136,9 +134,7 @@ export function Navbar() {
         </NavbarContent>
 
         {/* Menu */}
-        <NavbarMenu
-          setIsMenuOpen={setIsMenuOpen}
-        />
+        <NavbarMenu setIsMenuOpen={setIsMenuOpen} />
       </NextUiNavbar>
       <ScrollShadow
         hideScrollBar

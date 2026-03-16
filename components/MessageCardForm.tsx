@@ -2,6 +2,7 @@ import React from "react";
 import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
 import { Button, Input, RadioGroup, Radio } from "@heroui/react";
+
 import { ActionResult } from "@/types/actions";
 
 interface HiddenField {
@@ -62,20 +63,20 @@ const MessageCardForm: React.FC<MessageCardFormProps> = ({
         <RadioGroup
           label="フィールドの色を選択してください"
           name="side-radio"
-          onValueChange={setSide}
           value={side}
+          onValueChange={setSide}
         >
           <Radio value="赤">赤</Radio>
           <Radio value="青">青</Radio>
         </RadioGroup>
       )}
       <Input label={label} name="message" />
-      {enableSideSelect && <input type="hidden" name="side" value={side} />}
+      {enableSideSelect && <input name="side" type="hidden" value={side} />}
       {hiddenFields.map((field) => (
         <input
           key={field.name}
-          type="hidden"
           name={field.name}
+          type="hidden"
           value={field.value}
         />
       ))}

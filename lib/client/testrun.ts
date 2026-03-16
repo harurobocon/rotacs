@@ -10,6 +10,8 @@ import {
   query,
   QuerySnapshot,
   where,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import { reservationDataConverter } from "@/lib/client/reservation";
@@ -19,9 +21,7 @@ import {
   TestrunReservation,
   TestrunSchedule,
   TestrunSide,
-  TestrunSides,
   TestrunStatus,
-  TestrunStatuses,
 } from "@/types/testrun";
 
 export async function getTestrunReservation(
@@ -140,6 +140,32 @@ export function onTestrunChangeByTeam(
       callback(snapshot.docs[0].data().status);
     }
   });
+}
+
+export async function updateTestrunStatus(id: string, status: TestrunStatus) {
+  try {
+    const docRef = doc(firestore, TESTRUN_COLLECTION, id).withConverter(
+      testrunDataConverter(),
+    );
+    const updateData: any = { status };
+
+    if (status === "呼出中") {
+      updateData.fixed_at = serverTimestamp();
+    } else if (
+      status === "実施中" ||
+      status === "スタンバイ中" ||
+      status === "終了" ||
+      status === "キャンセル"
+    ) {
+      updateData.finished_at = serverTimestamp();
+    }
+
+    await updateDoc(docRef, updateData);
+
+    return { ok: true, errors: "" };
+  } catch (error: any) {
+    return { ok: false, errors: error.message };
+  }
 }
 
 function testrunDataConverter(): FirestoreDataConverter<TestrunReservation> {

@@ -29,7 +29,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
   return (
     <Switch
       className={cn(
-        "px-px transition-opacity cursor-pointer",
+        "cursor-pointer px-px transition-opacity",
         className,
         classNames?.base,
       )}
