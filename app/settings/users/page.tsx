@@ -2,7 +2,7 @@ import "server-cli-only";
 
 import React from "react";
 
-import { UserTable as LuciaUser } from "@/types/auth";
+import { UserTable } from "@/types/auth";
 import UserSettingsTable from "@/components/settings/user-table";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 import NewUsersTextarea from "@/components/settings/new-users-textarea";
@@ -13,7 +13,7 @@ import {
 
 export default async function UserSettings() {
   const firestoreUsers = await getAllFirestoreUsers();
-  const users: LuciaUser[] = firestoreUsers.map((user) => ({
+  const users: UserTable[] = firestoreUsers.map((user) => ({
     id: user.id,
     username: user.username,
     display_name: user.display_name,
