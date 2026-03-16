@@ -13,6 +13,7 @@ import {
   runTransaction,
   where,
 } from "firebase/firestore";
+import { ulid } from "ulid";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { FirestoreUser as User } from "@/types/user";
@@ -95,14 +96,14 @@ export default function NewPractice() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `display_name`
-        const userDocRef = doc(db, "users", bookerId);
+        const userDocRef = doc(db, process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev", bookerId);
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =
           userData?.display_name || user.displayName || "ユーザー";
 
         // 4. Create the new reservation
-        const newReservationRef = doc(reservationsRef);
+        const newReservationRef = doc(reservationsRef, ulid());
         const practice = new PracticeReservation({
           user_id: bookerId,
           user_display_name: bookerDisplayName,
@@ -153,10 +154,10 @@ export default function NewPractice() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, PRACTICE_COLLECTION);
-        const newReservationRef = doc(reservationsRef);
+        const newReservationRef = doc(reservationsRef, ulid());
 
         const practice = new PracticeReservation({
-          user_id: user.uid,
+          user_id: "dummy_user_id",
           user_display_name: message,
           reservation_count: 0,
           status: "順番待ち",

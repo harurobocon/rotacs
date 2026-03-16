@@ -42,12 +42,11 @@ export default function Testrun() {
       setSchedule(newSchedule);
     });
 
-    return onTestrunCollectionChange((_) => {
-      getTestrunSchedule().then((_newSchedule) => {
-        const newSchedule = new TestrunSchedule(_newSchedule);
+    return onTestrunCollectionChange((snapshot) => {
+      const reservations = snapshot.docs.map((doc) => doc.data());
+      const newSchedule = TestrunSchedule.fromUnsorted(reservations);
 
-        setSchedule(newSchedule);
-      });
+      setSchedule(newSchedule);
     });
   }, []);
 

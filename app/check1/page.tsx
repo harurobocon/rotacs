@@ -73,17 +73,11 @@ export default function Check() {
 
     const unsubscribeSchedule = onCheckCollectionChange(
       CHECK1_COLLECTION,
-      (_) => {
-        // 現在のモードを使用してスケジュールを更新
-        getCheckLocationSettings().then((settings) => {
-          getCheckSchedule(CHECK1_COLLECTION, settings.check1).then(
-            (_newSchedule) => {
-              const newSchedule = new CheckSchedule(_newSchedule);
+      (snapshot) => {
+        const reservations = snapshot.docs.map((doc) => doc.data());
+        const newSchedule = CheckSchedule.fromUnsorted(reservations, mode);
 
-              setSchedule(newSchedule);
-            },
-          );
-        });
+        setSchedule(newSchedule);
       },
     );
 

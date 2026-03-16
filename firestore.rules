@@ -31,13 +31,13 @@ service cloud.firestore {
     // Check1 reservations (dev & prod)
     match /check1_reservations_dev/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     match /check1_reservations/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
@@ -45,13 +45,13 @@ service cloud.firestore {
     // Check2 reservations (dev & prod)
     match /check2_reservations_dev/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     match /check2_reservations/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
@@ -59,13 +59,13 @@ service cloud.firestore {
     // Practice reservations (dev & prod)
     match /practice_reservations_dev/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     match /practice_reservations/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
@@ -73,13 +73,13 @@ service cloud.firestore {
     // Testrun reservations (dev & prod)
     match /testrun_reservations_dev/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
     match /testrun_reservations/{reservationId} {
       allow read: if true;
-      allow create: if isOwner(request.resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
       allow update: if (isOwner(resource.data.user_id) && isOwner(request.resource.data.user_id)) || isAdmin();
       allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }

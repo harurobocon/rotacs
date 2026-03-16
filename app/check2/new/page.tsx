@@ -13,6 +13,7 @@ import {
   runTransaction,
   where,
 } from "firebase/firestore";
+import { ulid } from "ulid";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { FirestoreUser as User } from "@/types/user";
@@ -102,7 +103,7 @@ export default function NewCheck() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `pit_side`, `pit_number`, and `display_name`
-        const userDocRef = doc(db, "users", bookerId);
+        const userDocRef = doc(db, process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev", bookerId);
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =
@@ -119,7 +120,7 @@ export default function NewCheck() {
         }
 
         // 4. Create the new reservation
-        const newReservationRef = doc(reservationsRef);
+        const newReservationRef = doc(reservationsRef, ulid());
         const check = new CheckReservation({
           user_id: bookerId,
           user_display_name: bookerDisplayName,
@@ -174,10 +175,10 @@ export default function NewCheck() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, CHECK2_COLLECTION);
-        const newReservationRef = doc(reservationsRef);
+        const newReservationRef = doc(reservationsRef, ulid());
 
         const check = new CheckReservation({
-          user_id: user.uid,
+          user_id: "dummy_user_id",
           user_display_name: message,
           reservation_count: 0,
           status: "順番待ち",
