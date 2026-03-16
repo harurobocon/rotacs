@@ -11,7 +11,8 @@
     "g:indexes:dev": "APP_ENV=development node -r esbuild-register scripts/generate-firestore-indexes.ts",
     "g:indexes:prod": "APP_ENV=production node -r esbuild-register scripts/generate-firestore-indexes.ts",
     "deploy:indexes:dev": "pnpm run g:indexes:dev && firebase deploy --only firestore:indexes --project $(node -e \"console.log(require('dotenv').config().parsed.NEXT_PUBLIC_FIREBASE_PROJECT_ID)\")",
-    "deploy:indexes:prod": "pnpm run g:indexes:prod && firebase deploy --only firestore:indexes --project $(node -e \"console.log(require('dotenv').config().parsed.NEXT_PUBLIC_FIREBASE_PROJECT_ID)\")"
+    "deploy:indexes:prod": "pnpm run g:indexes:prod && firebase deploy --only firestore:indexes --project $(node -e \"console.log(require('dotenv').config().parsed.NEXT_PUBLIC_FIREBASE_PROJECT_ID)\")",
+    "seed:admin": "node -r esbuild-register scripts/seed-admin.ts"
   },
   "dependencies": {
     "@heroui/react": "2.7.5",
