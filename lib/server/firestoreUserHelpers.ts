@@ -21,7 +21,17 @@ export async function getFirestoreUserById(
       return null;
     }
 
-    return userDoc.data() as FirestoreUser;
+    const data = userDoc.data();
+    if (!data) return null;
+
+    if (data.createdAt && typeof data.createdAt.toDate === "function") {
+      data.createdAt = data.createdAt.toDate();
+    }
+    if (data.updatedAt && typeof data.updatedAt.toDate === "function") {
+      data.updatedAt = data.updatedAt.toDate();
+    }
+
+    return data as FirestoreUser;
   } catch (error) {
     console.error("Error getting user from Firestore:", error);
 
@@ -37,7 +47,16 @@ export async function getAllFirestoreUsers(): Promise<FirestoreUser[]> {
     const db = await getFirestore();
     const usersSnapshot = await db.collection(USER_COLLECTION).get();
 
-    return usersSnapshot.docs.map((doc) => doc.data() as FirestoreUser);
+    return usersSnapshot.docs.map((doc) => {
+      const data = doc.data();
+      if (data.createdAt && typeof data.createdAt.toDate === "function") {
+        data.createdAt = data.createdAt.toDate();
+      }
+      if (data.updatedAt && typeof data.updatedAt.toDate === "function") {
+        data.updatedAt = data.updatedAt.toDate();
+      }
+      return data as FirestoreUser;
+    });
   } catch (error) {
     console.error("Error getting users from Firestore:", error);
 
