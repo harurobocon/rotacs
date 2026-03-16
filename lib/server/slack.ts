@@ -505,10 +505,10 @@ export async function deleteAllUserSlackChannels(
           try {
             // まず、古い名前を「archived-YYYYMMDD-元の名前」にリネーム
             // これにより同じ名前で新規作成可能になる
-            const timestamp = new Date()
-              .toISOString()
-              .slice(0, 10)
-              .replace(/-/g, "");
+            const now = new Date();
+            const datePart = now.toISOString().slice(0, 10).replace(/-/g, "");
+            const timePart = now.toTimeString().slice(0, 8).replace(/:/g, "");
+            const timestamp = `${datePart}-${timePart}`;
             const newName = `archived-${timestamp}-${channel.name}`.substring(
               0,
               80,
