@@ -47,10 +47,23 @@ function LoginContent() {
       return;
     }
 
-    try {
-      // Convert username to email format: username@rotacs.yuchi.jp
-      const email = `${username}@rotacs.yuchi.jp`;
+    // Convert username to email format: username@rotacs.yuchi.jp
+    const emailStr = process.env.NEXT_PUBLIC_APP_DOMAIN
+      ? `@${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      : "@rotacs.yuchi.jp";
+    const email = `${username}${emailStr}`;
 
+    // Validate generated email format to prevent malicious domains or injection
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      setError("パスワードの形式が不正です．");
+      setIsLoggingIn(false);
+
+      return;
+    }
+
+    try {
       await signInWithEmailAndPassword(auth, email, password);
 
       // Redirect after successful login
