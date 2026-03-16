@@ -76,22 +76,6 @@ async function seedAdmin() {
 
     console.log(`Firestore admin document created in collection '${userCollection}'.`);
 
-    // Optionally create reservation settings
-    const checkLocCol = process.env.NEXT_PUBLIC_CHECK_LOCATION_SETTINGS_COLLECTION || "check_location_settings_dev";
-    await db.collection(checkLocCol).doc("current").set({
-      check1: "single",
-      check2: "single",
-      practice: "single"
-    }, { merge: true });
-    console.log("Default check location settings created.");
-
-    const resSettingsCol = process.env.NEXT_PUBLIC_RESERVATION_SETTINGS_COLLECTION || "reservation_settings_dev";
-    await db.collection(resSettingsCol).doc("testrun").set({ is_disabled: false }, { merge: true });
-    await db.collection(resSettingsCol).doc("check1").set({ is_disabled: false }, { merge: true });
-    await db.collection(resSettingsCol).doc("check2").set({ is_disabled: false }, { merge: true });
-    await db.collection(resSettingsCol).doc("practice").set({ is_disabled: false }, { merge: true });
-    console.log("Default reservation settings created.");
-
     console.log("Admin seed complete!");
     process.exit(0);
   } catch (error) {
