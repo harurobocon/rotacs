@@ -87,6 +87,7 @@ export function reservationDataConverter<
     fromFirestore: (snapshot: QueryDocumentSnapshot<ReservationType>) => {
       const data = snapshot.data() as any;
 
+      data.id = snapshot.id;
       data.reserved_at = data.reserved_at.toDate();
       data.fixed_at = data.fixed_at ? data.fixed_at.toDate() : null;
       data.finished_at = data.finished_at ? data.finished_at.toDate() : null;

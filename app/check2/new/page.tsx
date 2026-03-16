@@ -120,8 +120,10 @@ export default function NewCheck() {
         }
 
         // 4. Create the new reservation
-        const newReservationRef = doc(reservationsRef, ulid());
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
         const check = new CheckReservation({
+          id: reservationId,
           user_id: bookerId,
           user_display_name: bookerDisplayName,
           reservation_count: reservationCount,
@@ -175,9 +177,11 @@ export default function NewCheck() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, CHECK2_COLLECTION);
-        const newReservationRef = doc(reservationsRef, ulid());
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
 
         const check = new CheckReservation({
+          id: reservationId,
           user_id: "dummy_user_id",
           user_display_name: message,
           reservation_count: 0,

@@ -103,8 +103,10 @@ export default function NewPractice() {
           userData?.display_name || user.displayName || "ユーザー";
 
         // 4. Create the new reservation
-        const newReservationRef = doc(reservationsRef, ulid());
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
         const practice = new PracticeReservation({
+          id: reservationId,
           user_id: bookerId,
           user_display_name: bookerDisplayName,
           reservation_count: reservationCount,
@@ -154,9 +156,11 @@ export default function NewPractice() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, PRACTICE_COLLECTION);
-        const newReservationRef = doc(reservationsRef, ulid());
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
 
         const practice = new PracticeReservation({
+          id: reservationId,
           user_id: "dummy_user_id",
           user_display_name: message,
           reservation_count: 0,

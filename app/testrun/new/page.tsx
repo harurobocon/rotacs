@@ -119,8 +119,10 @@ export default function NewTestrun() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // 4. Create the new reservation
-        const newReservationRef = doc(reservationsRef, ulid()); // Use ULID as document ID
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
         const testrun = new TestrunReservation({
+          id: reservationId,
           user_id: bookerId,
           user_display_name: resolvedDisplayName,
           reservation_count: reservationCount,
@@ -172,9 +174,11 @@ export default function NewTestrun() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, TESTRUN_COLLECTION);
-        const newReservationRef = doc(reservationsRef, ulid());
+        const reservationId = ulid();
+        const newReservationRef = doc(reservationsRef, reservationId);
 
         const testrun = new TestrunReservation({
+          id: reservationId,
           user_id: "dummy_user_id",
           user_display_name: message,
           reservation_count: 0,

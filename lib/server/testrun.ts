@@ -179,7 +179,9 @@ https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/testrun`;
 
       // フラグを元に戻す
       const update: Partial<TestrunReservation> =
-        at === 1 ? { pre_call_sent: false } : { call_sent: false };
+        status === "順番待ち" && at === 0
+          ? { pre_call_sent: false }
+          : { call_sent: false };
 
       await firestore
         .collection(TESTRUN_COLLECTION)
