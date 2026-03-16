@@ -134,12 +134,12 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       return;
     }
 
-    const size = formData.get("size") === "on";
-    const weight = formData.get("weight") === "on";
-    const emergencyStop = formData.get("emergencyStop") === "on";
-    const led = formData.get("led") === "on";
-    const power = formData.get("power") === "on";
-    const compressedAir = formData.get("compressedAir") === "on";
+    const size = formData.has("size");
+    const weight = formData.has("weight");
+    const emergencyStop = formData.has("emergencyStop");
+    const led = formData.has("led");
+    const power = formData.has("power");
+    const compressedAir = formData.has("compressedAir");
     const memo = formData.get("memo") as string;
     const recheckItems = formData.get("recheckItems") as string;
 
