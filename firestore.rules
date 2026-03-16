@@ -86,21 +86,21 @@ service cloud.firestore {
     
     // Reservation settings (admin only, dev & prod)
     match /reservation_settings_dev/{settingId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
     match /reservation_settings/{settingId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
     
     // Check location settings (admin only, dev & prod)
     match /check_location_settings_dev/{settingId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
     match /check_location_settings/{settingId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isAdmin();
     }
     
