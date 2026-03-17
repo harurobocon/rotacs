@@ -134,8 +134,10 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       return;
     }
 
-    const size = formData.has("size");
+    const initialSizeLimit = formData.has("initialSizeLimit");
+    const deployedSizeLimit = formData.has("deployedSizeLimit");
     const weight = formData.has("weight");
+    const safetyCheck = formData.has("safetyCheck");
     const emergencyStop = formData.has("emergencyStop");
     const led = formData.has("led");
     const power = formData.has("power");
@@ -147,8 +149,10 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       id,
       collectionId,
       status,
-      size,
+      initialSizeLimit,
+      deployedSizeLimit,
       weight,
+      safetyCheck,
       emergencyStop,
       led,
       power,
@@ -218,11 +222,17 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                     className="flex-col items-stretch justify-start gap-4"
                     onSubmit={handleResultSubmit}
                   >
-                    <Checkbox className="flex" name="size">
-                      サイズ
+                    <Checkbox className="flex" name="initialSizeLimit">
+                      サイズ（初期制限）
+                    </Checkbox>
+                    <Checkbox className="flex" name="deployedSizeLimit">
+                      サイズ（展開制限）
                     </Checkbox>
                     <Checkbox className="flex" name="weight">
                       重量
+                    </Checkbox>
+                    <Checkbox className="flex" name="safetyCheck">
+                      安全確認
                     </Checkbox>
                     <Checkbox className="flex" name="emergencyStop">
                       非常停止
@@ -342,13 +352,21 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
           <TableColumn>結果</TableColumn>
         </TableHeader>
         <TableBody>
-          <TableRow key="サイズ">
-            <TableCell>サイズ</TableCell>
-            <TableCell>{reservation.size ? "OK" : "NG"}</TableCell>
+          <TableRow key="サイズ（初期制限）">
+            <TableCell>サイズ（初期制限）</TableCell>
+            <TableCell>{reservation.initialSizeLimit ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="サイズ（展開制限）">
+            <TableCell>サイズ（展開制限）</TableCell>
+            <TableCell>{reservation.deployedSizeLimit ? "OK" : "NG"}</TableCell>
           </TableRow>
           <TableRow key="重量">
             <TableCell>重量</TableCell>
             <TableCell>{reservation.weight ? "OK" : "NG"}</TableCell>
+          </TableRow>
+          <TableRow key="安全確認">
+            <TableCell>安全確認</TableCell>
+            <TableCell>{reservation.safetyCheck ? "OK" : "NG"}</TableCell>
           </TableRow>
           <TableRow key="非常停止">
             <TableCell>非常停止</TableCell>

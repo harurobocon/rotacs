@@ -185,8 +185,10 @@ export async function updateCheckResults(
   id: string,
   collectionId: string,
   status: CheckStatus,
-  size: boolean,
+  initialSizeLimit: boolean,
+  deployedSizeLimit: boolean,
   weight: boolean,
+  safetyCheck: boolean,
   emergencyStop: boolean,
   led: boolean,
   power: boolean,
@@ -201,8 +203,10 @@ export async function updateCheckResults(
 
     await updateDoc(docRef, {
       status,
-      size,
+      initialSizeLimit,
+      deployedSizeLimit,
       weight,
+      safetyCheck,
       emergencyStop,
       led,
       power,
