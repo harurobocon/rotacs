@@ -64,10 +64,6 @@ export default function NewTestrun() {
     try {
       const bookerId =
         isAdminUser && selectedUser ? selectedUser.toString() : user.uid;
-      // In a real app, you'd fetch the user's display name from your users collection
-      // For simplicity, we fallback to user.displayName or a default
-      // The old form validation fetched this securely on the server
-      const bookerDisplayName = user.displayName || "ユーザー";
 
       let shouldNotifyNewReservation = false;
       const existsStatus: TestrunStatus[] = [
@@ -110,7 +106,15 @@ export default function NewTestrun() {
         const finishedSnapshot = await getDocs(finishedQuery);
         const reservationCount = finishedSnapshot.size + 1;
 
-        // 4. Create the new reservation
+        // 4. Resolve user display name from users collection
+        const userDocRef = doc(db, "users", bookerId);
+        const userDoc = await transaction.get(userDocRef);
+        const userData = userDoc.data();
+        const bookerDisplayName =
+          userData?.display_name || user.displayName || "ユーザー";
+        const pitNumber = userData?.pit_number || 0;
+
+        // 5. Create the new reservation
         const newReservationRef = doc(reservationsRef, ulid()); // Use ULID as document ID
         const testrun = new TestrunReservation({
           user_id: bookerId,
@@ -118,6 +122,7 @@ export default function NewTestrun() {
           reservation_count: reservationCount,
           status: "順番待ち",
           side: side as TestrunSide,
+          pit_number: pitNumber,
         });
 
         transaction.set(newReservationRef, {
