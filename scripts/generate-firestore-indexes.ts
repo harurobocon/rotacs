@@ -14,26 +14,47 @@ type Index = {
   fields: IndexField[];
 };
 
+function getEnvPath(env: string) {
+  if (env === "production") {
+    return path.resolve(__dirname, "../.env.production.local");
+  }
+
+  return path.resolve(__dirname, "../.env.development.local");
+}
+
+function loadEnv(env: string) {
+  const baseEnvPath = path.resolve(__dirname, "../.env");
+  const scopedEnvPath = getEnvPath(env);
+
+  dotenv.config({ path: baseEnvPath });
+  dotenv.config({ path: scopedEnvPath, override: true });
+}
+
+function getCollectionNames() {
+  const check1Collection = process.env.NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION;
+  const check2Collection = process.env.NEXT_PUBLIC_CHECK2_RESERVATION_COLLECTION;
+  const testrunCollection = process.env.NEXT_PUBLIC_TESTRUN_RESERVATION_COLLECTION;
+
+  if (!check1Collection || !check2Collection || !testrunCollection) {
+    throw new Error(
+      "Missing reservation collection env vars. Set NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION, NEXT_PUBLIC_CHECK2_RESERVATION_COLLECTION, and NEXT_PUBLIC_TESTRUN_RESERVATION_COLLECTION.",
+    );
+  }
+
+  return {
+    check1Collection,
+    check2Collection,
+    testrunCollection,
+  };
+}
+
 async function main() {
   const env = process.env.APP_ENV || "development";
   console.log(`Generating firestore.indexes.json for ${env}...`);
 
-  const envPath =
-    env === "production"
-      ? path.resolve(__dirname, "../.env.production.local")
-      : path.resolve(__dirname, "../.env.development.local");
-
-  dotenv.config({ path: envPath });
-
-  const check1Collection =
-    process.env.NEXT_PUBLIC_CHECK1_RESERVATION_COLLECTION ||
-    "check1_reservations_dev";
-  const check2Collection =
-    process.env.NEXT_PUBLIC_CHECK2_RESERVATION_COLLECTION ||
-    "check2_reservations_dev";
-  const testrunCollection =
-    process.env.NEXT_PUBLIC_TESTRUN_RESERVATION_COLLECTION ||
-    "testrun_reservations_dev";
+  loadEnv(env);
+  const { check1Collection, check2Collection, testrunCollection } =
+    getCollectionNames();
 
   const indexes: Index[] = [
     {

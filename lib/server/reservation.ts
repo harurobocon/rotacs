@@ -11,6 +11,19 @@ import { Reservation } from "@/types/reservation";
 import { FirestoreUser } from "@/types/user";
 import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 
+function toDateOrNull(value: unknown): Date | null {
+  if (
+    value &&
+    typeof value === "object" &&
+    "toDate" in value &&
+    typeof (value as { toDate: unknown }).toDate === "function"
+  ) {
+    return (value as { toDate: () => Date }).toDate();
+  }
+
+  return null;
+}
+
 export async function validateFormData<SideType extends string>(
   formData: FormData,
   currentUserId: string,
@@ -88,9 +101,9 @@ export function reservationDataConverter<
       const data = snapshot.data() as any;
 
       data.id = snapshot.id;
-      data.reserved_at = data.reserved_at.toDate();
-      data.fixed_at = data.fixed_at ? data.fixed_at.toDate() : null;
-      data.finished_at = data.finished_at ? data.finished_at.toDate() : null;
+      data.reserved_at = toDateOrNull(data.reserved_at) ?? new Date(0);
+      data.fixed_at = toDateOrNull(data.fixed_at);
+      data.finished_at = toDateOrNull(data.finished_at);
 
       return data as ReservationType;
     },
