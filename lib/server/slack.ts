@@ -8,6 +8,7 @@ import {
   RESERVATION_SETTINGS_COLLECTION,
   SYSTEM_SLACK_CHANNELS_DOCUMENT_ID,
 } from "@/types/settings";
+import { buildUserSlackChannelName } from "@/lib/slack/channelName";
 
 const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
 
@@ -253,18 +254,7 @@ export async function createSlackChannelForUser(user: {
   username: string;
   display_name: string;
 }): Promise<string> {
-  // usernameから先頭2桁を抽出 (例: "01_asahikawa" -> "01")
-  const prefix = user.username.match(/^(\d{2})_/)?.[1];
-
-  if (!prefix) {
-    throw new Error(
-      `ユーザー名の形式が不正です: ${user.username}（先頭2桁の数字とアンダースコアが必要）`,
-    );
-  }
-
-  // チャンネル名を生成: {username_prefix}_{display_name}
-  // Slackは小文字、数字、ハイフン、アンダースコアのみ許可（日本語も許可されるが、英数字は小文字に変換）
-  const channelName = `${prefix}_${user.display_name}`.toLowerCase();
+  const channelName = buildUserSlackChannelName(user);
 
   try {
     // Public channelとして作成
@@ -368,33 +358,95 @@ export async function fetchAndSaveAllSlackChannelIds(): Promise<{
     // 全ユーザーを取得
     const usersSnapshot = await db.collection(COLLECTION_NAME).get();
 
+    // チャンネル名での完全一致検索を高速化するためのMapを作成
+    const channelMap = new Map<string, string>();
+
+    for (const channel of channels) {
+      if (channel.name && channel.id) {
+        channelMap.set(channel.name.toLowerCase(), channel.id);
+      }
+    }
+
+    const expectedNameCounts = new Map<string, number>();
+    const expectedNameByUserId = new Map<string, string>();
+
+    for (const userDoc of usersSnapshot.docs) {
+      const userData = userDoc.data() as FirestoreUser;
+
+      if (userData.role === "admin" || userData.username === "admin") {
+        continue;
+      }
+
+      if (!userData.display_name || !userData.username) {
+        continue;
+      }
+
+      try {
+        const expected = buildUserSlackChannelName({
+          username: userData.username,
+          display_name: userData.display_name,
+        }).toLowerCase();
+
+        expectedNameByUserId.set(userDoc.id, expected);
+        expectedNameCounts.set(expected, (expectedNameCounts.get(expected) ?? 0) + 1);
+      } catch {
+        // 本体ループで詳細エラーを出す
+      }
+    }
+
     // 各ユーザーに対してチャンネルIDを検索・保存
     for (const userDoc of usersSnapshot.docs) {
       const userData = userDoc.data() as FirestoreUser;
-      const displayName = userData.display_name?.toLowerCase();
 
-      if (!displayName) {
-        errors.push(`ユーザー ${userData.id}: display_nameが未設定`);
+      if (userData.role === "admin" || userData.username === "admin") {
+        continue;
+      }
+
+      if (!userData.display_name || !userData.username) {
+        errors.push(
+          `ユーザー ${userData.id}: username または display_name が未設定`,
+        );
         failed++;
         continue;
       }
 
-      // display_nameを含むチャンネルを検索
-      const matchedChannel = channels.find(
-        (channel) =>
-          channel.name && channel.name.toLowerCase().includes(displayName),
-      );
+      let expectedChannelName = "";
 
-      if (matchedChannel && matchedChannel.id) {
+      try {
+        expectedChannelName =
+          expectedNameByUserId.get(userDoc.id) ??
+          buildUserSlackChannelName({
+            username: userData.username,
+            display_name: userData.display_name,
+          }).toLowerCase();
+      } catch (error) {
+        errors.push(
+          `ユーザー ${userData.display_name}: チャンネル名変換に失敗 (${error instanceof Error ? error.message : String(error)})`,
+        );
+        failed++;
+        continue;
+      }
+
+      if ((expectedNameCounts.get(expectedChannelName) ?? 0) > 1) {
+        errors.push(
+          `ユーザー ${userData.display_name}: 変換後チャンネル名が重複しています (${expectedChannelName})`,
+        );
+        failed++;
+        continue;
+      }
+
+      const matchedChannelId = channelMap.get(expectedChannelName);
+
+      if (matchedChannelId) {
         // チャンネルIDをFirebaseに保存
         await userDoc.ref.update({
-          slack_channel_id: matchedChannel.id,
+          slack_channel_id: matchedChannelId,
           updatedAt: Timestamp.now(),
         });
         success++;
       } else {
         errors.push(
-          `ユーザー ${userData.display_name}: チャンネルが見つかりません`,
+          `ユーザー ${userData.display_name}: チャンネルが見つかりません (${expectedChannelName})`,
         );
         failed++;
       }

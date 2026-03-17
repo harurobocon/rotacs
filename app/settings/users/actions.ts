@@ -23,6 +23,7 @@ import {
 } from "@/lib/server/slack";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
+import { buildUserSlackChannelName } from "@/lib/slack/channelName";
 
 export async function getTeamChannels(): Promise<
   Array<{ name: string; displayName: string }>
@@ -33,17 +34,10 @@ export async function getTeamChannels(): Promise<
     .filter((user) => user.role === "user")
     .sort((a, b) => a.username.localeCompare(b.username));
 
-  return teamUsers.map((user) => {
-    // usernameから先頭2桁を抽出 (例: "01_asahikawa" -> "01")
-    const prefix = user.username.match(/^(\d{2})_/)?.[1] || user.username;
-    // チャンネル名を生成: {prefix}_{display_name}
-    const channelName = `${prefix}_${user.display_name}`.toLowerCase();
-
-    return {
-      name: channelName,
-      displayName: user.display_name,
-    };
-  });
+  return teamUsers.map((user) => ({
+    name: buildUserSlackChannelName(user),
+    displayName: user.display_name,
+  }));
 }
 
 export async function createUsers(
@@ -215,15 +209,40 @@ export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
     // Firestoreから全ユーザーを取得
     const users = await getAllFirestoreUsers();
 
+    const targetUsers = users.filter(
+      (user) => !(user.role === "admin" || user.username === "admin"),
+    );
+
+    // 変換後チャンネル名の競合を事前検出して、誤った対応付けを防ぐ
+    const channelNameToUsers = new Map<string, string[]>();
+
+    for (const user of targetUsers) {
+      const channelName = buildUserSlackChannelName(user);
+      const existing = channelNameToUsers.get(channelName) ?? [];
+
+      existing.push(user.display_name);
+      channelNameToUsers.set(channelName, existing);
+    }
+
+    const conflicts = Array.from(channelNameToUsers.entries()).filter(
+      ([, names]) => names.length > 1,
+    );
+
+    if (conflicts.length > 0) {
+      const conflictMessages = conflicts.map(
+        ([channelName, names]) => `${channelName} <= ${names.join(", ")}`,
+      );
+
+      return {
+        errors: `変換後チャンネル名の競合があるため中断しました:\n${conflictMessages.join("\n")}`,
+      };
+    }
+
     const COLLECTION_NAME = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
     const firestoreDb = await getFirestore();
 
-    // 各ユーザーのチャンネル作成（adminユーザーはスキップ）
-    for (const user of users) {
-      // adminロールまたはusernameが"admin"の場合はスキップ
-      if (user.role === "admin" || user.username === "admin") {
-        continue;
-      }
+    // 各ユーザーのチャンネル作成（adminユーザーは除外済み）
+    for (const user of targetUsers) {
 
       try {
         // Slackチャンネルを作成
