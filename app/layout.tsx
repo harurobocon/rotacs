@@ -2,15 +2,14 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import { Link, button as buttonStyles } from "@heroui/react";
 import clsx from "clsx";
+import { Icon } from "@iconify/react";
+import { Tooltip } from "@heroui/react";
 
 import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
-import { validateRequest } from "@/lib/server/auth";
 import { Navbar } from "@/components/navbar";
-import { Icon } from "@iconify/react";
-import { Tooltip } from "@heroui/react";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = {
@@ -40,8 +39,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await validateRequest();
-
   return (
     <html suppressHydrationWarning lang="ja">
       <head />
@@ -53,7 +50,7 @@ export default async function RootLayout({
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <div className="relative flex min-h-screen flex-col">
-            <Navbar userJson={JSON.stringify(user)} />
+            <Navbar />
             <main className="container mx-auto h-full max-w-7xl flex-grow flex-col px-2 pt-6 md:px-8">
               {children}
             </main>

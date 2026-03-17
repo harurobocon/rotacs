@@ -9,10 +9,6 @@ export const routes: Route = {
     label: "ホーム",
     href: "/",
   },
-  about: {
-    label: "About",
-    href: "/about",
-  },
   testrun: {
     label: "テストラン一覧",
     href: "/testrun",

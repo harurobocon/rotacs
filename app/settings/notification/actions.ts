@@ -2,24 +2,27 @@
 
 import "server-cli-only";
 
-import { redirect } from "next/navigation";
-
-import { validateRequest } from "@/lib/server/auth";
-import { getUserFromFirestore } from "@/lib/server/firestoreUser";
+import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 import { postSlackMessage } from "@/lib/server/slack";
 
-export async function handleSlackTestMessageSend() {
-  const { user } = await validateRequest();
+/**
+ * Send a test Slack message
+ * Note: userId should be provided from client-side Firebase Auth currentUser.uid.
+ */
+export async function handleSlackTestMessageSend(
+  _state: Record<string, never>,
+  formData: FormData,
+) {
+  const userId = formData.get("userId")?.toString() ?? "";
 
-  if (!user) {
-    return redirect("/login");
+  if (!userId) {
+    return { ok: false, error: "ユーザーIDが指定されていません" };
   }
 
   // Firestoreからユーザー情報取得
-  const firestoreUser = await getUserFromFirestore(user.id);
+  const firestoreUser = await getFirestoreUserById(userId);
 
   if (!firestoreUser) {
-    // エラー時も何か返す
     return { ok: false, error: "ユーザー情報がFirestoreに存在しません" };
   }
 
@@ -40,6 +43,5 @@ export async function handleSlackTestMessageSend() {
     at_channel: false,
   });
 
-  // 正常時も何か返す
   return { ok: true };
 }

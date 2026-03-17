@@ -21,6 +21,7 @@ const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
       startDate: "2000-01-01",
       startTime: "09:00",
     };
+
     return acc;
   },
   {} as ReservationSettings,

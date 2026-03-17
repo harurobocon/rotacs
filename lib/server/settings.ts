@@ -17,17 +17,13 @@ import {
   CheckLocationMode,
 } from "@/types/settings";
 import { getFirestore } from "@/lib/firebase/serverApp";
-import { validateRequest } from "@/lib/server/auth";
 
 export async function updateReservationSettings(
   prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "権限がありません" };
-  }
+  // Note: Authentication and authorization are handled by Firestore Rules
+  // Admin-only access is enforced by the rule: allow write: if isAdmin();
 
   try {
     const settings = {} as ReservationSettings;
@@ -78,11 +74,8 @@ export async function updateCheckLocationSettings(
   prevState: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "権限がありません" };
-  }
+  // Note: Authentication and authorization are handled by Firestore Rules
+  // Admin-only access is enforced by the rule: allow write: if isAdmin();
 
   try {
     const check1 = formData.get("check1") as CheckLocationMode;

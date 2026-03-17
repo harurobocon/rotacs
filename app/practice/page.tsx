@@ -23,11 +23,7 @@ import {
   pageTitle,
 } from "@/components/primitives";
 import PracticeReservationCard from "@/components/practice-reservation-card";
-import {
-  PracticeSchedule,
-  PracticeStatus,
-  PracticeStatuses,
-} from "@/types/practice";
+import { PracticeSchedule, PracticeStatus } from "@/types/practice";
 
 export default function Practice() {
   const [schedule, setSchedule] = React.useState<PracticeSchedule | undefined>(

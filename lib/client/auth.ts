@@ -2,14 +2,16 @@
 
 import "client-only";
 
-import { getCookie } from "cookies-next/client";
+import { auth } from "@/lib/firebase/clientApp";
 
-export function isAdmin() {
-  const authRole = getCookie(
-    process.env.NEXT_PUBLIC_SESSION_COOKIE_ROLE_NAME || "auth_role",
-  );
+export async function isAdmin() {
+  const user = auth.currentUser;
 
-  const isAdmin = authRole === "admin";
+  if (!user) {
+    return false;
+  }
 
-  return isAdmin;
+  const tokenResult = await user.getIdTokenResult();
+
+  return tokenResult.claims.admin === true;
 }

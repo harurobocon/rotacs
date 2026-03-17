@@ -39,6 +39,10 @@ export default function Check() {
   );
   const [sides, setSides] = React.useState<CheckSide[]>(["ピット"]);
   const [mode, setMode] = React.useState<CheckLocationMode>("single");
+  const modeRef = React.useRef<CheckLocationMode>("single");
+
+  // modeRefを常に最新のmodeに同期
+  modeRef.current = mode;
 
   React.useEffect(() => {
     // 計量計測モード設定を取得
@@ -73,17 +77,14 @@ export default function Check() {
 
     const unsubscribeSchedule = onCheckCollectionChange(
       CHECK1_COLLECTION,
-      (_) => {
-        // 現在のモードを使用してスケジュールを更新
-        getCheckLocationSettings().then((settings) => {
-          getCheckSchedule(CHECK1_COLLECTION, settings.check1).then(
-            (_newSchedule) => {
-              const newSchedule = new CheckSchedule(_newSchedule);
+      (snapshot) => {
+        const reservations = snapshot.docs.map((doc) => doc.data());
+        const newSchedule = CheckSchedule.fromUnsorted(
+          reservations,
+          modeRef.current,
+        );
 
-              setSchedule(newSchedule);
-            },
-          );
-        });
+        setSchedule(newSchedule);
       },
     );
 

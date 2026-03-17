@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { listenReservationSettings } from "@/lib/client/settings";
 import { ReservationType, ReservationControlSetting } from "@/types/settings";
 
@@ -8,6 +9,7 @@ function getJstDate() {
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
   const jstOffset = 9 * 60 * 60000;
+
   return new Date(utc + jstOffset);
 }
 
@@ -24,6 +26,7 @@ export function useReservationControl(reservationType: ReservationType) {
     const unsubscribe = listenReservationSettings((settings) => {
       setSetting(settings[reservationType]);
     });
+
     return () => unsubscribe();
   }, [reservationType]);
 
@@ -31,6 +34,7 @@ export function useReservationControl(reservationType: ReservationType) {
     if (!setting) {
       setIsDisabled(true);
       setMessage("設定を読み込んでいます...");
+
       return;
     }
 

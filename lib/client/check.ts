@@ -10,6 +10,8 @@ import {
   query,
   QuerySnapshot,
   where,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import {
@@ -147,6 +149,73 @@ export function onCheckChangeByTeam(
       callback(snapshot.docs[0].data().status);
     }
   });
+}
+
+export async function updateCheckStatus(
+  id: string,
+  status: CheckStatus,
+  collectionId: string,
+) {
+  try {
+    const docRef = doc(firestore, collectionId, id).withConverter(
+      checkDataConverter(),
+    );
+    const updateData: any = { status };
+
+    if (status === "呼出中") {
+      updateData.fixed_at = serverTimestamp();
+    } else if (
+      status === "実施中" ||
+      status === "合格" ||
+      status === "再検査" ||
+      status === "キャンセル"
+    ) {
+      updateData.finished_at = serverTimestamp();
+    }
+
+    await updateDoc(docRef, updateData);
+
+    return { ok: true, errors: "" };
+  } catch (error: any) {
+    return { ok: false, errors: error.message };
+  }
+}
+
+export async function updateCheckResults(
+  id: string,
+  collectionId: string,
+  status: CheckStatus,
+  size: boolean,
+  weight: boolean,
+  emergencyStop: boolean,
+  led: boolean,
+  power: boolean,
+  compressedAir: boolean,
+  memo: string,
+  recheckItems: string,
+) {
+  try {
+    const docRef = doc(firestore, collectionId, id).withConverter(
+      checkDataConverter(),
+    );
+
+    await updateDoc(docRef, {
+      status,
+      size,
+      weight,
+      emergencyStop,
+      led,
+      power,
+      compressedAir,
+      memo,
+      recheckItems,
+      finished_at: serverTimestamp(),
+    });
+
+    return { ok: true, errors: "" };
+  } catch (error: any) {
+    return { ok: false, errors: error.message };
+  }
 }
 
 function checkDataConverter(): FirestoreDataConverter<CheckReservation> {

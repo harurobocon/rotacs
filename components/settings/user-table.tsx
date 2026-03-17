@@ -18,11 +18,10 @@ import {
   Spinner,
 } from "@heroui/react";
 import { capitalize } from "@heroui/shared-utils";
-import { User as LuciaUser } from "lucia";
 import { useAsyncList } from "@react-stately/data";
 import { useFormState, useFormStatus } from "react-dom";
-import { useRouter } from "next/navigation";
 
+import { UserTable as LuciaUser } from "@/types/auth";
 import { UserRole } from "@/types/auth";
 import { deleteUsers } from "@/app/settings/users/actions";
 import { cardStyles } from "@/components/settings/styles";
@@ -66,8 +65,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
   const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
     new Set([]),
   );
-  const router = useRouter();
-  const [state, formAction, isPending] = useFormState(deleteUsers, {});
+  const [state, formAction] = useFormState(deleteUsers, {});
 
   let userList = useAsyncList<LuciaUser>({
     async load() {
@@ -81,9 +79,11 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
       return {
         items: items.sort((a, b) => {
           if (!sortDescriptor || !sortDescriptor.column) return 0;
-          let first = a[sortDescriptor.column as keyof LuciaUser]; // Add index signature
-          let second = b[sortDescriptor.column as keyof LuciaUser]; // Add index signature
-          let cmp = first < second ? -1 : first > second ? 1 : 0;
+          const firstRaw = a[sortDescriptor.column as keyof LuciaUser];
+          const secondRaw = b[sortDescriptor.column as keyof LuciaUser];
+          const first = firstRaw ?? "";
+          const second = secondRaw ?? "";
+          const cmp = first < second ? -1 : first > second ? 1 : 0;
 
           return sortDescriptor.direction === "ascending" ? cmp : -cmp;
         }),
@@ -94,8 +94,6 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
       direction: "ascending",
     },
   });
-
-
 
   const renderCell = React.useCallback(
     (user: LuciaUser, columnKey: React.Key) => {
@@ -120,7 +118,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
               size="sm"
               variant="flat"
             >
-              {capitalize(cellValue.toString())}
+              {capitalize(String(cellValue ?? ""))}
             </Chip>
           );
         case "actions":

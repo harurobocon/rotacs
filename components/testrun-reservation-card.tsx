@@ -32,8 +32,9 @@ import {
 import {
   getTestrunReservation,
   onTestrunReservationChange,
+  updateTestrunStatus,
 } from "@/lib/client/testrun";
-import { updateTestrunStatus } from "@/lib/server/testrun";
+import { triggerTestrunNotification } from "@/lib/server/testrun";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface TestrunReservationCardProps {
@@ -75,15 +76,22 @@ export default function TestrunReservationCard(
 
     const result = await updateTestrunStatus(props.reservationId, status);
 
-    setIsSubmitting(false);
-
     if (result.errors) {
       console.error(result.errors);
       setErrorMessage(result.errors);
       onOpenErrorDialog();
+      setIsSubmitting(false);
 
       return;
     }
+
+    try {
+      await triggerTestrunNotification();
+    } catch (error: any) {
+      console.error(error);
+    }
+
+    setIsSubmitting(false);
   }
 
   let updateTime = "";

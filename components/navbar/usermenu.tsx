@@ -4,12 +4,21 @@ import "client-only";
 
 import { Dropdown, DropdownTrigger, Avatar, Link } from "@heroui/react";
 import { button as buttonStyle } from "@heroui/theme";
-import { User } from "lucia";
 
 import UserMenuDropdownMenu from "./usermenu-dropdownmenu";
 
-export default function UserMenu(props: { userJson: string }) {
-  const user = props.userJson ? (JSON.parse(props.userJson) as User) : null;
+import { useAuth } from "@/lib/contexts/AuthContext";
+
+export default function UserMenu() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="mt-1 flex h-8 w-8 items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -31,12 +40,12 @@ export default function UserMenu(props: { userJson: string }) {
             <Avatar
               isBordered
               color="default"
-              name={user.username.slice(0, 2).toUpperCase()}
+              name={user.email?.slice(0, 2).toUpperCase() || "U"}
               size="sm"
             />
           </button>
         </DropdownTrigger>
-        <UserMenuDropdownMenu userJson={JSON.stringify(user)} />
+        <UserMenuDropdownMenu />
       </Dropdown>
     );
   }

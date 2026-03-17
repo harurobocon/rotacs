@@ -15,7 +15,6 @@ import {
 } from "@heroui/react";
 import { button as buttonStyles } from "@heroui/react";
 import { Icon } from "@iconify/react";
-import { User } from "lucia";
 
 import { siteConfig } from "@/config/site";
 import NavigationTabs from "@/components/navbar/navigation-tabs";
@@ -24,8 +23,7 @@ import UserMenu from "@/components/navbar/usermenu";
 import Breadcrumbs from "@/components/navbar/breadcrumbs";
 import { ThemeSwitch } from "@/components/navbar/theme-switch";
 
-export function Navbar(props: { userJson: string }) {
-  const user = props.userJson ? (JSON.parse(props.userJson) as User) : null;
+export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useReducer(
     (current) => !current,
     false,
@@ -131,15 +129,12 @@ export function Navbar(props: { userJson: string }) {
           </NavbarItem> */}
           {/* User Menu */}
           <NavbarItem className="px-2">
-            <UserMenu userJson={JSON.stringify(user)} />
+            <UserMenu />
           </NavbarItem>
         </NavbarContent>
 
         {/* Menu */}
-        <NavbarMenu
-          setIsMenuOpen={setIsMenuOpen}
-          userJson={JSON.stringify(user)}
-        />
+        <NavbarMenu setIsMenuOpen={setIsMenuOpen} />
       </NextUiNavbar>
       <ScrollShadow
         hideScrollBar

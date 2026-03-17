@@ -1,14 +1,21 @@
 "use client"; // Workaround for a Next.js bug: https://github.com/nextui-org/nextui/issues/1342
 
 import { Tabs, Tab } from "@heroui/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 
 export default function NavigationTabs() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const { tabItems } = siteConfig;
+
+  // 1段階目のパスで判定するためのselectedKeyを計算
+  const selectedKey =
+    tabItems.find((item) => item.href !== "/" && pathname.startsWith(item.href))
+      ?.href || "/";
 
   return (
     <Tabs
@@ -22,10 +29,11 @@ export default function NavigationTabs() {
       }}
       items={tabItems}
       radius="full"
-      selectedKey={pathname}
+      selectedKey={selectedKey}
       variant="underlined"
+      onSelectionChange={(key) => router.push(key as string)}
     >
-      {(item) => <Tab key={item.href} href={item.href} title={item.label} />}
+      {(item) => <Tab key={item.href} title={item.label} />}
     </Tabs>
   );
 }

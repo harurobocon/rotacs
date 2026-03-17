@@ -107,6 +107,7 @@ async function getSystemChannelId(
 
   if (channelDoc.exists) {
     const data = channelDoc.data();
+
     if (data?.[channelName]) {
       return data[channelName];
     }
@@ -124,6 +125,7 @@ async function getSystemChannelId(
 
   // Firestoreに保存（既存データとマージ）
   const existingData = channelDoc.exists ? channelDoc.data() : {};
+
   await db
     .collection(RESERVATION_SETTINGS_COLLECTION)
     .doc(SYSTEM_SLACK_CHANNELS_DOCUMENT_ID)
@@ -204,11 +206,13 @@ export async function sendSlackNotifyMessage({
     channelNamePart.includes("テストラン")
   ) {
     const channelId = await getSystemChannelId(channelNamePart, side);
+
     await postSlackMessage({
       channel: channelId,
       markdown_text,
       at_channel,
     });
+
     return;
   }
 
@@ -501,10 +505,10 @@ export async function deleteAllUserSlackChannels(
           try {
             // まず、古い名前を「archived-YYYYMMDD-元の名前」にリネーム
             // これにより同じ名前で新規作成可能になる
-            const timestamp = new Date()
-              .toISOString()
-              .slice(0, 10)
-              .replace(/-/g, "");
+            const now = new Date();
+            const datePart = now.toISOString().slice(0, 10).replace(/-/g, "");
+            const timePart = now.toTimeString().slice(0, 8).replace(/:/g, "");
+            const timestamp = `${datePart}-${timePart}`;
             const newName = `archived-${timestamp}-${channel.name}`.substring(
               0,
               80,

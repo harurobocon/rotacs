@@ -2,231 +2,29 @@
 
 import "server-cli-only";
 
-import { User } from "lucia";
-
 import { sendSlackNotifyMessage } from "./slack";
 
 import {
   CheckReservation,
-  CheckSide,
   CheckStatus,
   CheckSchedule,
   getCheckSides,
 } from "@/types/check";
-import { ActionResult } from "@/types/actions";
 import { getFirestore } from "@/lib/firebase/serverApp";
-import { validateRequest } from "@/lib/server/auth";
-import { validateFormData as _validateFormData } from "@/lib/server/reservation";
 import { checkDataConverter } from "@/lib/server/converters";
-import { db } from "@/lib/server/db";
 import { getCheckLocationSettings } from "@/lib/server/settings";
 import { CHECK1_COLLECTION, CHECK2_COLLECTION } from "@/types/check";
+import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
 
-async function validateFormData(formData: FormData, currentUser: User) {
-  let { booker, collectionId } = await _validateFormData<CheckSide>(
-    formData,
-    currentUser,
-  );
-
-  if (!collectionId) {
-    throw Error("計量計測の種類が指定されていません");
-  }
-
-  return { booker, collectionId };
-}
-
-export async function createCheck(
-  state: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
-  if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
-  }
-
-  let booker: User;
-  let collectionId: string;
-
-  try {
-    ({ booker, collectionId } = await validateFormData(formData, currentUser));
-  } catch (e: any) {
-    return { errors: e.toString() };
-  }
-
-  try {
-    const firestore = await getFirestore();
-    const retryCount = 0;
-    let shouldNotifyNewReservation = false;
-
-    const result = await firestore.runTransaction(async (transaction) => {
-      if (retryCount > 0) {
-        console.log(
-          `[${booker.display_name}] createCheck retry: ${retryCount}`,
-        );
-      }
-
-      const collection = firestore
-        .collection(collectionId)
-        .withConverter(checkDataConverter());
-      const existsStatus: CheckStatus[] = [
-        "順番待ち",
-        "呼出中",
-        "移動中",
-        "実施中",
-      ];
-
-      const incompleteRef = collection
-        .where("user_id", "==", booker.id)
-        .where("status", "in", existsStatus);
-      const incompleteSnapshot = await transaction.get(incompleteRef);
-
-      if (!incompleteSnapshot.empty) {
-        console.trace("既に予約が存在します");
-
-        return { errors: "既に予約が存在します" };
-      }
-
-      // 予約作成前のアクティブな予約数をチェック（今後実施が予定されている予約）
-      const activeRef = collection.where("status", "in", existsStatus);
-      const activeSnapshot = await transaction.get(activeRef);
-      const currentActiveCount = activeSnapshot.size;
-
-      const finishedRef = collection
-        .where("user_id", "==", booker.id)
-        .where("status", "in", ["合格", "再検査"]);
-      const finishedSnapshot = await transaction.get(finishedRef);
-      const reservationCount = finishedSnapshot.size + 1;
-
-      // 計量計測モード設定を取得してsideを決定
-      const checkSettings = await getCheckLocationSettings();
-      const checkType =
-        collectionId === CHECK1_COLLECTION ? "check1" : "check2";
-      const mode = checkSettings[checkType];
-
-      let side: CheckSide;
-      if (mode === "dual") {
-        // 2箇所モード: ユーザーのpit_sideを使用（西/東）
-        side = booker.pit_side as CheckSide;
-      } else {
-        // 1箇所モード: "ピット"を使用
-        side = "ピット";
-      }
-
-      const check = new CheckReservation({
-        user_id: booker.id,
-        user_display_name: booker.display_name,
-        reservation_count: reservationCount,
-        status: "順番待ち",
-        side: side,
-        pit_number: booker.pit_number,
-      });
-
-      const reservationRef = collection.doc(check.id);
-
-      transaction.set(reservationRef, check);
-
-      // アクティブな予約が空だった場合（現在の予約が最初の1件）の場合に通知フラグを設定
-      if (currentActiveCount === 0) {
-        shouldNotifyNewReservation = true;
-      }
-    });
-
-    if (result?.errors) {
-      return result;
-    }
-
-    // アクティブな予約が空だった場合に管理者に通知
-    if (shouldNotifyNewReservation) {
-      try {
-        await sendNewReservationNotification(booker, collectionId);
-      } catch (e: any) {
-        console.trace(`通知送信エラー: ${e.toString()}`);
-      }
-    }
-  } catch (e: any) {
-    console.dir(e);
-    console.trace(e);
-
-    return { errors: e.toString() };
-  }
-
-  return {};
-}
-
-export async function updateCheckStatus(
-  id: string,
-  newState: CheckStatus,
+/**
+ * Trigger Slack notifications based on the updated Check reservation status.
+ * This should be called from the client AFTER writing to Firestore.
+ */
+export async function triggerCheckNotification(
   collectionId: string,
-): Promise<ActionResult> {
-  const { user } = await validateRequest();
-
-  if (!user || user.role !== "admin") {
-    return { errors: "認証情報が不正です．ログインし直してください．" };
-  }
-
-  const firestore = await getFirestore();
-
+): Promise<{ ok: boolean; errors?: string }> {
   try {
-    await firestore.runTransaction(async (transaction) => {
-      const docRef = firestore
-        .collection(collectionId)
-        .doc(id)
-        .withConverter(checkDataConverter());
-
-      const doc = await transaction.get(docRef);
-
-      if (!doc.exists) {
-        return { errors: "指定された計量計測が存在しません" };
-      }
-
-      const prevState = doc.data()?.status;
-
-      let update: Partial<CheckReservation> = {
-        status: newState,
-      };
-
-      if (
-        prevState === "順番待ち" &&
-        ["呼出中", "移動中", "実施中"].includes(newState)
-      ) {
-        update.fixed_at = new Date();
-      }
-
-      // 順番待ちに戻す時は固定時刻と通知フラグをリセット
-      if (
-        ["呼出中", "移動中", "実施中"].includes(prevState || "") &&
-        newState === "順番待ち"
-      ) {
-        update.fixed_at = null;
-        update.pre_call_sent = false;
-        update.call_sent = false;
-      }
-
-      // 終了またはキャンセルから他の状態に戻す時は終了時刻をリセット
-      if (
-        ["合格", "再検査", "キャンセル"].includes(prevState || "") &&
-        !["合格", "再検査", "キャンセル"].includes(newState)
-      ) {
-        update.finished_at = null;
-      }
-
-      if (["合格", "再検査", "キャンセル"].includes(newState)) {
-        update.finished_at = new Date();
-      }
-
-      transaction.update(docRef, update);
-    });
-  } catch (e: any) {
-    console.dir(e);
-    console.trace(e);
-
-    return { errors: e.toString() };
-  }
-
-  try {
+    // Notify corresponding waiting roles. We just trigger the sequential check.
     await Promise.all([
       sendCall(0, "順番待ち", collectionId),
       sendCall(0, "呼出中", collectionId),
@@ -234,43 +32,38 @@ export async function updateCheckStatus(
       sendCall(2, "呼出中", collectionId),
       sendCall(3, "呼出中", collectionId),
     ]);
+
+    return { ok: true };
   } catch (e: any) {
     console.trace(e.toString());
-  }
 
-  return {};
+    return { ok: false, errors: e.toString() };
+  }
 }
 
-export async function updateCheckResults(
-  state: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  const { user } = await validateRequest();
+/**
+ * Trigger Slack notifications when a new reservation is created.
+ * This should be called from the client AFTER creating a reservation if it is the first active reservation.
+ */
+export async function triggerNewCheckReservationNotification(
+  userId: string,
+  collectionId: string,
+): Promise<{ ok: boolean; errors?: string }> {
+  try {
+    const booker = await getFirestoreUserById(userId);
 
-  if (!user || user.role !== "admin") {
-    return { errors: "認証情報が不正です．ログインし直してください．" };
+    if (booker) {
+      await sendNewReservationNotification(booker, collectionId);
+
+      return { ok: true };
+    }
+
+    return { ok: false, errors: "User not found" };
+  } catch (e: any) {
+    console.trace(e.toString());
+
+    return { ok: false, errors: e.toString() };
   }
-
-  const id = formData.get("id")!.toString();
-  const collectionId = formData.get("collectionId")!.toString();
-
-  const update: Partial<CheckReservation> = {
-    status: formData.get("status")?.toString() as CheckStatus,
-    size: formData.has("size"),
-    weight: formData.has("weight"),
-    emergencyStop: formData.has("emergencyStop"),
-    led: formData.has("led"),
-    power: formData.has("power"),
-    compressedAir: formData.has("compressedAir"),
-    memo: formData.get("memo")?.toString() ?? "",
-    recheckItems: formData.get("recheckItems")?.toString() ?? "",
-  };
-
-  const firestore = await getFirestore();
-
-  await firestore.collection(collectionId).doc(id).update(update);
-
-  return {};
 }
 
 async function sendCall(at: number, status: CheckStatus, collectionId: string) {
@@ -337,10 +130,6 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
     }
 
     // モード設定を取得
-    const checkSettings = await getCheckLocationSettings();
-    const checkType = collectionId === CHECK1_COLLECTION ? "check1" : "check2";
-    const mode = checkSettings[checkType];
-
     type ReceiverInfo = { receiver: string; side?: string };
     let receivers: ReceiverInfo[] = [];
 
@@ -355,11 +144,8 @@ async function sendCall(at: number, status: CheckStatus, collectionId: string) {
       }
     }
 
-    const targetUser = await db
-      .selectFrom("user")
-      .where("id", "=", target.user_id)
-      .selectAll()
-      .executeTakeFirst();
+    // Replace kysely `db` call with Firestore helper
+    const targetUser = await getFirestoreUserById(target.user_id);
 
     if (targetUser && targetUser.role !== "admin") {
       receivers.push({ receiver: targetUser.display_name });
@@ -409,8 +195,10 @@ https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/${checkType}`;
   await Promise.all(sidesPromises);
 }
 
+// Ensure `booker` param type is compatible with what `getFirestoreUserById` returns (e.g., Firestore User object)
 async function sendNewReservationNotification(
-  booker: User,
+  // Assuming `booker` has display_name. Adjust type if needed.
+  booker: { display_name: string },
   collectionId: string,
 ) {
   // モード設定を取得
@@ -464,64 +252,4 @@ async function sendNewReservationNotification(
     console.trace(`新規予約通知送信エラー: ${e.toString()}`);
     throw e;
   }
-}
-
-export async function createCheckMessageCard(
-  state: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  const { user: currentUser } = await validateRequest();
-
-  if (!currentUser) {
-    console.trace("認証情報が不正です．ログインし直してください．");
-    return { errors: "認証情報が不正です．ログインしなおしてください" };
-  }
-
-  let message: string;
-  let collectionId: string;
-
-  try {
-    message = formData.get("message")?.toString() ?? "";
-    collectionId = formData.get("collectionId")?.toString() ?? "";
-    if (!collectionId) {
-      throw new Error("計量計測の種類が指定されていません");
-    }
-  } catch (e: any) {
-    return { errors: e.toString() };
-  }
-
-  try {
-    const firestore = await getFirestore();
-    const retryCount = 0;
-
-    await firestore.runTransaction(async (transaction) => {
-      if (retryCount > 0) {
-        console.log(
-          `[${currentUser.display_name}] createCheckMessageCard retry: ${retryCount}`,
-        );
-      }
-
-      const collection = firestore
-        .collection(collectionId)
-        .withConverter(checkDataConverter());
-
-      const check = new CheckReservation({
-        user_id: currentUser.id,
-        user_display_name: message,
-        reservation_count: 0,
-        status: "順番待ち",
-        side: "ピット",
-        pit_number: 0,
-      });
-
-      const reservationRef = collection.doc(check.id);
-      transaction.set(reservationRef, check);
-    });
-  } catch (e: any) {
-    console.dir(e);
-    console.trace(e.toString());
-    return { errors: e.toString() };
-  }
-
-  return {};
 }
