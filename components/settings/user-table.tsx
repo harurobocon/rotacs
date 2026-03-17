@@ -72,7 +72,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
       setIsTableLoading(false);
 
       return {
-        items: props.users,
+        items: [...props.users].sort((a, b) => a.pit_number - b.pit_number),
       };
     },
     async sort({ items, sortDescriptor }) {
@@ -90,7 +90,7 @@ export default function UserSettingsTable(props: UserSettingsTableProps) {
       };
     },
     initialSortDescriptor: {
-      column: "display_name",
+      column: "pit_number",
       direction: "ascending",
     },
   });
