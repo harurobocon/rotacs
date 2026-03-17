@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
     "test": "vitest",
     "g:indexes": "node -r esbuild-register scripts/generate-firestore-indexes.ts",
-    "deploy:indexes": "pnpm run g:indexes && firebase deploy --only firestore:indexes --project $(node -e \"const path=require('path');const dotenv=require('dotenv');const env=process.env.APP_ENV||'development';dotenv.config({path:path.resolve('.env')});dotenv.config({path:path.resolve(env==='production'?'.env.production.local':'.env.development.local'),override:true});console.log(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);\")",
+    "deploy:indexes": "npm run g:indexes && firebase deploy --only firestore:indexes --project $(node -e \"const path=require('path');const dotenv=require('dotenv');const env=process.env.APP_ENV||'development';dotenv.config({path:path.resolve('.env')});dotenv.config({path:path.resolve(env==='production'?'.env.production.local':'.env.development.local'),override:true});console.log(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);\")",
     "seed:admin": "node -r esbuild-register scripts/seed-admin.ts"
   },
   "dependencies": {
@@ -19,7 +19,7 @@
     "@react-aria/visually-hidden": "^3.8.23",
     "@react-stately/data": "^3.13.0",
     "@slack/web-api": "^7.9.2",
-    "@types/node": "20.5.7",
+    "@types/node": "20.19.0",
     "@types/react": "18.3.2",
     "@types/react-dom": "18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -29,7 +29,6 @@
     "axios": "^1.9.0",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
-    "cookies-next": "^5.1.0",
     "csv": "^6.3.11",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.1",
@@ -77,5 +76,5 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.9"
   },
-  "packageManager": "pnpm@10.16.0+sha512.8066e7b034217b700a9a4dbb3a005061d641ba130a89915213a10b3ca4919c19c037bec8066afdc559b89635fdb806b16ea673f2468fbb28aabfa13c53e3f769"
+  "packageManager": "npm@11.6.0"
 }
