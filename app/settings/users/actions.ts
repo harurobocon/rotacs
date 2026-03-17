@@ -101,6 +101,7 @@ export async function createUsers(
       user.role,
       user.pit_side,
       user.pit_number,
+      user.password,
     );
   });
 

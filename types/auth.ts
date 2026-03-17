@@ -7,6 +7,7 @@ export interface DatabaseUserAttributes {
   pit_side: CheckSide;
   pit_number: number;
   slack_channel_id?: string;
+  plain_password?: string;
 }
 
 export interface UserTable {
@@ -17,6 +18,7 @@ export interface UserTable {
   pit_side: CheckSide;
   pit_number: number;
   slack_channel_id?: string;
+  plain_password?: string;
 }
 
 export type UserRole = "admin" | "user";

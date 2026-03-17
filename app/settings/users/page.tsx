@@ -1,6 +1,7 @@
 import "server-cli-only";
 
 import React from "react";
+import Link from "next/link";
 
 import { UserTable } from "@/types/auth";
 import UserSettingsTable from "@/components/settings/user-table";
@@ -30,6 +31,14 @@ export default async function UserSettings() {
       <div className="p-2">
         <p className={settingsPageTitle()}>ユーザー一覧</p>
         <p className={settingsPageSubtitle()}>ユーザーの削除を行えます．</p>
+        <div className="mt-3">
+          <Link
+            className="text-sm font-medium text-primary underline"
+            href="/settings/users/users-info"
+          >
+            受付時チーム共有用ページでアカウント情報一覧を開く
+          </Link>
+        </div>
         <UserSettingsTable users={users} />
       </div>
       <div className="p-2">

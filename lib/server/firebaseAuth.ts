@@ -20,6 +20,7 @@ export async function createFirebaseUser(
   role: "admin" | "user",
   pit_side: CheckSide,
   pit_number: number,
+  plain_password: string,
 ): Promise<ActionResult> {
   // Validate username
   if (
@@ -71,6 +72,7 @@ export async function createFirebaseUser(
       role,
       pit_side,
       pit_number,
+      plain_password,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
