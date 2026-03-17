@@ -1,12 +1,13 @@
 "use client"; // Workaround for a Next.js bug: https://github.com/nextui-org/nextui/issues/1342
 
 import { Tabs, Tab } from "@heroui/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { siteConfig } from "@/config/site";
 
 export default function SettingTabs({ isAdmin = false }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const settingTabItems = isAdmin
     ? siteConfig.adminSettingTabItems
@@ -27,8 +28,9 @@ export default function SettingTabs({ isAdmin = false }) {
       items={settingTabItems}
       selectedKey={pathname}
       variant="solid"
+      onSelectionChange={(key) => router.push(key as string)}
     >
-      {(item) => <Tab key={item.href} href={item.href} title={item.label} />}
+      {(item) => <Tab key={item.href} title={item.label} />}
     </Tabs>
   );
 }

@@ -64,13 +64,10 @@ export default function NewTestrun() {
     try {
       const bookerId =
         isAdminUser && selectedUser ? selectedUser.toString() : user.uid;
-      const bookerDisplayName =
-        isAdminUser && selectedUser
-          ? (users?.find((u) => u.id === selectedUser.toString())
-              ?.display_name ??
-            user.displayName ??
-            "ユーザー")
-          : user.displayName || "ユーザー";
+      // In a real app, you'd fetch the user's display name from your users collection
+      // For simplicity, we fallback to user.displayName or a default
+      // The old form validation fetched this securely on the server
+      const bookerDisplayName = user.displayName || "ユーザー";
 
       let shouldNotifyNewReservation = false;
       const existsStatus: TestrunStatus[] = [
@@ -83,17 +80,6 @@ export default function NewTestrun() {
 
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, TESTRUN_COLLECTION);
-
-        // Fetch User Data for `pit_number` and `display_name`
-        const userDocRef = doc(
-          db,
-          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
-          bookerId,
-        );
-        const userDoc = await transaction.get(userDocRef);
-        const userData = userDoc.data();
-        const resolvedDisplayName = userData?.display_name || bookerDisplayName;
-        const pitNumber = userData?.pit_number || null;
 
         // 1. Check if an active reservation already exists for this user
         const incompleteQuery = query(
@@ -125,21 +111,18 @@ export default function NewTestrun() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // 4. Create the new reservation
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid()); // Use ULID as document ID
         const testrun = new TestrunReservation({
-          id: reservationId,
           user_id: bookerId,
-          user_display_name: resolvedDisplayName,
+          user_display_name: bookerDisplayName,
           reservation_count: reservationCount,
           status: "順番待ち",
           side: side as TestrunSide,
-          pit_number: pitNumber,
         });
 
         transaction.set(newReservationRef, {
           ...testrun,
-          reserved_at: testrun.reserved_at,
+          reserved_at: testrun.reserved_at, // Consider using serverTimestamp() in a real converter
         });
 
         if (currentActiveCount === 0) {
@@ -180,12 +163,10 @@ export default function NewTestrun() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, TESTRUN_COLLECTION);
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid());
 
         const testrun = new TestrunReservation({
-          id: reservationId,
-          user_id: "dummy_user_id",
+          user_id: user.uid,
           user_display_name: message,
           reservation_count: 0,
           status: "順番待ち",

@@ -103,11 +103,7 @@ export default function NewCheck() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `pit_side`, `pit_number`, and `display_name`
-        const userDocRef = doc(
-          db,
-          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
-          bookerId,
-        );
+        const userDocRef = doc(db, "users", bookerId);
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =
@@ -124,10 +120,8 @@ export default function NewCheck() {
         }
 
         // 4. Create the new reservation
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid());
         const check = new CheckReservation({
-          id: reservationId,
           user_id: bookerId,
           user_display_name: bookerDisplayName,
           reservation_count: reservationCount,
@@ -181,12 +175,10 @@ export default function NewCheck() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, CHECK1_COLLECTION);
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid());
 
         const check = new CheckReservation({
-          id: reservationId,
-          user_id: "dummy_user_id",
+          user_id: user.uid,
           user_display_name: message,
           reservation_count: 0,
           status: "順番待ち",

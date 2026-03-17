@@ -96,21 +96,15 @@ export default function NewPractice() {
         const reservationCount = finishedSnapshot.size + 1;
 
         // Fetch User Data for `display_name`
-        const userDocRef = doc(
-          db,
-          process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev",
-          bookerId,
-        );
+        const userDocRef = doc(db, "users", bookerId);
         const userDoc = await transaction.get(userDocRef);
         const userData = userDoc.data();
         const bookerDisplayName =
           userData?.display_name || user.displayName || "ユーザー";
 
         // 4. Create the new reservation
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid());
         const practice = new PracticeReservation({
-          id: reservationId,
           user_id: bookerId,
           user_display_name: bookerDisplayName,
           reservation_count: reservationCount,
@@ -160,12 +154,10 @@ export default function NewPractice() {
     try {
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, PRACTICE_COLLECTION);
-        const reservationId = ulid();
-        const newReservationRef = doc(reservationsRef, reservationId);
+        const newReservationRef = doc(reservationsRef, ulid());
 
         const practice = new PracticeReservation({
-          id: reservationId,
-          user_id: "dummy_user_id",
+          user_id: user.uid,
           user_display_name: message,
           reservation_count: 0,
           status: "順番待ち",

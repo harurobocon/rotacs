@@ -10,7 +10,15 @@ import UserMenuDropdownMenu from "./usermenu-dropdownmenu";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function UserMenu() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="mt-1 flex h-8 w-8 items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
