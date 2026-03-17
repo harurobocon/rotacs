@@ -11,20 +11,27 @@ import { getFirestore as _getFirestore } from "firebase-admin/firestore";
 import { getAuth as _getAuth } from "firebase-admin/auth";
 
 import { firebaseConfig } from "./clientConfig";
-import { firebaseAdminConfig } from "./serverConfig";
+import {
+  firebaseAdminConfig,
+  hasFirebaseAdminServiceAccountConfig,
+} from "./serverConfig";
 
 export async function getFirebaseAdminApp() {
-  const serviceAccount: ServiceAccount = {
-    ...firebaseAdminConfig,
-  };
-
   try {
     return getApp();
   } catch (e) {
-    return initializeApp({
-      credential: credential.cert(serviceAccount),
-      storageBucket: firebaseConfig.storageBucket,
-    });
+    if (hasFirebaseAdminServiceAccountConfig) {
+      const serviceAccount: ServiceAccount = {
+        ...firebaseAdminConfig,
+      };
+
+      return initializeApp({
+        credential: credential.cert(serviceAccount),
+        storageBucket: firebaseConfig.storageBucket,
+      });
+    }
+
+    return initializeApp();
   }
 }
 
