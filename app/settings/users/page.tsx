@@ -11,6 +11,8 @@ import {
   settingsPageTitle,
 } from "@/components/settings/styles";
 
+export const dynamic = "force-dynamic";
+
 export default async function UserSettings() {
   const firestoreUsers = await getAllFirestoreUsers();
   const users: UserTable[] = firestoreUsers.map((user) => ({

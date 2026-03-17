@@ -119,6 +119,9 @@ export async function createUsers(
     };
   }
 
+  // 新規作成後にユーザー一覧ページのキャッシュを無効化
+  revalidatePath("/settings/users");
+
   return redirect("/settings/users/create/success");
 }
 
