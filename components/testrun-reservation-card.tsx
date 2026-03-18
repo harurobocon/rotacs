@@ -133,7 +133,7 @@ export default function TestrunReservationCard(
     setIsSubmitting(false);
   }
 
-  let updateTime = "";
+  let updateTime: React.ReactNode = null;
   let card = null;
 
   if (reservation) {
@@ -143,21 +143,38 @@ export default function TestrunReservationCard(
       ) &&
       reservation.fixed_at
     ) {
-      updateTime =
-        "呼出中: " +
-        reservation.fixed_at.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      updateTime = (
+        <>
+          <p className={infoText()}>
+            {"呼出中: " +
+              reservation.fixed_at.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+          </p>
+          {reservation.status === "実施中" && reservation.started_at && (
+            <p className={infoText()}>
+              {"実施開始: " +
+                reservation.started_at.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+            </p>
+          )}
+        </>
+      );
     } else if (reservation.status === "終了" && reservation.finished_at) {
-      updateTime =
-        "終了時刻: " +
-        reservation.finished_at.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      updateTime = (
+        <p className={infoText()}>
+          {"終了時刻: " +
+            reservation.finished_at.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+        </p>
+      );
     } else if (reservation.status === "順番待ち") {
-      updateTime = "";
+      updateTime = null;
     }
 
     let changeStatusButton = null;
@@ -239,7 +256,7 @@ export default function TestrunReservationCard(
             <p className={infoText()}>
               {`受信時刻: ${reservation.reserved_at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
             </p>
-            <p className={infoText()}>{updateTime}</p>
+            {updateTime}
           </div>
           <div className="flex-col items-center justify-center">
             <h4

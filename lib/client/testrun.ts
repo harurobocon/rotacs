@@ -151,8 +151,10 @@ export async function updateTestrunStatus(id: string, status: TestrunStatus) {
 
     if (status === "呼出中") {
       updateData.fixed_at = serverTimestamp();
+    } else if (status === "実施中") {
+      updateData.started_at = serverTimestamp();
+      updateData.finished_at = serverTimestamp();
     } else if (
-      status === "実施中" ||
       status === "スタンバイ中" ||
       status === "終了" ||
       status === "キャンセル"
