@@ -53,7 +53,7 @@ export const routes: Route = {
       href: "/settings/users",
     },
     checkMode: {
-      label: "計量計測モード",
+      label: "計量計測設定",
       href: "/settings/check-mode",
     },
     reservations: {

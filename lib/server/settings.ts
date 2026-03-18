@@ -19,6 +19,12 @@ import {
   CheckLocationSettings,
   CHECK_LOCATION_MODES,
   CheckLocationMode,
+  CHECK_ITEMS_SETTINGS_COLLECTION,
+  CHECK_ITEMS_SETTINGS_DOCUMENT_ID,
+  CheckItemsSettings,
+  CheckItemSetting,
+  CHECK_ITEM_TYPES,
+  DEFAULT_CHECK_ITEM_SETTINGS,
 } from "@/types/settings";
 import { getFirestore } from "@/lib/firebase/serverApp";
 
@@ -185,5 +191,120 @@ export async function getCheckLocationSettings(): Promise<CheckLocationSettings>
       check1: "single",
       check2: "single",
     };
+  }
+}
+
+function normalizeAndValidateItems(
+  items: unknown,
+): { items: CheckItemSetting[]; error?: string } {
+  if (!Array.isArray(items)) {
+    return { items: [], error: "確認項目の形式が不正です" };
+  }
+
+  const normalized: CheckItemSetting[] = [];
+  const seenIds = new Set<string>();
+
+  for (let i = 0; i < items.length; i += 1) {
+    const item = items[i] as Partial<CheckItemSetting>;
+
+    if (
+      typeof item?.id !== "string" ||
+      item.id.trim().length === 0 ||
+      !/^[a-zA-Z][a-zA-Z0-9_]*$/.test(item.id)
+    ) {
+      return { items: [], error: `項目IDが不正です (${i + 1}件目)` };
+    }
+
+    if (seenIds.has(item.id)) {
+      return { items: [], error: `項目IDが重複しています: ${item.id}` };
+    }
+
+    if (typeof item?.label !== "string" || item.label.trim().length === 0) {
+      return { items: [], error: `項目ラベルが不正です (${i + 1}件目)` };
+    }
+
+    if (!CHECK_ITEM_TYPES.includes(String(item.type) as CheckItemSetting["type"])) {
+      return { items: [], error: `項目タイプが不正です (${i + 1}件目)` };
+    }
+
+    seenIds.add(item.id);
+    normalized.push({
+      id: item.id.trim(),
+      label: item.label.trim(),
+      type: item.type as CheckItemSetting["type"],
+      order: Number.isFinite(item.order) ? Number(item.order) : i,
+      enabled: item.enabled !== false,
+    });
+  }
+
+  normalized.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+
+  return {
+    items: normalized.map((item, index) => ({
+      ...item,
+      order: index,
+    })),
+  };
+}
+
+export async function updateCheckItemsSettings(
+  prevState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  // Note: Authentication and authorization are handled by Firestore Rules
+  // Admin-only access is enforced by the rule: allow write: if isAdmin();
+
+  try {
+    const raw = formData.get("checkItemsSettings");
+
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return { errors: "確認項目のデータが送信されていません" };
+    }
+
+    let parsed: Partial<CheckItemsSettings>;
+
+    try {
+      parsed = JSON.parse(raw) as Partial<CheckItemsSettings>;
+    } catch (_error) {
+      return { errors: "確認項目のデータ形式が不正です" };
+    }
+
+    const check1Validation = normalizeAndValidateItems(
+      parsed.check1 ?? DEFAULT_CHECK_ITEM_SETTINGS.check1,
+    );
+
+    if (check1Validation.error) {
+      return { errors: `計量計測1: ${check1Validation.error}` };
+    }
+
+    const check2Validation = normalizeAndValidateItems(
+      parsed.check2 ?? DEFAULT_CHECK_ITEM_SETTINGS.check2,
+    );
+
+    if (check2Validation.error) {
+      return { errors: `計量計測2: ${check2Validation.error}` };
+    }
+
+    const settings: CheckItemsSettings = {
+      check1: check1Validation.items,
+      check2: check2Validation.items,
+    };
+
+    const db = await getFirestore();
+    const settingsRef = db
+      .collection(CHECK_ITEMS_SETTINGS_COLLECTION)
+      .doc(CHECK_ITEMS_SETTINGS_DOCUMENT_ID);
+
+    await settingsRef.set(settings);
+
+    revalidatePath("/settings/check-mode");
+    revalidatePath("/check1");
+    revalidatePath("/check2");
+
+    return { success: "確認項目設定を保存しました" };
+  } catch (e: any) {
+    console.error(e);
+
+    return { errors: "確認項目設定の更新に失敗しました" };
   }
 }

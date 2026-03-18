@@ -17,6 +17,12 @@ import {
   CHECK_LOCATION_SETTINGS_COLLECTION,
   CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
   CheckLocationSettings,
+  CHECK_ITEMS_SETTINGS_COLLECTION,
+  CHECK_ITEMS_SETTINGS_DOCUMENT_ID,
+  CheckItemsSettings,
+  CheckItemSetting,
+  CHECK_ITEM_TYPES,
+  DEFAULT_CHECK_ITEM_SETTINGS,
 } from "@/types/settings";
 
 const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
@@ -220,4 +226,69 @@ export function listenCheckLocationSettings(
   });
 
   return unsubscribe;
+}
+
+function normalizeCheckItems(checkTypeItems: CheckItemSetting[]): CheckItemSetting[] {
+  return checkTypeItems
+    .filter(
+      (item) =>
+        typeof item?.id === "string" &&
+        item.id.length > 0 &&
+        typeof item?.label === "string" &&
+        CHECK_ITEM_TYPES.includes(item.type),
+    )
+    .map((item, index) => ({
+      id: item.id,
+      label: item.label,
+      type: item.type,
+      order: Number.isFinite(item.order) ? item.order : index,
+      enabled: item.enabled !== false,
+    }))
+    .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+}
+
+function normalizeCheckItemsSettings(
+  raw: Partial<CheckItemsSettings> | null | undefined,
+): CheckItemsSettings {
+  const check1 = normalizeCheckItems(raw?.check1 ?? DEFAULT_CHECK_ITEM_SETTINGS.check1);
+  const check2 = normalizeCheckItems(raw?.check2 ?? DEFAULT_CHECK_ITEM_SETTINGS.check2);
+
+  return {
+    check1: check1.length > 0 ? check1 : DEFAULT_CHECK_ITEM_SETTINGS.check1,
+    check2: check2.length > 0 ? check2 : DEFAULT_CHECK_ITEM_SETTINGS.check2,
+  };
+}
+
+export async function getCheckItemsSettings(): Promise<CheckItemsSettings> {
+  const settingsRef = doc(
+    firestore,
+    CHECK_ITEMS_SETTINGS_COLLECTION,
+    CHECK_ITEMS_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<CheckItemsSettings>());
+
+  const docSnap = await getDoc(settingsRef);
+
+  if (!docSnap.exists()) {
+    return DEFAULT_CHECK_ITEM_SETTINGS;
+  }
+
+  return normalizeCheckItemsSettings(docSnap.data());
+}
+
+export function listenCheckItemsSettings(
+  callback: (settings: CheckItemsSettings) => void,
+): () => void {
+  const settingsRef = doc(
+    firestore,
+    CHECK_ITEMS_SETTINGS_COLLECTION,
+    CHECK_ITEMS_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<CheckItemsSettings>());
+
+  return onSnapshot(settingsRef, (doc) => {
+    if (doc.exists()) {
+      callback(normalizeCheckItemsSettings(doc.data()));
+    } else {
+      callback(DEFAULT_CHECK_ITEM_SETTINGS);
+    }
+  });
 }

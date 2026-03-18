@@ -18,6 +18,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Input,
   Radio,
   RadioGroup,
   Spacer,
@@ -41,8 +42,14 @@ import {
   updateCheckStatus,
   updateCheckResults,
 } from "@/lib/client/check";
+import * as settingsClient from "@/lib/client/settings";
 import { triggerCheckNotification } from "@/lib/server/check";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import {
+  CheckItemSetting,
+  CheckItemsSettings,
+  DEFAULT_CHECK_ITEM_SETTINGS,
+} from "@/types/settings";
 
 interface CheckReservationCardProps {
   className?: string;
@@ -59,6 +66,8 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
   const [reservation, setReservation] = React.useState<CheckReservation | null>(
     null,
   );
+  const [checkItemsSettings, setCheckItemsSettings] =
+    React.useState<CheckItemsSettings>(DEFAULT_CHECK_ITEM_SETTINGS);
   const { isAdmin: isAdminUser } = useIsAdmin();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -76,6 +85,17 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
     onOpenChange: onOpenChangeResultInput,
   } = useDisclosure();
 
+  const checkType = React.useMemo<"check1" | "check2">(
+    () => (props.collectionId.includes("check2") ? "check2" : "check1"),
+    [props.collectionId],
+  );
+
+  const enabledItems = React.useMemo<CheckItemSetting[]>(() => {
+    return [...checkItemsSettings[checkType]]
+      .filter((item) => item.enabled)
+      .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  }, [checkItemsSettings, checkType]);
+
   React.useEffect(() => {
     getCheckReservation(props.reservationId, props.collectionId).then(
       (reservation) => {
@@ -91,6 +111,25 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       },
     );
   }, [props.reservationId]);
+
+  React.useEffect(() => {
+    const getItemsSettings =
+      settingsClient.getCheckItemsSettings ??
+      (async () => DEFAULT_CHECK_ITEM_SETTINGS);
+    const listenItemsSettings =
+      settingsClient.listenCheckItemsSettings ??
+      ((callback: (settings: CheckItemsSettings) => void) => {
+        callback(DEFAULT_CHECK_ITEM_SETTINGS);
+
+        return () => {};
+      });
+
+    getItemsSettings().then(setCheckItemsSettings);
+
+    return listenItemsSettings((next) => {
+      setCheckItemsSettings(next);
+    });
+  }, []);
 
   async function handleStatusUpdate(status: CheckStatus) {
     setIsSubmitting(true);
@@ -134,31 +173,33 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       return;
     }
 
-    const initialSizeLimit = formData.has("initialSizeLimit");
-    const deployedSizeLimit = formData.has("deployedSizeLimit");
-    const weight = formData.has("weight");
-    const safetyCheck = formData.has("safetyCheck");
-    const emergencyStop = formData.has("emergencyStop");
-    const led = formData.has("led");
-    const power = formData.has("power");
-    const compressedAir = formData.has("compressedAir");
-    const memo = formData.get("memo") as string;
-    const recheckItems = formData.get("recheckItems") as string;
+    const results: Record<string, boolean | string | number> = {};
+
+    enabledItems.forEach((item) => {
+      const key = `checkItem-${item.id}`;
+
+      if (item.type === "boolean") {
+        results[item.id] = formData.has(key);
+
+        return;
+      }
+
+      const raw = String(formData.get(key) ?? "").trim();
+
+      if (item.type === "number") {
+        results[item.id] = raw.length === 0 ? "" : Number(raw);
+
+        return;
+      }
+
+      results[item.id] = raw;
+    });
 
     const result = await updateCheckResults(
       id,
       collectionId,
       status,
-      initialSizeLimit,
-      deployedSizeLimit,
-      weight,
-      safetyCheck,
-      emergencyStop,
-      led,
-      power,
-      compressedAir,
-      memo,
-      recheckItems,
+      results,
     );
 
     if (result.errors) {
@@ -222,42 +263,64 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                     className="flex-col items-stretch justify-start gap-4"
                     onSubmit={handleResultSubmit}
                   >
-                    <Checkbox className="flex" name="initialSizeLimit">
-                      サイズ（初期制限）
-                    </Checkbox>
-                    <Checkbox className="flex" name="deployedSizeLimit">
-                      サイズ（展開制限）
-                    </Checkbox>
-                    <Checkbox className="flex" name="weight">
-                      重量
-                    </Checkbox>
-                    <Checkbox className="flex" name="safetyCheck">
-                      安全確認
-                    </Checkbox>
-                    <Checkbox className="flex" name="emergencyStop">
-                      非常停止
-                    </Checkbox>
-                    <Checkbox className="flex" name="led">
-                      LED
-                    </Checkbox>
-                    <Checkbox className="flex" name="power">
-                      電源
-                    </Checkbox>
-                    <Checkbox className="flex" name="compressedAir">
-                      圧縮空気
-                    </Checkbox>
-                    <Textarea
-                      className="mt-4 flex"
-                      label="メモ"
-                      labelPlacement="outside"
-                      name="memo"
-                    />
-                    <Textarea
-                      className="mt-4 flex"
-                      label="再検査項目"
-                      labelPlacement="outside"
-                      name="recheckItems"
-                    />
+                    {enabledItems.map((item) => {
+                      const fieldName = `checkItem-${item.id}`;
+                      const value = reservation[item.id] as
+                        | boolean
+                        | string
+                        | number
+                        | undefined;
+
+                      if (item.type === "boolean") {
+                        return (
+                          <Checkbox
+                            key={item.id}
+                            className="flex"
+                            defaultSelected={Boolean(value)}
+                            name={fieldName}
+                          >
+                            {item.label}
+                          </Checkbox>
+                        );
+                      }
+
+                      if (item.type === "number") {
+                        return (
+                          <div
+                            key={item.id}
+                            className="mt-2 flex items-center gap-3"
+                          >
+                            <span className="min-w-[5rem] text-sm text-default-700">
+                              {item.label}
+                            </span>
+                            <Input
+                              className="max-w-[12rem]"
+                              defaultValue={
+                                value === undefined || value === null
+                                  ? ""
+                                  : String(value)
+                              }
+                              name={fieldName}
+                              placeholder="数値"
+                              type="number"
+                            />
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <Textarea
+                          key={item.id}
+                          className="mt-2 flex"
+                          defaultValue={
+                            value === undefined || value === null ? "" : String(value)
+                          }
+                          label={item.label}
+                          labelPlacement="outside"
+                          name={fieldName}
+                        />
+                      );
+                    })}
                     <RadioGroup
                       className="mt-4 flex"
                       label="判定"
@@ -352,46 +415,35 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
           <TableColumn>結果</TableColumn>
         </TableHeader>
         <TableBody>
-          <TableRow key="サイズ（初期制限）">
-            <TableCell>サイズ（初期制限）</TableCell>
-            <TableCell>{reservation.initialSizeLimit ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="サイズ（展開制限）">
-            <TableCell>サイズ（展開制限）</TableCell>
-            <TableCell>{reservation.deployedSizeLimit ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="重量">
-            <TableCell>重量</TableCell>
-            <TableCell>{reservation.weight ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="安全確認">
-            <TableCell>安全確認</TableCell>
-            <TableCell>{reservation.safetyCheck ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="非常停止">
-            <TableCell>非常停止</TableCell>
-            <TableCell>{reservation.emergencyStop ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="LED">
-            <TableCell>LED</TableCell>
-            <TableCell>{reservation.led ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="電源">
-            <TableCell>電源</TableCell>
-            <TableCell>{reservation.power ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="圧縮空気">
-            <TableCell>圧縮空気</TableCell>
-            <TableCell>{reservation.compressedAir ? "OK" : "NG"}</TableCell>
-          </TableRow>
-          <TableRow key="メモ">
-            <TableCell>メモ</TableCell>
-            <TableCell>{reservation.memo}</TableCell>
-          </TableRow>
-          <TableRow key="再検査項目">
-            <TableCell>再検査項目</TableCell>
-            <TableCell>{reservation.recheckItems}</TableCell>
-          </TableRow>
+          {enabledItems.map((item) => {
+            const value = reservation[item.id] as
+              | boolean
+              | string
+              | number
+              | undefined;
+            let displayValue = "-";
+
+            if (item.type === "boolean") {
+              displayValue = Boolean(value) ? "OK" : "NG";
+            } else if (value !== undefined && value !== null && String(value) !== "") {
+              displayValue = String(value);
+            }
+
+            return (
+              <TableRow key={item.id}>
+                <TableCell>{item.label}</TableCell>
+                <TableCell>
+                  {displayValue === "NG" ? (
+                    <span className="inline-flex rounded-full bg-danger-100 px-2 py-0.5 text-xs font-semibold text-danger">
+                      NG
+                    </span>
+                  ) : (
+                    displayValue
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     );
