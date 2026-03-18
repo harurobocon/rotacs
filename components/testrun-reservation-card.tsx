@@ -240,7 +240,7 @@ export default function TestrunReservationCard(
             ) : null}
             {reservation.robot_check_enabled ? (
               <div className="mt-1 flex justify-center">
-                <span className="inline-flex items-center rounded-full bg-warning-100 px-2 py-0.5 text-xs font-semibold text-warning-700">
+                <span className="inline-flex items-center rounded-full bg-success-100 px-2 py-0.5 text-xs font-semibold text-success-700">
                   ロボットチェック実施
                 </span>
               </div>
