@@ -160,19 +160,39 @@ export async function updateCheckStatus(
     const docRef = doc(firestore, collectionId, id).withConverter(
       checkDataConverter(),
     );
-    const updateData: any = { status };
+    const snapshot = await getDoc(docRef);
 
-    if (status === "呼出中") {
+    if (!snapshot.exists()) {
+      return { ok: false, errors: "対象の予約が見つかりません" };
+    }
+
+    const current = snapshot.data();
+    const updateData: Record<string, unknown> = { status };
+    const isInProgress = ["呼出中", "移動中", "実施中"].includes(status);
+    const isFinished = ["合格", "再検査", "キャンセル"].includes(status);
+
+    if (isInProgress && !current.fixed_at) {
       updateData.fixed_at = serverTimestamp();
-    } else if (status === "実施中") {
+    }
+
+    if (status === "順番待ち" && current.fixed_at) {
+      updateData.fixed_at = null;
+    }
+
+    if (status === "実施中" && !current.started_at) {
       updateData.started_at = serverTimestamp();
-      updateData.finished_at = serverTimestamp();
-    } else if (
-      status === "合格" ||
-      status === "再検査" ||
-      status === "キャンセル"
-    ) {
-      updateData.finished_at = serverTimestamp();
+    }
+
+    if (isFinished) {
+      if (!current.finished_at) {
+        updateData.finished_at = serverTimestamp();
+      }
+    } else if (current.finished_at) {
+      updateData.finished_at = null;
+    }
+
+    if (!["実施中", "合格", "再検査", "キャンセル"].includes(status) && current.started_at) {
+      updateData.started_at = null;
     }
 
     await updateDoc(docRef, updateData);

@@ -140,18 +140,19 @@ export default function TestrunReservationCard(
     if (
       ["呼出中", "移動中", "スタンバイ中", "実施中"].includes(
         reservation.status,
-      ) &&
-      reservation.fixed_at
+      )
     ) {
       updateTime = (
         <>
-          <p className={infoText()}>
-            {"呼出中: " +
-              reservation.fixed_at.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-          </p>
+          {reservation.fixed_at && (
+            <p className={infoText()}>
+              {"呼出中: " +
+                reservation.fixed_at.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+            </p>
+          )}
           {reservation.status === "実施中" && reservation.started_at && (
             <p className={infoText()}>
               {"実施開始: " +
