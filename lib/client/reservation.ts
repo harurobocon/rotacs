@@ -35,6 +35,7 @@ export function reservationDataConverter<
       data.id = snapshot.id;
       data.reserved_at = toDateOrNull(data.reserved_at) ?? new Date(0);
       data.fixed_at = toDateOrNull(data.fixed_at);
+      data.started_at = toDateOrNull(data.started_at);
       data.finished_at = toDateOrNull(data.finished_at);
 
       return data as ReservationType;
@@ -51,6 +52,9 @@ export function objectifyReservation<
     reserved_at: Timestamp.fromDate(reservation.reserved_at),
     fixed_at: reservation.fixed_at
       ? Timestamp.fromDate(reservation.fixed_at)
+      : null,
+    started_at: reservation.started_at
+      ? Timestamp.fromDate(reservation.started_at)
       : null,
     finished_at: reservation.finished_at
       ? Timestamp.fromDate(reservation.finished_at)

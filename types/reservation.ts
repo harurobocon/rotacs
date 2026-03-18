@@ -4,6 +4,7 @@ export class Reservation<StatusType extends string, SideType extends string> {
   readonly id: string;
   reserved_at: Date;
   fixed_at: Date | null;
+  started_at: Date | null;
   finished_at: Date | null;
   user_id: string;
   user_display_name: string;
@@ -26,6 +27,7 @@ export class Reservation<StatusType extends string, SideType extends string> {
     this.id = options.id ?? ulid();
     this.reserved_at = options.reserved_at ?? new Date();
     this.fixed_at = options.fixed_at ?? null;
+    this.started_at = options.started_at ?? null;
     this.finished_at = options.finished_at ?? null;
     this.user_id = options.user_id;
     this.user_display_name = options.user_display_name;

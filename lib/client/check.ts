@@ -164,8 +164,10 @@ export async function updateCheckStatus(
 
     if (status === "呼出中") {
       updateData.fixed_at = serverTimestamp();
+    } else if (status === "実施中") {
+      updateData.started_at = serverTimestamp();
+      updateData.finished_at = serverTimestamp();
     } else if (
-      status === "実施中" ||
       status === "合格" ||
       status === "再検査" ||
       status === "キャンセル"

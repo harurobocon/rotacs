@@ -213,7 +213,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
     setIsSubmitting(false);
   }
 
-  let updateTime = "";
+  let updateTime: React.ReactNode = null;
   let card = null;
 
   if (reservation) {
@@ -221,24 +221,41 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       ["呼出中", "移動中", "実施中"].includes(reservation.status) &&
       reservation.fixed_at
     ) {
-      updateTime =
-        "呼出中: " +
-        reservation.fixed_at.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      updateTime = (
+        <>
+          <p className={infoText()}>
+            {"呼出中: " +
+              reservation.fixed_at.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+          </p>
+          {reservation.status === "実施中" && reservation.started_at && (
+            <p className={infoText()}>
+              {"実施開始: " +
+                reservation.started_at.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+            </p>
+          )}
+        </>
+      );
     } else if (
       (reservation.status === "合格" || reservation.status === "再検査") &&
       reservation.finished_at
     ) {
-      updateTime =
-        "終了時刻: " +
-        reservation.finished_at.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      updateTime = (
+        <p className={infoText()}>
+          {"終了時刻: " +
+            reservation.finished_at.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+        </p>
+      );
     } else if (reservation.status === "順番待ち") {
-      updateTime = "";
+      updateTime = null;
     }
     const checkResultInput = (
       <>
@@ -456,7 +473,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
             <p className={infoText()}>
               {`受信時刻: ${reservation.reserved_at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
             </p>
-            <p className={infoText()}>{updateTime}</p>
+            {updateTime}
             <p className={infoText()}>{`実施場所: ${reservation.side}`}</p>
           </div>
           <div className="flex-col items-center justify-center">
