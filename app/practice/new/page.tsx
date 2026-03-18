@@ -27,7 +27,10 @@ import {
 import { CHECK1_COLLECTION } from "@/types/check";
 import { useReservationControl } from "@/hooks/useReservationControl";
 import { getReservationSettings } from "@/lib/client/settings";
-import { resolveAdminBypassEnabled, resolveConditionEnabled } from "@/types/settings";
+import {
+  resolveAdminBypassEnabled,
+  resolveConditionEnabled,
+} from "@/types/settings";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { firestore as db } from "@/lib/firebase/clientApp";
 
@@ -62,7 +65,9 @@ export default function NewPractice() {
       const setting = reservationSettings.practice;
       const shouldBypassConditions =
         isAdminUser &&
-        resolveAdminBypassEnabled(reservationSettings.global?.adminBypassEnabled);
+        resolveAdminBypassEnabled(
+          reservationSettings.global?.adminBypassEnabled,
+        );
       let shouldNotifyNewReservation = false;
       const existsStatus: PracticeStatus[] = [
         "順番待ち",

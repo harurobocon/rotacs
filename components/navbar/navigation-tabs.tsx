@@ -2,7 +2,6 @@
 
 import { Tabs, Tab } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 

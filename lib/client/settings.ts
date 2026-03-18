@@ -75,7 +75,8 @@ export async function getReservationSettings(): Promise<ReservationSettings> {
   const docSnap = await getDoc(settingsRef);
 
   if (docSnap.exists()) {
-    return normalizeReservationSettingsWithFallbackInfo(docSnap.data()).settings;
+    return normalizeReservationSettingsWithFallbackInfo(docSnap.data())
+      .settings;
   } else {
     return defaultSettings;
   }
@@ -128,56 +129,62 @@ function normalizeReservationSettingsWithFallbackInfo(
     settings?.global?.adminBypassEnabled === null ||
     settings?.global?.adminBypassEnabled === undefined;
 
-  const normalized = RESERVATION_TYPES.reduce((acc, type) => {
-    const current = settings[type];
-    const rawConditions = (current?.conditions ?? {}) as Partial<
-      Record<"preventDuplicateReservation" | "requireCheck1Pass", boolean | null>
-    >;
+  const normalized = RESERVATION_TYPES.reduce(
+    (acc, type) => {
+      const current = settings[type];
+      const rawConditions = (current?.conditions ?? {}) as Partial<
+        Record<
+          "preventDuplicateReservation" | "requireCheck1Pass",
+          boolean | null
+        >
+      >;
 
-    const preventDuplicateFallback =
-      rawConditions.preventDuplicateReservation === null ||
-      rawConditions.preventDuplicateReservation === undefined;
-    const requireCheck1PassFallback =
-      rawConditions.requireCheck1Pass === null ||
-      rawConditions.requireCheck1Pass === undefined;
+      const preventDuplicateFallback =
+        rawConditions.preventDuplicateReservation === null ||
+        rawConditions.preventDuplicateReservation === undefined;
+      const requireCheck1PassFallback =
+        rawConditions.requireCheck1Pass === null ||
+        rawConditions.requireCheck1Pass === undefined;
 
-    fallbackMap[type] = {
-      preventDuplicateReservation: preventDuplicateFallback,
-      requireCheck1Pass: requireCheck1PassFallback,
-    };
+      fallbackMap[type] = {
+        preventDuplicateReservation: preventDuplicateFallback,
+        requireCheck1Pass: requireCheck1PassFallback,
+      };
 
-    acc[type] = {
-      mode: current?.mode ?? "disabled",
-      startDate: current?.startDate ?? "2000-01-01",
-      startTime: current?.startTime ?? "09:00",
-      conditions: {
-        preventDuplicateReservation: resolveConditionEnabled(
-          "preventDuplicateReservation",
-          preventDuplicateFallback
-            ? undefined
-            : rawConditions.preventDuplicateReservation,
-        ),
-        ...(type === "check1"
-          ? {}
-          : {
-              requireCheck1Pass: resolveConditionEnabled(
-                "requireCheck1Pass",
-                requireCheck1PassFallback
-                  ? undefined
-                  : rawConditions.requireCheck1Pass,
-              ),
-            }),
-      },
-    };
+      acc[type] = {
+        mode: current?.mode ?? "disabled",
+        startDate: current?.startDate ?? "2000-01-01",
+        startTime: current?.startTime ?? "09:00",
+        conditions: {
+          preventDuplicateReservation: resolveConditionEnabled(
+            "preventDuplicateReservation",
+            preventDuplicateFallback
+              ? undefined
+              : rawConditions.preventDuplicateReservation,
+          ),
+          ...(type === "check1"
+            ? {}
+            : {
+                requireCheck1Pass: resolveConditionEnabled(
+                  "requireCheck1Pass",
+                  requireCheck1PassFallback
+                    ? undefined
+                    : rawConditions.requireCheck1Pass,
+                ),
+              }),
+        },
+      };
 
-    return acc;
-  }, {
-    global: {
-      adminBypassEnabled: resolveAdminBypassEnabled(
-        globalFallback ? undefined : settings.global.adminBypassEnabled,
-      ),
+      return acc;
     },
-  } as ReservationSettings);
+    {
+      global: {
+        adminBypassEnabled: resolveAdminBypassEnabled(
+          globalFallback ? undefined : settings.global.adminBypassEnabled,
+        ),
+      },
+    } as ReservationSettings,
+  );
 
   return {
     settings: normalized,
@@ -228,7 +235,9 @@ export function listenCheckLocationSettings(
   return unsubscribe;
 }
 
-function normalizeCheckItems(checkTypeItems: CheckItemSetting[]): CheckItemSetting[] {
+function normalizeCheckItems(
+  checkTypeItems: CheckItemSetting[],
+): CheckItemSetting[] {
   return checkTypeItems
     .filter(
       (item) =>
@@ -250,8 +259,12 @@ function normalizeCheckItems(checkTypeItems: CheckItemSetting[]): CheckItemSetti
 function normalizeCheckItemsSettings(
   raw: Partial<CheckItemsSettings> | null | undefined,
 ): CheckItemsSettings {
-  const check1 = normalizeCheckItems(raw?.check1 ?? DEFAULT_CHECK_ITEM_SETTINGS.check1);
-  const check2 = normalizeCheckItems(raw?.check2 ?? DEFAULT_CHECK_ITEM_SETTINGS.check2);
+  const check1 = normalizeCheckItems(
+    raw?.check1 ?? DEFAULT_CHECK_ITEM_SETTINGS.check1,
+  );
+  const check2 = normalizeCheckItems(
+    raw?.check2 ?? DEFAULT_CHECK_ITEM_SETTINGS.check2,
+  );
 
   return {
     check1: check1.length > 0 ? check1 : DEFAULT_CHECK_ITEM_SETTINGS.check1,

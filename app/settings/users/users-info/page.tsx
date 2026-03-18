@@ -26,13 +26,18 @@ export default async function UsersInfoPage() {
       <div className="fixed inset-0 z-50 overflow-auto bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col justify-center py-10">
           <div className="mb-4">
-            <Link className="text-sm font-medium text-primary underline" href="/settings/users">
+            <Link
+              className="text-sm font-medium text-primary underline"
+              href="/settings/users"
+            >
               ユーザー設定へ戻る
             </Link>
           </div>
 
           <div className="rounded-xl border border-default-200 bg-background p-6 shadow-lg">
-            <h1 className="text-3xl font-bold text-gray-800">チーム情報システム</h1>
+            <h1 className="text-3xl font-bold text-gray-800">
+              チーム情報システム
+            </h1>
             <p className="mt-2 text-lg text-gray-600">
               チームを選択して詳細情報を表示
             </p>
@@ -43,7 +48,10 @@ export default async function UsersInfoPage() {
                   key={team.id}
                   href={`/settings/users/users-info/team/${encodeURIComponent(team.username)}`}
                 >
-                  <Button className="mb-2 h-auto w-full justify-between py-3" variant="flat">
+                  <Button
+                    className="mb-2 h-auto w-full justify-between py-3"
+                    variant="flat"
+                  >
                     <span className="text-left">{team.display_name}</span>
                     <span className="text-xs text-default-500">
                       {team.pit_side} / ピット{team.pit_number}

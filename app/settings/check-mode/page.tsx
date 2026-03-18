@@ -18,9 +18,7 @@ import {
   Snippet,
 } from "@heroui/react";
 
-import {
-  getCheckLocationSettings,
-} from "@/lib/client/settings";
+import { getCheckLocationSettings } from "@/lib/client/settings";
 import * as settingsClient from "@/lib/client/settings";
 import {
   updateCheckItemsSettings,
@@ -121,7 +119,9 @@ export default function CheckModePage() {
     checkItemsSettings ? checkItemsSettings[activeCheckType] : [],
   );
 
-  const updateActiveItems = (updater: (items: CheckItemSetting[]) => CheckItemSetting[]) => {
+  const updateActiveItems = (
+    updater: (items: CheckItemSetting[]) => CheckItemSetting[],
+  ) => {
     setCheckItemsSettings((prev) => {
       if (!prev) {
         return prev;
@@ -182,7 +182,9 @@ export default function CheckModePage() {
   };
 
   const removeItem = (itemIndex: number) => {
-    updateActiveItems((items) => items.filter((_, index) => index !== itemIndex));
+    updateActiveItems((items) =>
+      items.filter((_, index) => index !== itemIndex),
+    );
   };
 
   const addItem = () => {
@@ -290,7 +292,9 @@ export default function CheckModePage() {
                 label="編集対象"
                 orientation="horizontal"
                 value={activeCheckType}
-                onValueChange={(value) => setActiveCheckType(value as CheckType)}
+                onValueChange={(value) =>
+                  setActiveCheckType(value as CheckType)
+                }
               >
                 <Radio value="check1">計量計測1（前日）</Radio>
                 <Radio value="check2">計量計測2（当日）</Radio>
@@ -335,9 +339,7 @@ export default function CheckModePage() {
                           }}
                         >
                           {CHECK_ITEM_TYPES.map((type) => (
-                            <SelectItem key={type}>
-                              {type}
-                            </SelectItem>
+                            <SelectItem key={type}>{type}</SelectItem>
                           ))}
                         </Select>
                       </div>
@@ -383,7 +385,12 @@ export default function CheckModePage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <Button color="secondary" type="button" variant="flat" onPress={addItem}>
+                <Button
+                  color="secondary"
+                  type="button"
+                  variant="flat"
+                  onPress={addItem}
+                >
                   項目を追加
                 </Button>
                 <SubmitButton />

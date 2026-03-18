@@ -31,7 +31,10 @@ import {
   TESTRUN_COLLECTION,
 } from "@/types/testrun";
 import { CHECK1_COLLECTION } from "@/types/check";
-import { resolveAdminBypassEnabled, resolveConditionEnabled } from "@/types/settings";
+import {
+  resolveAdminBypassEnabled,
+  resolveConditionEnabled,
+} from "@/types/settings";
 import { triggerNewTestrunReservationNotification } from "@/lib/server/testrun";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 import { useReservationControl } from "@/hooks/useReservationControl";
@@ -71,7 +74,9 @@ export default function NewTestrun() {
       const setting = reservationSettings.testrun;
       const shouldBypassConditions =
         isAdminUser &&
-        resolveAdminBypassEnabled(reservationSettings.global?.adminBypassEnabled);
+        resolveAdminBypassEnabled(
+          reservationSettings.global?.adminBypassEnabled,
+        );
 
       let shouldNotifyNewReservation = false;
       const existsStatus: TestrunStatus[] = [

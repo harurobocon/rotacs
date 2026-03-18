@@ -7,12 +7,17 @@ export default function NotFound() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 text-2xl">
           ⚠
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">チームが見つかりません</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          チームが見つかりません
+        </h1>
         <p className="mt-3 text-gray-600">
           指定されたチームは存在しないか、削除された可能性があります。
         </p>
         <div className="mt-5">
-          <Link className="text-sm font-medium text-primary underline" href="/settings/users">
+          <Link
+            className="text-sm font-medium text-primary underline"
+            href="/settings/users"
+          >
             ユーザー設定へ戻る
           </Link>
         </div>

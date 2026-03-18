@@ -194,9 +194,10 @@ export async function getCheckLocationSettings(): Promise<CheckLocationSettings>
   }
 }
 
-function normalizeAndValidateItems(
-  items: unknown,
-): { items: CheckItemSetting[]; error?: string } {
+function normalizeAndValidateItems(items: unknown): {
+  items: CheckItemSetting[];
+  error?: string;
+} {
   if (!Array.isArray(items)) {
     return { items: [], error: "確認項目の形式が不正です" };
   }
@@ -223,7 +224,9 @@ function normalizeAndValidateItems(
       return { items: [], error: `項目ラベルが不正です (${i + 1}件目)` };
     }
 
-    if (!CHECK_ITEM_TYPES.includes(String(item.type) as CheckItemSetting["type"])) {
+    if (
+      !CHECK_ITEM_TYPES.includes(String(item.type) as CheckItemSetting["type"])
+    ) {
       return { items: [], error: `項目タイプが不正です (${i + 1}件目)` };
     }
 

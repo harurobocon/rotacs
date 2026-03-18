@@ -388,7 +388,10 @@ export async function fetchAndSaveAllSlackChannelIds(): Promise<{
         }).toLowerCase();
 
         expectedNameByUserId.set(userDoc.id, expected);
-        expectedNameCounts.set(expected, (expectedNameCounts.get(expected) ?? 0) + 1);
+        expectedNameCounts.set(
+          expected,
+          (expectedNameCounts.get(expected) ?? 0) + 1,
+        );
       } catch {
         // 本体ループで詳細エラーを出す
       }

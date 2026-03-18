@@ -195,12 +195,7 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
       results[item.id] = raw;
     });
 
-    const result = await updateCheckResults(
-      id,
-      collectionId,
-      status,
-      results,
-    );
+    const result = await updateCheckResults(id, collectionId, status, results);
 
     if (result.errors) {
       console.error(result.errors);
@@ -313,7 +308,9 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
                           key={item.id}
                           className="mt-2 flex"
                           defaultValue={
-                            value === undefined || value === null ? "" : String(value)
+                            value === undefined || value === null
+                              ? ""
+                              : String(value)
                           }
                           label={item.label}
                           labelPlacement="outside"
@@ -425,7 +422,11 @@ export default function CheckReservationCard(props: CheckReservationCardProps) {
 
             if (item.type === "boolean") {
               displayValue = Boolean(value) ? "OK" : "NG";
-            } else if (value !== undefined && value !== null && String(value) !== "") {
+            } else if (
+              value !== undefined &&
+              value !== null &&
+              String(value) !== ""
+            ) {
               displayValue = String(value);
             }
 

@@ -46,7 +46,9 @@ export const DEFAULT_RESERVATION_GLOBAL_SETTINGS: ReservationGlobalSettings = {
   adminBypassEnabled: true,
 };
 
-export function getConditionDefaultValue(key: ReservationConditionKey): boolean {
+export function getConditionDefaultValue(
+  key: ReservationConditionKey,
+): boolean {
   return DEFAULT_RESERVATION_CONDITIONS[key];
 }
 
