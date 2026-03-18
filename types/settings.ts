@@ -17,10 +17,64 @@ export interface ReservationControlSetting {
   mode: ReservationControlMode;
   startDate: string; // YYYY-MM-DD
   startTime: string; // HH:mm
+  conditions: ReservationConditionSettings;
+}
+
+export interface ReservationConditionSettings {
+  preventDuplicateReservation: boolean;
+  requireCheck1Pass?: boolean;
+}
+
+export interface ReservationGlobalSettings {
+  adminBypassEnabled: boolean;
+}
+
+export type ReservationConditionKey = keyof ReservationConditionSettings;
+
+export type ReservationConditionFallbackMap = {
+  [type in ReservationType]: {
+    [key in ReservationConditionKey]: boolean;
+  };
+};
+
+export const DEFAULT_RESERVATION_CONDITIONS = {
+  preventDuplicateReservation: true,
+  requireCheck1Pass: true,
+} as const satisfies Required<ReservationConditionSettings>;
+
+export const DEFAULT_RESERVATION_GLOBAL_SETTINGS: ReservationGlobalSettings = {
+  adminBypassEnabled: true,
+};
+
+export function getConditionDefaultValue(key: ReservationConditionKey): boolean {
+  return DEFAULT_RESERVATION_CONDITIONS[key];
+}
+
+export function resolveConditionEnabled(
+  key: ReservationConditionKey,
+  value: boolean | null | undefined,
+): boolean {
+  if (value === null || value === undefined) {
+    return getConditionDefaultValue(key);
+  }
+
+  return value;
+}
+
+export function resolveAdminBypassEnabled(
+  value: boolean | null | undefined,
+): boolean {
+  if (value === null || value === undefined) {
+    return DEFAULT_RESERVATION_GLOBAL_SETTINGS.adminBypassEnabled;
+  }
+
+  return value;
 }
 
 export type ReservationSettings = {
   [key in ReservationType]: ReservationControlSetting;
+} & {
+  global: ReservationGlobalSettings;
 };
 
 export const RESERVATION_SETTINGS_COLLECTION =

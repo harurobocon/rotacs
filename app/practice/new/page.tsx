@@ -24,7 +24,10 @@ import {
   PracticeReservation,
   PracticeStatus,
 } from "@/types/practice";
+import { CHECK1_COLLECTION } from "@/types/check";
 import { useReservationControl } from "@/hooks/useReservationControl";
+import { getReservationSettings } from "@/lib/client/settings";
+import { resolveAdminBypassEnabled, resolveConditionEnabled } from "@/types/settings";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { firestore as db } from "@/lib/firebase/clientApp";
 
@@ -55,6 +58,11 @@ export default function NewPractice() {
     try {
       const bookerId =
         isAdminUser && selectedUser ? selectedUser.toString() : user.uid;
+      const reservationSettings = await getReservationSettings();
+      const setting = reservationSettings.practice;
+      const shouldBypassConditions =
+        isAdminUser &&
+        resolveAdminBypassEnabled(reservationSettings.global?.adminBypassEnabled);
       let shouldNotifyNewReservation = false;
       const existsStatus: PracticeStatus[] = [
         "順番待ち",
@@ -65,17 +73,47 @@ export default function NewPractice() {
 
       await runTransaction(db, async (transaction) => {
         const reservationsRef = collection(db, PRACTICE_COLLECTION);
+        const check1ReservationsRef = collection(db, CHECK1_COLLECTION);
 
         // 1. Check if an active reservation already exists for this user
-        const incompleteQuery = query(
-          reservationsRef,
-          where("user_id", "==", bookerId),
-          where("status", "in", existsStatus),
-        );
-        const incompleteSnapshot = await getDocs(incompleteQuery);
+        if (
+          resolveConditionEnabled(
+            "preventDuplicateReservation",
+            setting.conditions.preventDuplicateReservation,
+          ) &&
+          !shouldBypassConditions
+        ) {
+          const incompleteQuery = query(
+            reservationsRef,
+            where("user_id", "==", bookerId),
+            where("status", "in", existsStatus),
+          );
+          const incompleteSnapshot = await getDocs(incompleteQuery);
 
-        if (!incompleteSnapshot.empty) {
-          throw new Error("既に予約が存在します");
+          if (!incompleteSnapshot.empty) {
+            throw new Error("既に予約が存在します");
+          }
+        }
+
+        if (
+          resolveConditionEnabled(
+            "requireCheck1Pass",
+            setting.conditions.requireCheck1Pass,
+          ) &&
+          !shouldBypassConditions
+        ) {
+          const check1PassedQuery = query(
+            check1ReservationsRef,
+            where("user_id", "==", bookerId),
+            where("status", "==", "合格"),
+          );
+          const check1PassedSnapshot = await getDocs(check1PassedQuery);
+
+          if (check1PassedSnapshot.empty) {
+            throw new Error(
+              "計量計測1に合格していないため、試走場を予約できません",
+            );
+          }
         }
 
         // 2. Check total active reservations to see if we should notify
