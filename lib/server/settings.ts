@@ -10,6 +10,10 @@ import {
   RESERVATION_TYPES,
   ReservationSettings,
   ReservationControlMode,
+  DEFAULT_RESERVATION_CONDITIONS,
+  DEFAULT_RESERVATION_GLOBAL_SETTINGS,
+  resolveConditionEnabled,
+  resolveAdminBypassEnabled,
   CHECK_LOCATION_SETTINGS_COLLECTION,
   CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
   CheckLocationSettings,
@@ -17,6 +21,22 @@ import {
   CheckLocationMode,
 } from "@/types/settings";
 import { getFirestore } from "@/lib/firebase/serverApp";
+
+function parseBooleanFormValue(
+  formData: FormData,
+  key: string,
+  defaultValue: boolean,
+): boolean {
+  const raw = formData.get(key);
+
+  if (raw === null) {
+    return defaultValue;
+  }
+
+  const value = String(raw).toLowerCase();
+
+  return value === "true" || value === "1" || value === "on";
+}
 
 export async function updateReservationSettings(
   prevState: ActionResult,
@@ -26,12 +46,43 @@ export async function updateReservationSettings(
   // Admin-only access is enforced by the rule: allow write: if isAdmin();
 
   try {
-    const settings = {} as ReservationSettings;
+    const settings = {
+      global: {
+        adminBypassEnabled: resolveAdminBypassEnabled(
+          parseBooleanFormValue(
+            formData,
+            "global-adminBypassEnabled",
+            DEFAULT_RESERVATION_GLOBAL_SETTINGS.adminBypassEnabled,
+          ),
+        ),
+      },
+    } as ReservationSettings;
 
     for (const type of RESERVATION_TYPES) {
       const mode = formData.get(`${type}-mode`) as ReservationControlMode;
       const startDate = formData.get(`${type}-startDate`) as string;
       const startTime = formData.get(`${type}-startTime`) as string;
+      const preventDuplicateReservation = resolveConditionEnabled(
+        "preventDuplicateReservation",
+        parseBooleanFormValue(
+          formData,
+          `${type}-preventDuplicateReservation`,
+          DEFAULT_RESERVATION_CONDITIONS.preventDuplicateReservation,
+        ),
+      );
+      const requireCheck1PassDefault =
+        DEFAULT_RESERVATION_CONDITIONS.requireCheck1Pass ?? true;
+      const requireCheck1Pass =
+        type === "check1"
+          ? false
+          : resolveConditionEnabled(
+              "requireCheck1Pass",
+              parseBooleanFormValue(
+                formData,
+                `${type}-requireCheck1Pass`,
+                requireCheck1PassDefault,
+              ),
+            );
 
       if (!RESERVATION_CONTROL_MODES.includes(mode)) {
         return { errors: `無効なモードが${type}に設定されています` };
@@ -46,6 +97,10 @@ export async function updateReservationSettings(
         mode,
         startDate: startDate || `${year}-${month}-${day}`,
         startTime: startTime || "09:00",
+        conditions: {
+          preventDuplicateReservation,
+          ...(type === "check1" ? {} : { requireCheck1Pass }),
+        },
       };
     }
 

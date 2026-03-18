@@ -28,9 +28,14 @@ import {
 import { useReservationControl } from "@/hooks/useReservationControl";
 import {
   getCheckLocationSettings,
+  getReservationSettings,
   listenCheckLocationSettings,
 } from "@/lib/client/settings";
-import { CheckLocationMode } from "@/types/settings";
+import {
+  CheckLocationMode,
+  resolveAdminBypassEnabled,
+  resolveConditionEnabled,
+} from "@/types/settings";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { firestore as db } from "@/lib/firebase/clientApp";
 
@@ -62,6 +67,11 @@ export default function NewCheck() {
     try {
       const bookerId =
         isAdminUser && selectedUser ? selectedUser.toString() : user.uid;
+      const reservationSettings = await getReservationSettings();
+      const setting = reservationSettings.check1;
+      const shouldBypassConditions =
+        isAdminUser &&
+        resolveAdminBypassEnabled(reservationSettings.global?.adminBypassEnabled);
       let shouldNotifyNewReservation = false;
       const existsStatus: CheckStatus[] = [
         "順番待ち",
@@ -74,15 +84,23 @@ export default function NewCheck() {
         const reservationsRef = collection(db, CHECK1_COLLECTION);
 
         // 1. Check if an active reservation already exists for this user
-        const incompleteQuery = query(
-          reservationsRef,
-          where("user_id", "==", bookerId),
-          where("status", "in", existsStatus),
-        );
-        const incompleteSnapshot = await getDocs(incompleteQuery); // Note: ideally query within transaction but for existence check getDocs is ok since rule guards writes
+        if (
+          resolveConditionEnabled(
+            "preventDuplicateReservation",
+            setting.conditions.preventDuplicateReservation,
+          ) &&
+          !shouldBypassConditions
+        ) {
+          const incompleteQuery = query(
+            reservationsRef,
+            where("user_id", "==", bookerId),
+            where("status", "in", existsStatus),
+          );
+          const incompleteSnapshot = await getDocs(incompleteQuery);
 
-        if (!incompleteSnapshot.empty) {
-          throw new Error("既に予約が存在します");
+          if (!incompleteSnapshot.empty) {
+            throw new Error("既に予約が存在します");
+          }
         }
 
         // 2. Check total active reservations to see if we should notify
