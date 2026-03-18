@@ -8,6 +8,7 @@ import {
   Autocomplete,
   AutocompleteItem,
   Button,
+  Checkbox,
   Input,
   Radio,
   RadioGroup,
@@ -52,6 +53,8 @@ export default function NewTestrun() {
     null,
   );
   const [side, setSide] = React.useState<string>("");
+  const [robotCheckRequested, setRobotCheckRequested] = React.useState(false);
+  const [allowRobotCheckInput, setAllowRobotCheckInput] = React.useState(false);
   const [messageError, setMessageError] = React.useState("");
 
   const { isDisabled: isReservationDisabled, message: reservationMessage } =
@@ -148,6 +151,18 @@ export default function NewTestrun() {
         );
         const finishedSnapshot = await getDocs(finishedQuery);
         const reservationCount = finishedSnapshot.size + 1;
+        const isFirstTestrun = reservationCount === 1;
+        const shouldForceRobotCheckOnFirstTestrun = resolveConditionEnabled(
+          "requireRobotCheckOnFirstTestrun",
+          setting.conditions.requireRobotCheckOnFirstTestrun,
+        );
+        const shouldAllowRobotCheckInput = resolveConditionEnabled(
+          "allowRobotCheckInput",
+          setting.conditions.allowRobotCheckInput,
+        );
+        const robotCheckEnabled =
+          (isFirstTestrun && shouldForceRobotCheckOnFirstTestrun) ||
+          (shouldAllowRobotCheckInput && robotCheckRequested);
 
         // 4. Resolve user display name from users collection
         const userDocRef = doc(db, "users", bookerId);
@@ -166,6 +181,7 @@ export default function NewTestrun() {
           status: "順番待ち",
           side: side as TestrunSide,
           pit_number: pitNumber,
+          robot_check_enabled: robotCheckEnabled,
         });
 
         transaction.set(newReservationRef, {
@@ -245,6 +261,21 @@ export default function NewTestrun() {
     }
   }, [isAdminUser]);
 
+  React.useEffect(() => {
+    getReservationSettings().then((reservationSettings) => {
+      const shouldAllowRobotCheckInput = resolveConditionEnabled(
+        "allowRobotCheckInput",
+        reservationSettings.testrun.conditions.allowRobotCheckInput,
+      );
+
+      setAllowRobotCheckInput(shouldAllowRobotCheckInput);
+
+      if (!shouldAllowRobotCheckInput) {
+        setRobotCheckRequested(false);
+      }
+    });
+  }, []);
+
   const usersDropdown = React.useMemo(() => {
     const items = users?.map((user) => ({
       key: user.id,
@@ -287,6 +318,14 @@ export default function NewTestrun() {
               <Radio value="青">青</Radio>
             </RadioGroup>
             {isAdminUser ? usersDropdown : null}
+            {allowRobotCheckInput ? (
+              <Checkbox
+                isSelected={robotCheckRequested}
+                onValueChange={setRobotCheckRequested}
+              >
+                ロボットチェック実施を希望する
+              </Checkbox>
+            ) : null}
             <Button
               color="primary"
               isDisabled={side === "" || isReservationDisabled || isSubmitting}

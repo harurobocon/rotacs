@@ -22,6 +22,8 @@ export class TestrunReservation extends Reservation<
   TestrunStatus,
   TestrunSide
 > {
+  robot_check_enabled?: boolean;
+
   constructor(
     options: Partial<TestrunReservation> & {
       user_id: string;
@@ -32,6 +34,7 @@ export class TestrunReservation extends Reservation<
     },
   ) {
     super(options);
+    this.robot_check_enabled = options.robot_check_enabled ?? false;
   }
 }
 

@@ -111,6 +111,8 @@ function createDefaultFallbackMap(): ReservationConditionFallbackMap {
     acc[type] = {
       preventDuplicateReservation: true,
       requireCheck1Pass: type !== "check1",
+      allowRobotCheckInput: type !== "testrun",
+      requireRobotCheckOnFirstTestrun: type !== "testrun",
     };
 
     return acc;
@@ -134,7 +136,10 @@ function normalizeReservationSettingsWithFallbackInfo(
       const current = settings[type];
       const rawConditions = (current?.conditions ?? {}) as Partial<
         Record<
-          "preventDuplicateReservation" | "requireCheck1Pass",
+          | "preventDuplicateReservation"
+          | "requireCheck1Pass"
+          | "allowRobotCheckInput"
+          | "requireRobotCheckOnFirstTestrun",
           boolean | null
         >
       >;
@@ -145,10 +150,19 @@ function normalizeReservationSettingsWithFallbackInfo(
       const requireCheck1PassFallback =
         rawConditions.requireCheck1Pass === null ||
         rawConditions.requireCheck1Pass === undefined;
+      const allowRobotCheckInputFallback =
+        rawConditions.allowRobotCheckInput === null ||
+        rawConditions.allowRobotCheckInput === undefined;
+      const requireRobotCheckOnFirstTestrunFallback =
+        rawConditions.requireRobotCheckOnFirstTestrun === null ||
+        rawConditions.requireRobotCheckOnFirstTestrun === undefined;
 
       fallbackMap[type] = {
         preventDuplicateReservation: preventDuplicateFallback,
         requireCheck1Pass: requireCheck1PassFallback,
+        allowRobotCheckInput: allowRobotCheckInputFallback,
+        requireRobotCheckOnFirstTestrun:
+          requireRobotCheckOnFirstTestrunFallback,
       };
 
       acc[type] = {
@@ -172,6 +186,22 @@ function normalizeReservationSettingsWithFallbackInfo(
                     : rawConditions.requireCheck1Pass,
                 ),
               }),
+          ...(type === "testrun"
+            ? {
+                allowRobotCheckInput: resolveConditionEnabled(
+                  "allowRobotCheckInput",
+                  allowRobotCheckInputFallback
+                    ? undefined
+                    : rawConditions.allowRobotCheckInput,
+                ),
+                requireRobotCheckOnFirstTestrun: resolveConditionEnabled(
+                  "requireRobotCheckOnFirstTestrun",
+                  requireRobotCheckOnFirstTestrunFallback
+                    ? undefined
+                    : rawConditions.requireRobotCheckOnFirstTestrun,
+                ),
+              }
+            : {}),
         },
       };
 

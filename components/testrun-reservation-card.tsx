@@ -32,6 +32,7 @@ import {
 import {
   getTestrunReservation,
   onTestrunReservationChange,
+  updateTestrunRobotCheckEnabled,
   updateTestrunStatus,
 } from "@/lib/client/testrun";
 import { triggerTestrunNotification } from "@/lib/server/testrun";
@@ -89,6 +90,26 @@ export default function TestrunReservationCard(
       await triggerTestrunNotification();
     } catch (error: any) {
       console.error(error);
+    }
+
+    setIsSubmitting(false);
+  }
+
+  async function handleRobotCheckUpdate(enabled: boolean) {
+    setIsSubmitting(true);
+
+    const result = await updateTestrunRobotCheckEnabled(
+      props.reservationId,
+      enabled,
+    );
+
+    if (result.errors) {
+      console.error(result.errors);
+      setErrorMessage(result.errors);
+      onOpenErrorDialog();
+      setIsSubmitting(false);
+
+      return;
     }
 
     setIsSubmitting(false);
@@ -217,6 +238,13 @@ export default function TestrunReservationCard(
                 className={cn(infoText(), "text-center")}
               >{`${reservation.reservation_count}回目`}</p>
             ) : null}
+            {reservation.robot_check_enabled ? (
+              <div className="mt-1 flex justify-center">
+                <span className="inline-flex items-center rounded-full bg-warning-100 px-2 py-0.5 text-xs font-semibold text-warning-700">
+                  ロボットチェック実施
+                </span>
+              </div>
+            ) : null}
           </div>
           <div className="h-full w-full items-start justify-end">
             {isAdminUser ? (
@@ -231,7 +259,15 @@ export default function TestrunReservationCard(
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
-                    disabledKeys={isSubmitting ? TestrunStatuses : []}
+                    disabledKeys={
+                      isSubmitting
+                        ? [
+                            ...TestrunStatuses,
+                            "robot-check-add",
+                            "robot-check-remove",
+                          ]
+                        : []
+                    }
                   >
                     <DropdownSection title="状態変更">
                       <DropdownItem
@@ -282,6 +318,22 @@ export default function TestrunReservationCard(
                         onPress={() => handleStatusUpdate("キャンセル")}
                       >
                         キャンセル
+                      </DropdownItem>
+                    </DropdownSection>
+                    <DropdownSection title="ロボットチェック">
+                      <DropdownItem
+                        key="robot-check-add"
+                        color="warning"
+                        onPress={() => handleRobotCheckUpdate(true)}
+                      >
+                        ロボットチェックを追加
+                      </DropdownItem>
+                      <DropdownItem
+                        key="robot-check-remove"
+                        color="default"
+                        onPress={() => handleRobotCheckUpdate(false)}
+                      >
+                        ロボットチェックを削除
                       </DropdownItem>
                     </DropdownSection>
                   </DropdownMenu>

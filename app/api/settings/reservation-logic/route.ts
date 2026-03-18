@@ -13,6 +13,9 @@ const LOGIC_FILES = {
 const CONDITION_NEEDLES = {
   preventDuplicateReservation: "setting.conditions.preventDuplicateReservation",
   requireCheck1Pass: "setting.conditions.requireCheck1Pass",
+  allowRobotCheckInput: "setting.conditions.allowRobotCheckInput",
+  requireRobotCheckOnFirstTestrun:
+    "setting.conditions.requireRobotCheckOnFirstTestrun",
 } as const;
 
 type ReservationType = keyof typeof LOGIC_FILES;
