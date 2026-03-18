@@ -187,6 +187,22 @@ export async function updateTestrunRobotCheckEnabled(
   }
 }
 
+export async function updateTestrunSide(id: string, side: TestrunSide) {
+  try {
+    const docRef = doc(firestore, TESTRUN_COLLECTION, id).withConverter(
+      testrunDataConverter(),
+    );
+
+    await updateDoc(docRef, {
+      side,
+    });
+
+    return { ok: true, errors: "" };
+  } catch (error: any) {
+    return { ok: false, errors: error.message };
+  }
+}
+
 function testrunDataConverter(): FirestoreDataConverter<TestrunReservation> {
   return reservationDataConverter<
     TestrunStatus,

@@ -33,6 +33,7 @@ import {
   getTestrunReservation,
   onTestrunReservationChange,
   updateTestrunRobotCheckEnabled,
+  updateTestrunSide,
   updateTestrunStatus,
 } from "@/lib/client/testrun";
 import { triggerTestrunNotification } from "@/lib/server/testrun";
@@ -102,6 +103,23 @@ export default function TestrunReservationCard(
       props.reservationId,
       enabled,
     );
+
+    if (result.errors) {
+      console.error(result.errors);
+      setErrorMessage(result.errors);
+      onOpenErrorDialog();
+      setIsSubmitting(false);
+
+      return;
+    }
+
+    setIsSubmitting(false);
+  }
+
+  async function handleSideUpdate(side: "赤" | "青") {
+    setIsSubmitting(true);
+
+    const result = await updateTestrunSide(props.reservationId, side);
 
     if (result.errors) {
       console.error(result.errors);
@@ -263,6 +281,8 @@ export default function TestrunReservationCard(
                       isSubmitting
                         ? [
                             ...TestrunStatuses,
+                            "side-red",
+                            "side-blue",
                             "robot-check-add",
                             "robot-check-remove",
                           ]
@@ -318,6 +338,24 @@ export default function TestrunReservationCard(
                         onPress={() => handleStatusUpdate("キャンセル")}
                       >
                         キャンセル
+                      </DropdownItem>
+                    </DropdownSection>
+                    <DropdownSection title="赤青変更">
+                      <DropdownItem
+                        key="side-red"
+                        color="danger"
+                        isDisabled={reservation.side === "赤"}
+                        onPress={() => handleSideUpdate("赤")}
+                      >
+                        赤に変更
+                      </DropdownItem>
+                      <DropdownItem
+                        key="side-blue"
+                        color="primary"
+                        isDisabled={reservation.side === "青"}
+                        onPress={() => handleSideUpdate("青")}
+                      >
+                        青に変更
                       </DropdownItem>
                     </DropdownSection>
                     <DropdownSection title="ロボットチェック">
