@@ -3,6 +3,7 @@ import {
   doc,
   DocumentData,
   FirestoreDataConverter,
+  UpdateData,
   getDoc,
   getDocs,
   onSnapshot,
@@ -167,7 +168,7 @@ export async function updateCheckStatus(
     }
 
     const current = snapshot.data();
-    const updateData: Record<string, unknown> = { status };
+    const updateData: UpdateData<CheckReservation> = { status };
     const isInProgress = ["呼出中", "移動中", "実施中"].includes(status);
     const isFinished = ["合格", "再検査", "キャンセル"].includes(status);
 

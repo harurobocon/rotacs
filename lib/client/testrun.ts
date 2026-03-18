@@ -3,6 +3,7 @@ import {
   doc,
   DocumentData,
   FirestoreDataConverter,
+  UpdateData,
   getDoc,
   getDocs,
   onSnapshot,
@@ -154,7 +155,7 @@ export async function updateTestrunStatus(id: string, status: TestrunStatus) {
     }
 
     const current = snapshot.data();
-    const updateData: Record<string, unknown> = { status };
+    const updateData: UpdateData<TestrunReservation> = { status };
     const isInProgress = [
       "呼出中",
       "移動中",
