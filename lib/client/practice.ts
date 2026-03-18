@@ -119,7 +119,10 @@ export async function updatePracticeStatus(id: string, status: PracticeStatus) {
       updateData.finished_at = null;
     }
 
-    if (!["実施中", "終了", "キャンセル"].includes(status) && current.started_at) {
+    if (
+      !["実施中", "終了", "キャンセル"].includes(status) &&
+      current.started_at
+    ) {
       updateData.started_at = null;
     }
 

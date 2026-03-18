@@ -191,7 +191,10 @@ export async function updateCheckStatus(
       updateData.finished_at = null;
     }
 
-    if (!["実施中", "合格", "再検査", "キャンセル"].includes(status) && current.started_at) {
+    if (
+      !["実施中", "合格", "再検査", "キャンセル"].includes(status) &&
+      current.started_at
+    ) {
       updateData.started_at = null;
     }
 
