@@ -6,7 +6,9 @@ const USERNAME_PREFIX_PATTERN = /^(\d{2})_/;
  * - 記号/絵文字などSlackで拒否される文字は除去
  * - 連続する区切り記号を圧縮
  */
-export function convertDisplayNameToSlackChannelPart(displayName: string): string {
+export function convertDisplayNameToSlackChannelPart(
+  displayName: string,
+): string {
   const normalized = displayName.normalize("NFKC").trim().toLowerCase();
 
   const cleaned = normalized

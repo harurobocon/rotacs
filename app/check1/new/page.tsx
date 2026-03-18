@@ -71,7 +71,9 @@ export default function NewCheck() {
       const setting = reservationSettings.check1;
       const shouldBypassConditions =
         isAdminUser &&
-        resolveAdminBypassEnabled(reservationSettings.global?.adminBypassEnabled);
+        resolveAdminBypassEnabled(
+          reservationSettings.global?.adminBypassEnabled,
+        );
       let shouldNotifyNewReservation = false;
       const existsStatus: CheckStatus[] = [
         "順番待ち",

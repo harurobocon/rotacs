@@ -167,17 +167,29 @@ export async function GET() {
           if (!response.ok) {
             snippets = (Object.keys(CONDITION_NEEDLES) as ConditionKey[]).map(
               (key) =>
-                buildErrorSnippet(filePath, repoRef, key, `取得失敗: ${response.status}`),
+                buildErrorSnippet(
+                  filePath,
+                  repoRef,
+                  key,
+                  `取得失敗: ${response.status}`,
+                ),
             );
           } else {
             const content = await response.text();
-            snippets = (Object.keys(CONDITION_NEEDLES) as ConditionKey[]).map((key) =>
-              buildSnippet(content, filePath, repoRef, key),
+
+            snippets = (Object.keys(CONDITION_NEEDLES) as ConditionKey[]).map(
+              (key) => buildSnippet(content, filePath, repoRef, key),
             );
           }
         } catch {
-          snippets = (Object.keys(CONDITION_NEEDLES) as ConditionKey[]).map((key) =>
-            buildErrorSnippet(filePath, repoRef, key, "取得中にエラーが発生しました"),
+          snippets = (Object.keys(CONDITION_NEEDLES) as ConditionKey[]).map(
+            (key) =>
+              buildErrorSnippet(
+                filePath,
+                repoRef,
+                key,
+                "取得中にエラーが発生しました",
+              ),
           );
         }
 

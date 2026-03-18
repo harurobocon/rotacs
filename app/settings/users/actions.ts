@@ -244,7 +244,6 @@ export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
 
     // 各ユーザーのチャンネル作成（adminユーザーは除外済み）
     for (const user of targetUsers) {
-
       try {
         // Slackチャンネルを作成
         const channelId = await createSlackChannelForUser({

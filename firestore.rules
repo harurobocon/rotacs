@@ -103,6 +103,16 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Check items settings (admin only, dev & prod)
+    match /check_items_settings_dev/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /check_items_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     
     // Deny all other reads/writes by default
     match /{document=**} {

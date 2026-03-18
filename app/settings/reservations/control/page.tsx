@@ -22,7 +22,6 @@ import { getReservationSettingsWithFallbackInfo } from "@/lib/client/settings";
 import { updateReservationSettings } from "@/lib/server/settings";
 import {
   RESERVATION_TYPES,
-  DEFAULT_RESERVATION_CONDITIONS,
   DEFAULT_RESERVATION_GLOBAL_SETTINGS,
   ReservationSettings,
   ReservationConditionFallbackMap,
@@ -75,7 +74,9 @@ function ConditionSnippetAccordion({
 }) {
   if (!snippet) {
     return (
-      <p className="text-xs text-default-500">ロジックスニペットを読み込んでいます...</p>
+      <p className="text-xs text-default-500">
+        ロジックスニペットを読み込んでいます...
+      </p>
     );
   }
 
@@ -239,9 +240,9 @@ export default function ReservationControlPage() {
               <CardBody>
                 <div className="rounded-small border border-default-100 p-2">
                   <Checkbox
-                    isSelected={
-                      resolveAdminBypassEnabled(settings.global?.adminBypassEnabled)
-                    }
+                    isSelected={resolveAdminBypassEnabled(
+                      settings.global?.adminBypassEnabled,
+                    )}
                     onValueChange={(v) => {
                       setGlobalFallback(false);
                       setSettings((prev) => {
@@ -252,7 +253,8 @@ export default function ReservationControlPage() {
                         return {
                           ...prev,
                           global: {
-                            ...(prev.global ?? DEFAULT_RESERVATION_GLOBAL_SETTINGS),
+                            ...(prev.global ??
+                              DEFAULT_RESERVATION_GLOBAL_SETTINGS),
                             adminBypassEnabled: v,
                           },
                         };
@@ -265,7 +267,9 @@ export default function ReservationControlPage() {
                     name="global-adminBypassEnabled"
                     type="hidden"
                     value={String(
-                      resolveAdminBypassEnabled(settings.global?.adminBypassEnabled),
+                      resolveAdminBypassEnabled(
+                        settings.global?.adminBypassEnabled,
+                      ),
                     )}
                   />
                   {globalFallback && (
@@ -335,13 +339,14 @@ export default function ReservationControlPage() {
                       const isRequireCheck1Pass =
                         conditionKey === "requireCheck1Pass";
                       const isDisabled = false;
-                      const snippet = logicData?.snippetsByType?.[type]?.[conditionKey];
-                      const conditionValue =
-                        resolveConditionEnabled(
-                          conditionKey,
-                          settings[type].conditions?.[conditionKey],
-                        );
-                      const showFallback = fallbackMap?.[type]?.[conditionKey] ?? false;
+                      const snippet =
+                        logicData?.snippetsByType?.[type]?.[conditionKey];
+                      const conditionValue = resolveConditionEnabled(
+                        conditionKey,
+                        settings[type].conditions?.[conditionKey],
+                      );
+                      const showFallback =
+                        fallbackMap?.[type]?.[conditionKey] ?? false;
 
                       return (
                         <div

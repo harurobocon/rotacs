@@ -185,16 +185,7 @@ export async function updateCheckResults(
   id: string,
   collectionId: string,
   status: CheckStatus,
-  initialSizeLimit: boolean,
-  deployedSizeLimit: boolean,
-  weight: boolean,
-  safetyCheck: boolean,
-  emergencyStop: boolean,
-  led: boolean,
-  power: boolean,
-  compressedAir: boolean,
-  memo: string,
-  recheckItems: string,
+  results: Record<string, boolean | string | number>,
 ) {
   try {
     const docRef = doc(firestore, collectionId, id).withConverter(
@@ -203,16 +194,7 @@ export async function updateCheckResults(
 
     await updateDoc(docRef, {
       status,
-      initialSizeLimit,
-      deployedSizeLimit,
-      weight,
-      safetyCheck,
-      emergencyStop,
-      led,
-      power,
-      compressedAir,
-      memo,
-      recheckItems,
+      ...results,
       finished_at: serverTimestamp(),
     });
 

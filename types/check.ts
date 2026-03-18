@@ -20,6 +20,7 @@ export type CheckStatus = (typeof CheckStatuses)[number];
 
 // CheckSideは動的に変化するため、型定義のみ
 export type CheckSide = "ピット" | "西" | "東";
+export type CheckResultValue = boolean | string | number;
 
 // 実行時の実際のsides配列を返すヘルパー関数
 export function getCheckSides(mode: "single" | "dual"): CheckSide[] {
@@ -30,16 +31,17 @@ export function getCheckSides(mode: "single" | "dual"): CheckSide[] {
 export const CheckSides: CheckSide[] = ["ピット"];
 
 export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
-  initialSizeLimit: boolean;
-  deployedSizeLimit: boolean;
-  weight: boolean;
-  safetyCheck: boolean;
-  emergencyStop: boolean;
-  led: boolean;
-  power: boolean;
-  compressedAir: boolean;
-  memo: string;
-  recheckItems: string;
+  [key: string]: unknown;
+  initialSizeLimit?: CheckResultValue;
+  deployedSizeLimit?: CheckResultValue;
+  weight?: CheckResultValue;
+  safetyCheck?: CheckResultValue;
+  emergencyStop?: CheckResultValue;
+  led?: CheckResultValue;
+  power?: CheckResultValue;
+  compressedAir?: CheckResultValue;
+  memo?: string;
+  recheckItems?: string;
 
   constructor(
     options: Partial<CheckReservation> & {
@@ -51,16 +53,6 @@ export class CheckReservation extends Reservation<CheckStatus, CheckSide> {
     },
   ) {
     super(options);
-    this.initialSizeLimit = options.initialSizeLimit || false;
-    this.deployedSizeLimit = options.deployedSizeLimit || false;
-    this.weight = options.weight || false;
-    this.safetyCheck = options.safetyCheck || false;
-    this.emergencyStop = options.emergencyStop || false;
-    this.led = options.led || false;
-    this.power = options.power || false;
-    this.compressedAir = options.compressedAir || false;
-    this.memo = options.memo || "";
-    this.recheckItems = options.recheckItems || "";
   }
 }
 

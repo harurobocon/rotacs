@@ -165,7 +165,7 @@ export default function Check() {
         <h2 className={pageSubtitle()}>
           表示順の上から下に向かって計量計測を実施していきます．
         </h2>
-        <div className="my-4 flex items-stretch justify-start">
+        <div className="my-4 flex flex-wrap items-stretch justify-start gap-2">
           <Link
             className={buttonStyle({
               color: "success",
@@ -174,6 +174,16 @@ export default function Check() {
           >
             <Icon icon="mdi:plus" />
             計量計測を予約する
+          </Link>
+          <Link
+            className={buttonStyle({
+              color: "default",
+              variant: "bordered",
+            })}
+            href="/check1/status-table"
+          >
+            <Icon icon="mdi:table" />
+            結果一覧表
           </Link>
         </div>
         <Divider />

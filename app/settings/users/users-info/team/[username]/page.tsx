@@ -24,9 +24,13 @@ function generateQRCodeURL(url: string): string {
 export default async function TeamPage({ params }: TeamPageProps) {
   const username = decodeURIComponent(params.username);
   const users = await getAllFirestoreUsers();
-  const team = users.find((user) => user.role === "user" && user.username === username);
+  const team = users.find(
+    (user) => user.role === "user" && user.username === username,
+  );
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN;
-  const targetUrl = appDomain ? `https://${appDomain}` : "https://rotacs.yuchi.jp";
+  const targetUrl = appDomain
+    ? `https://${appDomain}`
+    : "https://rotacs.yuchi.jp";
 
   if (!team) {
     notFound();
@@ -42,7 +46,10 @@ export default async function TeamPage({ params }: TeamPageProps) {
             <nav aria-label="breadcrumb" className="text-sm text-gray-600">
               <ol className="flex items-center gap-2">
                 <li>
-                  <Link className="font-medium text-blue-700 hover:underline" href="/settings/users/users-info">
+                  <Link
+                    className="font-medium text-blue-700 hover:underline"
+                    href="/settings/users/users-info"
+                  >
                     チーム一覧
                   </Link>
                 </li>
@@ -70,22 +77,32 @@ export default async function TeamPage({ params }: TeamPageProps) {
               </div>
               <div className="space-y-4 p-6">
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <div className="text-sm font-medium text-gray-600">ユーザー名</div>
-                  <div className="text-lg font-mono">{team.username}</div>
+                  <div className="text-sm font-medium text-gray-600">
+                    ユーザー名
+                  </div>
+                  <div className="font-mono text-lg">{team.username}</div>
                 </div>
 
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <div className="text-sm font-medium text-gray-600">パスワード</div>
-                  <div className="text-lg font-mono">{team.plain_password ?? "未設定"}</div>
+                  <div className="text-sm font-medium text-gray-600">
+                    パスワード
+                  </div>
+                  <div className="font-mono text-lg">
+                    {team.plain_password ?? "未設定"}
+                  </div>
                 </div>
 
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <div className="text-sm font-medium text-gray-600">ピット番号</div>
+                  <div className="text-sm font-medium text-gray-600">
+                    ピット番号
+                  </div>
                   <div className="text-lg font-bold">{team.pit_number}</div>
                 </div>
 
                 <div className="rounded-lg bg-gray-50 p-3">
-                  <div className="text-sm font-medium text-gray-600">ピットサイド</div>
+                  <div className="text-sm font-medium text-gray-600">
+                    ピットサイド
+                  </div>
                   <div className="text-lg">{team.pit_side}</div>
                 </div>
               </div>
@@ -109,7 +126,9 @@ export default async function TeamPage({ params }: TeamPageProps) {
                 </div>
                 <div className="text-sm text-gray-600">
                   <p className="font-medium">スキャンしてアクセス:</p>
-                  <p className="break-all font-mono text-blue-600">{targetUrl}</p>
+                  <p className="break-all font-mono text-blue-600">
+                    {targetUrl}
+                  </p>
                 </div>
                 <div className="text-xs text-gray-500">
                   QRコードをスマートフォンでスキャンしてください
@@ -124,7 +143,8 @@ export default async function TeamPage({ params }: TeamPageProps) {
                 <span className="font-medium">役割:</span> {team.role}
               </div>
               <div>
-                <span className="font-medium">チーム名:</span> {team.display_name}
+                <span className="font-medium">チーム名:</span>{" "}
+                {team.display_name}
               </div>
             </div>
           </div>

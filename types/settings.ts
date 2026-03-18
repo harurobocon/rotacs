@@ -46,7 +46,9 @@ export const DEFAULT_RESERVATION_GLOBAL_SETTINGS: ReservationGlobalSettings = {
   adminBypassEnabled: true,
 };
 
-export function getConditionDefaultValue(key: ReservationConditionKey): boolean {
+export function getConditionDefaultValue(
+  key: ReservationConditionKey,
+): boolean {
   return DEFAULT_RESERVATION_CONDITIONS[key];
 }
 
@@ -92,11 +94,101 @@ export interface CheckLocationSettings {
   check2: CheckLocationMode;
 }
 
+export const CHECK_ITEM_TYPES = ["boolean", "textarea", "number"] as const;
+export type CheckItemType = (typeof CHECK_ITEM_TYPES)[number];
+
+export interface CheckItemSetting {
+  id: string;
+  label: string;
+  type: CheckItemType;
+  order: number;
+  enabled: boolean;
+}
+
+export interface CheckItemsSettings {
+  check1: CheckItemSetting[];
+  check2: CheckItemSetting[];
+}
+
+export const DEFAULT_CHECK_ITEM_SETTINGS: CheckItemsSettings = {
+  check1: [
+    {
+      id: "initialSizeLimit",
+      label: "サイズ（初期制限）",
+      type: "boolean",
+      order: 0,
+      enabled: true,
+    },
+    {
+      id: "deployedSizeLimit",
+      label: "サイズ（展開制限）",
+      type: "boolean",
+      order: 1,
+      enabled: true,
+    },
+    { id: "weight", label: "重量", type: "number", order: 2, enabled: true },
+    {
+      id: "safetyCheck",
+      label: "安全確認",
+      type: "boolean",
+      order: 3,
+      enabled: true,
+    },
+    {
+      id: "emergencyStop",
+      label: "非常停止",
+      type: "boolean",
+      order: 4,
+      enabled: true,
+    },
+    { id: "power", label: "電源", type: "boolean", order: 5, enabled: true },
+    {
+      id: "compressedAir",
+      label: "圧縮空気",
+      type: "boolean",
+      order: 6,
+      enabled: true,
+    },
+    { id: "memo", label: "メモ", type: "textarea", order: 7, enabled: true },
+    {
+      id: "recheckItems",
+      label: "再検査項目",
+      type: "textarea",
+      order: 8,
+      enabled: true,
+    },
+  ],
+  check2: [
+    { id: "weight", label: "重量", type: "number", order: 0, enabled: true },
+    {
+      id: "safetyCheck",
+      label: "安全確認",
+      type: "boolean",
+      order: 1,
+      enabled: true,
+    },
+    { id: "memo", label: "メモ", type: "textarea", order: 2, enabled: true },
+    {
+      id: "recheckItems",
+      label: "再検査項目",
+      type: "textarea",
+      order: 3,
+      enabled: true,
+    },
+  ],
+};
+
 export const CHECK_LOCATION_SETTINGS_COLLECTION =
   process.env.NEXT_PUBLIC_CHECK_LOCATION_SETTINGS_COLLECTION ||
   "check_location_settings_dev";
 export const CHECK_LOCATION_SETTINGS_DOCUMENT_ID =
   process.env.NEXT_PUBLIC_CHECK_LOCATION_SETTINGS_DOCUMENT_ID || "main";
+
+export const CHECK_ITEMS_SETTINGS_COLLECTION =
+  process.env.NEXT_PUBLIC_CHECK_ITEMS_SETTINGS_COLLECTION ||
+  "check_items_settings_dev";
+export const CHECK_ITEMS_SETTINGS_DOCUMENT_ID =
+  process.env.NEXT_PUBLIC_CHECK_ITEMS_SETTINGS_DOCUMENT_ID || "main";
 
 // システムSlackチャンネルID保存用のドキュメントID
 // RESERVATION_SETTINGS_COLLECTIONを使用し、別ドキュメントとして保存

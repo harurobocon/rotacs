@@ -34,7 +34,8 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Forbidden", {
       status: 403,
       headers: {
-        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex, nocache",
+        "X-Robots-Tag":
+          "noindex, nofollow, noarchive, nosnippet, noimageindex, nocache",
         "Content-Type": "text/plain; charset=utf-8",
       },
     });
