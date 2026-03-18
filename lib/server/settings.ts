@@ -89,6 +89,32 @@ export async function updateReservationSettings(
                 requireCheck1PassDefault,
               ),
             );
+      const allowRobotCheckInputDefault =
+        DEFAULT_RESERVATION_CONDITIONS.allowRobotCheckInput ?? false;
+      const allowRobotCheckInput =
+        type === "testrun"
+          ? resolveConditionEnabled(
+              "allowRobotCheckInput",
+              parseBooleanFormValue(
+                formData,
+                `${type}-allowRobotCheckInput`,
+                allowRobotCheckInputDefault,
+              ),
+            )
+          : false;
+      const requireRobotCheckOnFirstTestrunDefault =
+        DEFAULT_RESERVATION_CONDITIONS.requireRobotCheckOnFirstTestrun ?? false;
+      const requireRobotCheckOnFirstTestrun =
+        type === "testrun"
+          ? resolveConditionEnabled(
+              "requireRobotCheckOnFirstTestrun",
+              parseBooleanFormValue(
+                formData,
+                `${type}-requireRobotCheckOnFirstTestrun`,
+                requireRobotCheckOnFirstTestrunDefault,
+              ),
+            )
+          : false;
 
       if (!RESERVATION_CONTROL_MODES.includes(mode)) {
         return { errors: `無効なモードが${type}に設定されています` };
@@ -106,6 +132,12 @@ export async function updateReservationSettings(
         conditions: {
           preventDuplicateReservation,
           ...(type === "check1" ? {} : { requireCheck1Pass }),
+          ...(type === "testrun"
+            ? {
+                allowRobotCheckInput,
+                requireRobotCheckOnFirstTestrun,
+              }
+            : {}),
         },
       };
     }

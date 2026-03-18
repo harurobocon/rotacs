@@ -45,7 +45,11 @@ const reservationTypeToDisplayName: Record<ReservationType, string> = {
 };
 
 interface LogicFile {
-  key: "preventDuplicateReservation" | "requireCheck1Pass";
+  key:
+    | "preventDuplicateReservation"
+    | "requireCheck1Pass"
+    | "allowRobotCheckInput"
+    | "requireRobotCheckOnFirstTestrun";
   path: string;
   rawUrl: string;
   blobUrl: string;
@@ -63,6 +67,8 @@ interface LogicApiResponse {
 const conditionLabelMap: Record<LogicFile["key"], string> = {
   preventDuplicateReservation: "二重予約を防ぐ",
   requireCheck1Pass: "計量計測1の合格を必須にする",
+  allowRobotCheckInput: "ロボットチェック実施の入力受付",
+  requireRobotCheckOnFirstTestrun: "1回目のテストランはロボットチェック必須",
 };
 
 function ConditionSnippetAccordion({
@@ -191,7 +197,7 @@ export default function ReservationControlPage() {
 
   const handleConditionChange = (
     type: ReservationType,
-    key: "preventDuplicateReservation" | "requireCheck1Pass",
+    key: LogicFile["key"],
     value: boolean,
   ) => {
     if (settings) {
@@ -331,13 +337,18 @@ export default function ReservationControlPage() {
                     <p className="text-sm font-semibold">予約可能条件</p>
                     {(type === "check1"
                       ? (["preventDuplicateReservation"] as const)
-                      : ([
-                          "preventDuplicateReservation",
-                          "requireCheck1Pass",
-                        ] as const)
+                      : type === "testrun"
+                        ? ([
+                            "preventDuplicateReservation",
+                            "requireCheck1Pass",
+                            "allowRobotCheckInput",
+                            "requireRobotCheckOnFirstTestrun",
+                          ] as const)
+                        : ([
+                            "preventDuplicateReservation",
+                            "requireCheck1Pass",
+                          ] as const)
                     ).map((conditionKey) => {
-                      const isRequireCheck1Pass =
-                        conditionKey === "requireCheck1Pass";
                       const isDisabled = false;
                       const snippet =
                         logicData?.snippetsByType?.[type]?.[conditionKey];

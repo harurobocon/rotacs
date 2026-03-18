@@ -23,6 +23,8 @@ export interface ReservationControlSetting {
 export interface ReservationConditionSettings {
   preventDuplicateReservation: boolean;
   requireCheck1Pass?: boolean;
+  allowRobotCheckInput?: boolean;
+  requireRobotCheckOnFirstTestrun?: boolean;
 }
 
 export interface ReservationGlobalSettings {
@@ -40,6 +42,8 @@ export type ReservationConditionFallbackMap = {
 export const DEFAULT_RESERVATION_CONDITIONS = {
   preventDuplicateReservation: true,
   requireCheck1Pass: true,
+  allowRobotCheckInput: false,
+  requireRobotCheckOnFirstTestrun: false,
 } as const satisfies Required<ReservationConditionSettings>;
 
 export const DEFAULT_RESERVATION_GLOBAL_SETTINGS: ReservationGlobalSettings = {
