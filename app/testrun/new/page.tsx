@@ -101,7 +101,7 @@ export default function NewTestrun() {
         const finishedQuery = query(
           reservationsRef,
           where("user_id", "==", bookerId),
-          where("status", "in", ["終了", "キャンセル"]),
+          where("status", "==", "終了"),
         );
         const finishedSnapshot = await getDocs(finishedQuery);
         const reservationCount = finishedSnapshot.size + 1;
