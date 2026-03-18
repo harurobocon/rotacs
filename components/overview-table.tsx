@@ -39,6 +39,12 @@ type OverviewTableProps = {
   teams: TeamInfo[];
 };
 
+function extractPitNumberLabel(id: string): string {
+  const match = id.match(/(\d+)$/);
+
+  return match ? match[1] : id;
+}
+
 export default function OverviewTable({ teams }: OverviewTableProps) {
   const renderCell = React.useCallback(
     (item: TeamInfo, columnKey: React.Key) => {
@@ -46,7 +52,16 @@ export default function OverviewTable({ teams }: OverviewTableProps) {
 
       switch (columnKey) {
         case "id":
-          return item.id;
+          return (
+            <>
+              <span className="inline md:hidden">
+                {extractPitNumberLabel(item.id)}
+              </span>
+              <span className="hidden whitespace-nowrap md:inline">
+                {item.id}
+              </span>
+            </>
+          );
         case "teamName":
           return teamName;
         case "check1":

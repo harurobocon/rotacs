@@ -24,6 +24,10 @@ export const routes: Route = {
       label: "計量計測1予約",
       href: "/check1/new",
     },
+    "status-table": {
+      label: "計量計測1結果一覧表",
+      href: "/check1/status-table",
+    },
   },
   check2: {
     label: "計量計測2",
@@ -31,6 +35,10 @@ export const routes: Route = {
     new: {
       label: "計量計測2予約",
       href: "/check2/new",
+    },
+    "status-table": {
+      label: "計量計測2結果一覧表",
+      href: "/check2/status-table",
     },
   },
   practice: {
@@ -52,7 +60,7 @@ export const routes: Route = {
       label: "ユーザー",
       href: "/settings/users",
     },
-    checkMode: {
+    "check-mode": {
       label: "計量計測設定",
       href: "/settings/check-mode",
     },
@@ -101,7 +109,7 @@ export const siteConfig = {
   adminSettingTabItems: [
     routes.settings.notification,
     routes.settings.users,
-    routes.settings.checkMode,
+    routes.settings["check-mode"],
     routes.settings.reservations.control,
   ],
   links: {
