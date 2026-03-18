@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@heroui/react";
+import { Icon } from "@iconify/react";
 
 import { onCheckCollectionChange } from "@/lib/client/check";
 import {
@@ -139,6 +140,40 @@ function getFinalResult(
   return "-";
 }
 
+function ExpandableText({ text }: { text: string }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  return (
+    <div
+      className="group flex cursor-pointer items-start gap-1"
+      role="button"
+      tabIndex={0}
+      onClick={() => setIsExpanded(!isExpanded)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIsExpanded(!isExpanded);
+        }
+      }}
+    >
+      <span
+        className={
+          isExpanded
+            ? "whitespace-pre-wrap break-words"
+            : "block max-w-[14rem] truncate whitespace-nowrap"
+        }
+      >
+        {text}
+      </span>
+      <Icon
+        className="mt-1 flex-shrink-0 text-default-400 transition-transform group-hover:text-default-600"
+        icon={isExpanded ? "mdi:chevron-up" : "mdi:chevron-down"}
+        width={16}
+      />
+    </div>
+  );
+}
+
 export default function CheckStatusTable({
   teams,
   collectionId,
@@ -208,7 +243,9 @@ export default function CheckStatusTable({
         return (
           <>
             <span className="inline md:hidden">{pitNumberLabel}</span>
-            <span className="hidden whitespace-nowrap md:inline">{team.id}</span>
+            <span className="hidden whitespace-nowrap md:inline">
+              {team.id}
+            </span>
           </>
         );
       }
@@ -269,14 +306,7 @@ export default function CheckStatusTable({
         );
       }
 
-      return (
-        <span
-          className="block max-w-[14rem] truncate whitespace-nowrap"
-          title={value.title}
-        >
-          {value.text}
-        </span>
-      );
+      return <ExpandableText text={value.text} />;
     },
     [enabledItems, latestByTeam],
   );
