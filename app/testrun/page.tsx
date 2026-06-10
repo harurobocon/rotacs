@@ -14,7 +14,7 @@ import {
 import { Icon } from "@iconify/react";
 
 import {
-  getTestrunSchedule,
+  getTestrunReservations,
   onTestrunCollectionChange,
 } from "@/lib/client/testrun";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/components/primitives";
 import TestrunReservationCard from "@/components/testrun-reservation-card";
 import {
+  TestrunReservation,
   TestrunSchedule,
   TestrunSide,
   TestrunSides,
@@ -31,24 +32,29 @@ import {
 } from "@/types/testrun";
 
 export default function Testrun() {
-  const [schedule, setSchedule] = React.useState<TestrunSchedule | undefined>(
-    undefined,
-  );
+  const [reservations, setReservations] = React.useState<
+    TestrunReservation[] | undefined
+  >(undefined);
 
   React.useEffect(() => {
-    getTestrunSchedule().then((_newSchedule) => {
-      const newSchedule = new TestrunSchedule(_newSchedule);
-
-      setSchedule(newSchedule);
+    getTestrunReservations().then((res) => {
+      setReservations(res);
     });
 
     return onTestrunCollectionChange((snapshot) => {
-      const reservations = snapshot.docs.map((doc) => doc.data());
-      const newSchedule = TestrunSchedule.fromUnsorted(reservations);
+      const res = snapshot.docs.map((doc) => doc.data());
 
-      setSchedule(newSchedule);
+      setReservations(res);
     });
   }, []);
+
+  const schedule = React.useMemo(() => {
+    if (reservations === undefined) {
+      return undefined;
+    }
+
+    return TestrunSchedule.fromUnsorted(reservations);
+  }, [reservations]);
 
   const statusOrder: TestrunStatus[] = [
     "終了",
@@ -92,31 +98,51 @@ export default function Testrun() {
               key={`${status}-items`}
               className="my-4 grid grid-cols-2 gap-4 md:gap-8"
             >
-              {TestrunSides.map((side) => (
-                <div
-                  key={side}
-                  className="grid grid-cols-1 place-content-start gap-4"
-                >
-                  {schedule.get(side, status).map((r, index) => (
-                    <React.Fragment key={r}>
+              {["呼出中", "移動中", "スタンバイ中"].includes(status)
+                ? schedule.getUnified(status).map((item) => {
+                    if (item.isSpacer) {
+                      return <div key={item.id} />;
+                    }
+
+                    return (
                       <TestrunReservationCard
-                        bgColor={getBgColor(side, status)}
-                        reservationId={r}
+                        key={item.id}
+                        bgColor={getBgColor(item.side, status)}
+                        reservation={
+                          (reservations ?? []).find(
+                            (res) => res.id === item.id,
+                          )!
+                        }
                       />
-                      {status === "順番待ち" && index === 1 && (
-                        <div className="relative my-2">
-                          <Divider className="bg-danger" />
-                          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
-                            <span className="text-sm font-bold text-danger">
-                              キャンセル期限
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </React.Fragment>
+                    );
+                  })
+                : TestrunSides.map((side) => (
+                    <div
+                      key={side}
+                      className="grid grid-cols-1 place-content-start gap-4"
+                    >
+                      {schedule.get(side, status).map((r, index) => (
+                        <React.Fragment key={r}>
+                          <TestrunReservationCard
+                            bgColor={getBgColor(side, status)}
+                            reservation={
+                              (reservations ?? []).find((res) => res.id === r)!
+                            }
+                          />
+                          {status === "順番待ち" && index === 1 && (
+                            <div className="relative my-2">
+                              <Divider className="bg-danger" />
+                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                                <span className="text-sm font-bold text-danger">
+                                  キャンセル期限
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
                   ))}
-                </div>
-              ))}
             </div>
           </AccordionItem>
         ))}

@@ -38,12 +38,43 @@ export class TestrunReservation extends Reservation<
   }
 }
 
+function getTimestamp(val: any): number {
+  if (!val) {
+    return Date.now();
+  }
+  if (val instanceof Date) {
+    return val.getTime();
+  }
+  if (typeof val === "object" && typeof val.toDate === "function") {
+    return val.toDate().getTime();
+  }
+  const d = new Date(val);
+
+  return isNaN(d.getTime()) ? Date.now() : d.getTime();
+}
+
 export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
+  unified: {
+    [key in TestrunStatus]?: Array<{
+      id: string;
+      side: TestrunSide;
+      isSpacer: boolean;
+    }>;
+  };
+
   constructor(initial?: TestrunSchedule) {
     super(initial);
+    this.unified = initial?.unified ?? {};
   }
 
-  static fromUnsorted(reservations: TestrunReservation[]) {
+  getUnified(status: TestrunStatus) {
+    return this.unified[status] ?? [];
+  }
+
+  static fromUnsorted(
+    reservations: TestrunReservation[],
+    unifiedStatuses: TestrunStatus[] = ["呼出中", "移動中", "スタンバイ中"],
+  ) {
     const schedule = new TestrunSchedule();
 
     if (reservations.length === 0) {
@@ -52,8 +83,15 @@ export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
       return schedule;
     }
 
+    schedule.unified = {};
+
     TestrunSides.forEach((side) => {
       TestrunStatuses.forEach((status) => {
+        // Skip side-by-side processing for unified statuses
+        if (unifiedStatuses.includes(status)) {
+          return;
+        }
+
         const filtered = reservations.filter((reservation) => {
           return reservation.side === side && reservation.status === status;
         });
@@ -76,9 +114,6 @@ export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
             ids = sorted.map((r) => r.id);
             schedule.set(side, status, ids);
             break;
-          case "呼出中":
-          case "移動中":
-          case "スタンバイ中":
           case "実施中":
             sorted = filtered.sort((a, b) => {
               const aFixedAt = a.fixed_at;
@@ -93,7 +128,7 @@ export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
             ids = sorted.map((r) => r.id);
             schedule.set(side, status, ids);
             break;
-          default:
+          default: // "順番待ち"
             sorted = filtered.sort((a, b) => {
               const aCount = a.reservation_count;
               const bCount = b.reservation_count;
@@ -112,6 +147,41 @@ export class TestrunSchedule extends Schedule<TestrunStatus, TestrunSide> {
             break;
         }
       });
+    });
+
+    // Process unified statuses
+    unifiedStatuses.forEach((status) => {
+      const filtered = reservations.filter((r) => r.status === status);
+
+      const sorted = filtered.sort((a, b) => {
+        const aTime = getTimestamp(a.fixed_at);
+        const bTime = getTimestamp(b.fixed_at);
+
+        return aTime - bTime;
+      });
+
+      // Populate standard schedule side-by-side for compatibility (e.g. Slack notifications)
+      TestrunSides.forEach((side) => {
+        const sideIds = sorted.filter((r) => r.side === side).map((r) => r.id);
+
+        schedule.set(side, status, sideIds);
+      });
+
+      // Build unified list with spacers
+      const items: Array<{ id: string; side: TestrunSide; isSpacer: boolean }> =
+        [];
+
+      sorted.forEach((r) => {
+        if (r.side === "赤") {
+          items.push({ id: r.id, side: "赤", isSpacer: false });
+          items.push({ id: `${r.id}-spacer`, side: "青", isSpacer: true });
+        } else {
+          items.push({ id: `${r.id}-spacer`, side: "赤", isSpacer: true });
+          items.push({ id: r.id, side: "青", isSpacer: false });
+        }
+      });
+
+      schedule.unified[status] = items;
     });
 
     return schedule;

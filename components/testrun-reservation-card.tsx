@@ -30,8 +30,6 @@ import {
   TestrunStatuses,
 } from "@/types/testrun";
 import {
-  getTestrunReservation,
-  onTestrunReservationChange,
   updateTestrunRobotCheckEnabled,
   updateTestrunSide,
   updateTestrunStatus,
@@ -42,7 +40,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 interface TestrunReservationCardProps {
   className?: string;
   bgColor: string;
-  reservationId: string;
+  reservation: TestrunReservation;
 }
 
 const infoText = tv({
@@ -52,8 +50,7 @@ const infoText = tv({
 export default function TestrunReservationCard(
   props: TestrunReservationCardProps,
 ) {
-  const [reservation, setReservation] =
-    React.useState<TestrunReservation | null>(null);
+  const { reservation } = props;
   const { isAdmin: isAdminUser } = useIsAdmin();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -63,20 +60,10 @@ export default function TestrunReservationCard(
     onOpenChange: onOpenChangeErrorDialog,
   } = useDisclosure();
 
-  React.useEffect(() => {
-    getTestrunReservation(props.reservationId).then((reservation) => {
-      setReservation(reservation);
-    });
-
-    return onTestrunReservationChange(props.reservationId, (newReservation) => {
-      setReservation(newReservation);
-    });
-  }, [props.reservationId]);
-
   async function handleStatusUpdate(status: TestrunStatus) {
     setIsSubmitting(true);
 
-    const result = await updateTestrunStatus(props.reservationId, status);
+    const result = await updateTestrunStatus(reservation.id, status);
 
     if (result.errors) {
       console.error(result.errors);
@@ -100,7 +87,7 @@ export default function TestrunReservationCard(
     setIsSubmitting(true);
 
     const result = await updateTestrunRobotCheckEnabled(
-      props.reservationId,
+      reservation.id,
       enabled,
     );
 
@@ -119,7 +106,7 @@ export default function TestrunReservationCard(
   async function handleSideUpdate(side: "赤" | "青") {
     setIsSubmitting(true);
 
-    const result = await updateTestrunSide(props.reservationId, side);
+    const result = await updateTestrunSide(reservation.id, side);
 
     if (result.errors) {
       console.error(result.errors);

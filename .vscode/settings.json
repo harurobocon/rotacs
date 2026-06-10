@@ -2,5 +2,6 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "chat.tools.terminal.autoApprove": {
     "npm install": true
-  }
+  },
+  "specstory.cloudSync.enabled": "never"
 }

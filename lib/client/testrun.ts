@@ -42,12 +42,17 @@ export async function getTestrunReservation(
   return testrun.data();
 }
 
-export async function getTestrunSchedule(): Promise<TestrunSchedule> {
+export async function getTestrunReservations(): Promise<TestrunReservation[]> {
   const q = collection(firestore, TESTRUN_COLLECTION).withConverter(
     testrunDataConverter(),
   );
   const snapshot = await getDocs(q);
-  const reservations = snapshot.docs.map((doc) => doc.data());
+
+  return snapshot.docs.map((doc) => doc.data());
+}
+
+export async function getTestrunSchedule(): Promise<TestrunSchedule> {
+  const reservations = await getTestrunReservations();
 
   let schedule = TestrunSchedule.fromUnsorted(reservations);
 
