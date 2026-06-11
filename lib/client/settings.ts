@@ -23,6 +23,10 @@ import {
   CheckItemSetting,
   CHECK_ITEM_TYPES,
   DEFAULT_CHECK_ITEM_SETTINGS,
+  DISPLAY_SETTINGS_COLLECTION,
+  DISPLAY_SETTINGS_DOCUMENT_ID,
+  DisplaySettings,
+  DEFAULT_DISPLAY_SETTINGS,
 } from "@/types/settings";
 
 const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
@@ -334,4 +338,50 @@ export function listenCheckItemsSettings(
       callback(DEFAULT_CHECK_ITEM_SETTINGS);
     }
   });
+}
+
+export async function getDisplaySettings(): Promise<DisplaySettings> {
+  const settingsRef = doc(
+    firestore,
+    DISPLAY_SETTINGS_COLLECTION,
+    DISPLAY_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<DisplaySettings>());
+
+  const docSnap = await getDoc(settingsRef);
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+
+    return {
+      showSurveyFloat: data.showSurveyFloat !== false,
+      showSurveyBanner: data.showSurveyBanner !== false,
+    };
+  } else {
+    return DEFAULT_DISPLAY_SETTINGS;
+  }
+}
+
+export function listenDisplaySettings(
+  callback: (settings: DisplaySettings) => void,
+): () => void {
+  const settingsRef = doc(
+    firestore,
+    DISPLAY_SETTINGS_COLLECTION,
+    DISPLAY_SETTINGS_DOCUMENT_ID,
+  ).withConverter(dataConverter<DisplaySettings>());
+
+  const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      callback({
+        showSurveyFloat: data.showSurveyFloat !== false,
+        showSurveyBanner: data.showSurveyBanner !== false,
+      });
+    } else {
+      callback(DEFAULT_DISPLAY_SETTINGS);
+    }
+  });
+
+  return unsubscribe;
 }

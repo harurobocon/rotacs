@@ -72,6 +72,10 @@ export const routes: Route = {
         href: "/settings/reservations/control",
       },
     },
+    display: {
+      label: "表示設定",
+      href: "/settings/display",
+    },
   },
   login: {
     label: "ログイン",
@@ -111,6 +115,7 @@ export const siteConfig = {
     routes.settings.users,
     routes.settings["check-mode"],
     routes.settings.reservations.control,
+    routes.settings.display,
   ],
   links: {
     github: "https://github.com/nextui-org/nextui",

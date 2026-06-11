@@ -3,11 +3,15 @@ import React from "react";
 import OverviewTable from "@/components/overview-table";
 import Banner from "@/components/banner";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
+import { getDisplaySettings } from "@/lib/server/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const firestoreUsers = await getAllFirestoreUsers();
+  const [firestoreUsers, displaySettings] = await Promise.all([
+    getAllFirestoreUsers(),
+    getDisplaySettings(),
+  ]);
 
   const getPitSideOrder = (pitSide: string): number => {
     if (pitSide === "ピット") return 0;
@@ -39,11 +43,13 @@ export default async function Home() {
 
   return (
     <>
-      <Banner
-        buttonText="アンケートに回答"
-        href="https://forms.gle/x5fWZB3QBcDbRHyv5"
-        message="💬 ご感想お待ちしています！"
-      />
+      {displaySettings.showSurveyBanner && (
+        <Banner
+          buttonText="アンケートに回答"
+          href="https://forms.gle/x5fWZB3QBcDbRHyv5"
+          message="💬 ご感想お待ちしています！"
+        />
+      )}
       <section className="flex flex-col items-center justify-center gap-4 py-4">
         <OverviewTable teams={teams} />
       </section>

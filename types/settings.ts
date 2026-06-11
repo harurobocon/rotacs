@@ -197,3 +197,19 @@ export const CHECK_ITEMS_SETTINGS_DOCUMENT_ID =
 // システムSlackチャンネルID保存用のドキュメントID
 // RESERVATION_SETTINGS_COLLECTIONを使用し、別ドキュメントとして保存
 export const SYSTEM_SLACK_CHANNELS_DOCUMENT_ID = "system_slack_channels";
+
+// 表示設定
+export interface DisplaySettings {
+  showSurveyFloat: boolean;
+  showSurveyBanner: boolean;
+}
+
+export const DEFAULT_DISPLAY_SETTINGS: DisplaySettings = {
+  showSurveyFloat: true,
+  showSurveyBanner: true,
+};
+
+export const DISPLAY_SETTINGS_COLLECTION =
+  process.env.NEXT_PUBLIC_DISPLAY_SETTINGS_COLLECTION || "display_settings_dev";
+export const DISPLAY_SETTINGS_DOCUMENT_ID =
+  process.env.NEXT_PUBLIC_DISPLAY_SETTINGS_DOCUMENT_ID || "main";

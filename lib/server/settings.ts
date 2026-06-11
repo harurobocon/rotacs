@@ -25,6 +25,10 @@ import {
   CheckItemSetting,
   CHECK_ITEM_TYPES,
   DEFAULT_CHECK_ITEM_SETTINGS,
+  DISPLAY_SETTINGS_COLLECTION,
+  DISPLAY_SETTINGS_DOCUMENT_ID,
+  DisplaySettings,
+  DEFAULT_DISPLAY_SETTINGS,
 } from "@/types/settings";
 import { getFirestore } from "@/lib/firebase/serverApp";
 
@@ -341,5 +345,64 @@ export async function updateCheckItemsSettings(
     console.error(e);
 
     return { errors: "確認項目設定の更新に失敗しました" };
+  }
+}
+
+export async function getDisplaySettings(): Promise<DisplaySettings> {
+  const db = await getFirestore();
+  const settingsRef = db
+    .collection(DISPLAY_SETTINGS_COLLECTION)
+    .doc(DISPLAY_SETTINGS_DOCUMENT_ID);
+
+  const doc = await settingsRef.get();
+
+  if (doc.exists) {
+    const data = doc.data();
+
+    return {
+      showSurveyFloat: data?.showSurveyFloat !== false,
+      showSurveyBanner: data?.showSurveyBanner !== false,
+    };
+  } else {
+    return DEFAULT_DISPLAY_SETTINGS;
+  }
+}
+
+export async function updateDisplaySettings(
+  prevState: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const showSurveyFloat = parseBooleanFormValue(
+      formData,
+      "showSurveyFloat",
+      DEFAULT_DISPLAY_SETTINGS.showSurveyFloat,
+    );
+    const showSurveyBanner = parseBooleanFormValue(
+      formData,
+      "showSurveyBanner",
+      DEFAULT_DISPLAY_SETTINGS.showSurveyBanner,
+    );
+
+    const settings: DisplaySettings = {
+      showSurveyFloat,
+      showSurveyBanner,
+    };
+
+    const db = await getFirestore();
+    const settingsRef = db
+      .collection(DISPLAY_SETTINGS_COLLECTION)
+      .doc(DISPLAY_SETTINGS_DOCUMENT_ID);
+
+    await settingsRef.set(settings);
+
+    revalidatePath("/settings/display");
+    revalidatePath("/");
+
+    return { success: "表示設定を保存しました" };
+  } catch (e: any) {
+    console.error(e);
+
+    return { errors: "表示設定の更新に失敗しました" };
   }
 }

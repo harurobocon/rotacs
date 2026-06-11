@@ -1,16 +1,15 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import { Link, button as buttonStyles } from "@heroui/react";
+import { Link } from "@heroui/react";
 import clsx from "clsx";
 import { Icon } from "@iconify/react";
-import { Tooltip } from "@heroui/react";
 
 import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
-import { cn } from "@/lib/cn";
+import SurveyFloat from "@/components/survey-float";
 
 export const metadata: Metadata = {
   title: {
@@ -72,23 +71,7 @@ export default async function RootLayout({
             <main className="container mx-auto h-full max-w-7xl flex-grow flex-col px-2 pt-6 md:px-8">
               {children}
             </main>
-            <Tooltip content="アンケートにご協力ください🙇" placement="left">
-              <Link
-                isExternal
-                className={cn([
-                  buttonStyles({
-                    isIconOnly: true,
-                    radius: "full",
-                    size: "md",
-                    variant: "faded",
-                  }),
-                  "fixed bottom-4 right-4 z-10 overflow-visible shadow-md md:bottom-8 md:right-8",
-                ])}
-                href="https://forms.gle/x5fWZB3QBcDbRHyv5"
-              >
-                <Icon icon="fluent:person-feedback-24-regular" width={28} />
-              </Link>
-            </Tooltip>
+            <SurveyFloat />
             <footer className="flex w-full items-center justify-center py-3">
               <Link
                 isExternal
