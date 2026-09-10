@@ -2,6 +2,8 @@
 
 ロボコンのテストラン予約などを管理するためのWebアプリケーションです。
 
+運用手順・チーム登録・Slack連携・参加チーム向け利用手順の詳細は、[運用・利用マニュアル (.github/USAGE_GUIDE.md)](.github/USAGE_GUIDE.md) を参照してください。
+
 ## How to Use
 
 ### Install dependencies
