@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: true });
 
 async function seedAdmin() {
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -48,8 +49,8 @@ async function seedAdmin() {
       console.log("Auth user created.");
     } catch (e: any) {
       if (e.code === 'auth/uid-already-exists' || e.code === 'auth/email-already-exists') {
-        console.log("Auth user already exists, updating password if necessary...");
-        await auth.updateUser(uid, { password });
+        console.log("Auth user already exists, updating email and password...");
+        await auth.updateUser(uid, { email, password });
       } else {
         throw e;
       }

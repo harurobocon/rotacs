@@ -18,9 +18,44 @@ npm install
 npm run dev
 ```
 
-## Slack Bot Configuration
+### Validate environment variables
 
-This application requires a Slack Bot with specific permissions to manage notifications and channels. Below is a complete app manifest that you can use to create or configure your Slack app.
+設定されている環境変数をチェックできます:
+
+```bash
+npm run check:env
+```
+
+## Environment Variables & Deployment
+
+本アプリケーションに必要な環境変数の詳細は [.env.example](.env.example) を参照してください。
+
+### Vercel Deployment
+
+Vercelへデプロイする際は、プロジェクト設定（Project Settings -> Environment Variables）で以下の環境変数を設定してください。
+
+1. **必須 (Client / ブラウザ公開)**
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+
+2. **必須 (Server / 秘匿)**
+   - `FIREBASE_ADMIN_CLIENT_EMAIL`
+   - `FIREBASE_ADMIN_PRIVATE_KEY`: 改行を含む秘密鍵はそのまま貼り付けるか、`\n` でエスケープした文字列のいずれでも動作します。
+
+3. **推奨 (Client / ブラウザ公開)**
+   - `NEXT_PUBLIC_APP_DOMAIN`: 本番用ドメイン (例: `rotacs.example.com`)
+
+4. **任意 (Slack 連携 / 秘匿)**
+   - `SLACK_BOT_TOKEN`: 未設定でもビルドおよび予約・認証・管理などの全基本機能は正常に動作します。Slackへの自動通知やチャンネル管理機能を利用する場合にのみ設定してください。
+
+## Slack Bot Configuration (Optional)
+
+This application supports Slack Bot integration for notifications and channel management. Below is a complete app manifest that you can use to create or configure your Slack app.
+※ Slack連携が未設定の場合でも、ビルドやコア機能は問題なく動作します。
 
 ### Slack App Manifest
 
@@ -49,9 +84,9 @@ settings:
   token_rotation_enabled: false
 ```
 
-### Required Environment Variables
+### Slack Environment Variable
 
-Add the following to your `.env` file:
+Add the following to your `.env` or `.env.local` file (optional):
 
 ```bash
 # Slack Bot Token (starts with xoxb-)

@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
     "test": "vitest",
+    "test:run": "vitest run",
+    "check:env": "node -r esbuild-register scripts/validate-env.ts",
     "g:indexes": "node -r esbuild-register scripts/generate-firestore-indexes.ts",
     "deploy:indexes": "npm run g:indexes && firebase deploy --only firestore:indexes --project $(node -e \"const path=require('path');const dotenv=require('dotenv');const env=process.env.APP_ENV||'development';dotenv.config({path:path.resolve('.env')});dotenv.config({path:path.resolve(env==='production'?'.env.production.local':'.env.development.local'),override:true});console.log(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);\")",
     "seed:admin": "node -r esbuild-register scripts/seed-admin.ts"

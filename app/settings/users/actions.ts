@@ -20,6 +20,7 @@ import {
   deleteAllUserSlackChannels,
   createSystemChannels,
   fetchAndSaveSystemChannelIds,
+  isSlackConfigured,
 } from "@/lib/server/slack";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
@@ -148,6 +149,13 @@ export async function deleteUsers(
 }
 
 export async function fetchSlackChannelIds(): Promise<ActionResult> {
+  if (!isSlackConfigured()) {
+    return {
+      errors:
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、SlackチャンネルIDを取得できません。",
+    };
+  }
+
   try {
     const result = await fetchAndSaveAllSlackChannelIds();
 
@@ -170,6 +178,13 @@ export async function fetchSlackChannelIds(): Promise<ActionResult> {
 
 export async function fetchSystemChannelIds(): Promise<ActionResult> {
   // Note: Admin authorization is handled by Firestore Rules
+  if (!isSlackConfigured()) {
+    return {
+      errors:
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、システムチャンネルIDを取得できません。",
+    };
+  }
+
   try {
     const result = await fetchAndSaveSystemChannelIds();
 
@@ -192,6 +207,13 @@ export async function fetchSystemChannelIds(): Promise<ActionResult> {
 
 export async function createSlackChannelsForAllUsers(): Promise<ActionResult> {
   // Note: Admin authorization is handled by Firestore Rules
+  if (!isSlackConfigured()) {
+    return {
+      errors:
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、Slackチャンネルを作成できません。",
+    };
+  }
+
   const errors: string[] = [];
   let success = 0;
   let failed = 0;
@@ -291,6 +313,13 @@ export async function deleteSlackChannelsForAllUsers(
   formData: FormData,
 ): Promise<ActionResult> {
   // Note: Admin authorization is handled by Firestore Rules
+  if (!isSlackConfigured()) {
+    return {
+      errors:
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、Slackチャンネルを削除できません。",
+    };
+  }
+
   try {
     // 除外するチャンネル名を取得
     const excludedChannels = formData
