@@ -77,6 +77,22 @@ export const routes: Route = {
       href: "/settings/display",
     },
   },
+  display: {
+    label: "待機場モニター",
+    href: "/display/waiting",
+    waiting: {
+      label: "待機場モニター",
+      href: "/display/waiting",
+    },
+    check1: {
+      label: "待機場モニター（前日）",
+      href: "/display/waiting/check1",
+    },
+    check2: {
+      label: "待機場モニター（当日）",
+      href: "/display/waiting/check2",
+    },
+  },
   login: {
     label: "ログイン",
     href: "/login",
@@ -98,12 +114,13 @@ export const siteConfig = {
     // routes.practice,
     routes.settings,
   ],
-  navMenuItemsSignedOut: [routes.home, routes.login],
+  navMenuItemsSignedOut: [routes.home, routes.display, routes.login],
   navMenuItemsSignedIn: [
     routes.home,
     routes.testrun,
     routes.check1,
     routes.check2,
+    routes.display,
     // routes.practice,
     routes.settings,
     routes.logout,

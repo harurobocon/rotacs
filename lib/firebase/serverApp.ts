@@ -25,34 +25,8 @@ export async function getFirebaseAdminApp() {
         ...firebaseAdminConfig,
       };
 
-      const adminCredential = credential.cert(serviceAccount);
-
-      // Vercelでの認証エラー原因を診断するための非同期ログ
-      adminCredential
-        .getAccessToken()
-        .then(() => {
-          // eslint-disable-next-line no-console
-          console.log("✅ [Firebase Admin] Access token successfully acquired!");
-        })
-        .catch((tokenErr: any) => {
-          // eslint-disable-next-line no-console
-          console.error(
-            "❌ [Firebase Admin] Token acquisition failed:",
-            tokenErr?.message || tokenErr,
-          );
-          // eslint-disable-next-line no-console
-          console.error(
-            `  - projectId: "${firebaseAdminConfig.projectId}"\n` +
-              `  - clientEmail: "${firebaseAdminConfig.clientEmail}"\n` +
-              `  - privateKey length: ${firebaseAdminConfig.privateKey?.length}\n` +
-              `  - privateKey startsWithBegin: ${firebaseAdminConfig.privateKey?.startsWith("-----BEGIN PRIVATE KEY-----")}\n` +
-              `  - privateKey endsWithEnd: ${firebaseAdminConfig.privateKey?.trim().endsWith("-----END PRIVATE KEY-----")}\n` +
-              `  - newlineCount: ${firebaseAdminConfig.privateKey?.split("\n").length}`,
-          );
-        });
-
       return initializeApp({
-        credential: adminCredential,
+        credential: credential.cert(serviceAccount),
         storageBucket: firebaseConfig.storageBucket,
       });
     }
