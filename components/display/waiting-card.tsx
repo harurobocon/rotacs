@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, CardHeader, CardBody, CardFooter, Chip } from "@heroui/react";
+import { Card, CardHeader, CardBody, Chip } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 export interface WaitingItem {
@@ -32,60 +32,49 @@ export interface WaitingCardProps {
 
 const themeStyles = {
   emerald: {
-    border: "border-emerald-500/40",
-    headerBg: "bg-emerald-950/40 text-emerald-400",
-    accentBg: "bg-emerald-500/10",
-    accentText: "text-emerald-400",
+    border: "border-emerald-600",
+    headerBg: "bg-emerald-700 text-white",
+    headerIconBg: "bg-white/20 text-white",
     badgeColor: "success" as const,
-    glow: "shadow-[0_0_20px_rgba(16,185,129,0.15)]",
-    callingBorder:
-      "border-emerald-400 bg-emerald-950/60 shadow-[0_0_24px_rgba(16,185,129,0.25)]",
+    callingBg: "bg-red-50 border-2 border-red-500",
+    inProgressBg: "bg-emerald-50 border-2 border-emerald-500",
   },
   teal: {
-    border: "border-teal-500/40",
-    headerBg: "bg-teal-950/40 text-teal-400",
-    accentBg: "bg-teal-500/10",
-    accentText: "text-teal-400",
+    border: "border-teal-600",
+    headerBg: "bg-teal-700 text-white",
+    headerIconBg: "bg-white/20 text-white",
     badgeColor: "primary" as const,
-    glow: "shadow-[0_0_20px_rgba(20,184,166,0.15)]",
-    callingBorder:
-      "border-teal-400 bg-teal-950/60 shadow-[0_0_24px_rgba(20,184,166,0.25)]",
+    callingBg: "bg-red-50 border-2 border-red-500",
+    inProgressBg: "bg-teal-50 border-2 border-teal-500",
   },
   rose: {
-    border: "border-rose-500/40",
-    headerBg: "bg-rose-950/40 text-rose-400",
-    accentBg: "bg-rose-500/10",
-    accentText: "text-rose-400",
+    border: "border-rose-600",
+    headerBg: "bg-rose-700 text-white",
+    headerIconBg: "bg-white/20 text-white",
     badgeColor: "danger" as const,
-    glow: "shadow-[0_0_20px_rgba(244,63,94,0.15)]",
-    callingBorder:
-      "border-rose-400 bg-rose-950/60 shadow-[0_0_24px_rgba(244,63,94,0.25)]",
+    callingBg: "bg-red-50 border-2 border-red-500",
+    inProgressBg: "bg-rose-50 border-2 border-rose-500",
   },
   blue: {
-    border: "border-sky-500/40",
-    headerBg: "bg-sky-950/40 text-sky-400",
-    accentBg: "bg-sky-500/10",
-    accentText: "text-sky-400",
+    border: "border-blue-600",
+    headerBg: "bg-blue-700 text-white",
+    headerIconBg: "bg-white/20 text-white",
     badgeColor: "primary" as const,
-    glow: "shadow-[0_0_20px_rgba(14,165,233,0.15)]",
-    callingBorder:
-      "border-sky-400 bg-sky-950/60 shadow-[0_0_24px_rgba(14,165,233,0.25)]",
+    callingBg: "bg-red-50 border-2 border-red-500",
+    inProgressBg: "bg-blue-50 border-2 border-blue-500",
   },
   amber: {
-    border: "border-amber-500/40",
-    headerBg: "bg-amber-950/40 text-amber-400",
-    accentBg: "bg-amber-500/10",
-    accentText: "text-amber-400",
+    border: "border-amber-600",
+    headerBg: "bg-amber-500 text-slate-950",
+    headerIconBg: "bg-slate-950/10 text-slate-950",
     badgeColor: "warning" as const,
-    glow: "shadow-[0_0_20px_rgba(245,158,11,0.15)]",
-    callingBorder:
-      "border-amber-400 bg-amber-950/60 shadow-[0_0_24px_rgba(245,158,11,0.25)]",
+    callingBg: "bg-red-50 border-2 border-red-500",
+    inProgressBg: "bg-amber-50 border-2 border-amber-500",
   },
 };
 
 export function WaitingCard({
   title,
-  subtitle,
   icon,
   colorTheme,
   lanes,
@@ -96,42 +85,35 @@ export function WaitingCard({
 
   return (
     <Card
-      className={`flex h-full flex-col border bg-content1/80 backdrop-blur-md transition-all duration-300 ${theme.border} ${theme.glow}`}
+      className={`flex h-full flex-col border-2 bg-white shadow-md ${theme.border}`}
     >
       {/* Card Header */}
       <CardHeader
-        className={`flex items-center justify-between border-b border-divider/60 px-4 py-3 ${theme.headerBg}`}
+        className={`flex items-center justify-between px-4 py-3 ${theme.headerBg}`}
       >
         <div className="flex items-center gap-2.5">
           <div
-            className={`flex h-10 w-10 items-center justify-center rounded-xl bg-background/60 shadow-sm ${theme.accentText}`}
+            className={`flex h-10 w-10 items-center justify-center rounded-xl font-bold ${theme.headerIconBg}`}
           >
             <Icon className="text-2xl" icon={icon} />
           </div>
-          <div>
-            <h2 className="text-xl font-black tracking-tight text-foreground lg:text-2xl">
-              {title}
-            </h2>
-            {subtitle && (
-              <p className="text-xs font-semibold text-default-400">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          <h2 className="text-2xl font-black tracking-tight lg:text-3xl">
+            {title}
+          </h2>
         </div>
         <div className="flex items-center gap-2">
           {totalWaitingCount > 0 ? (
             <Chip
-              className="font-bold shadow-sm"
+              className="font-black text-white shadow-sm"
               color={theme.badgeColor}
               size="md"
-              variant="flat"
+              variant="solid"
             >
               待機 {totalWaitingCount}組
             </Chip>
           ) : (
             <Chip
-              className="font-semibold text-default-400"
+              className="font-bold text-slate-700"
               color="default"
               size="md"
               variant="flat"
@@ -142,198 +124,198 @@ export function WaitingCard({
         </div>
       </CardHeader>
 
-      {/* Card Body with Lanes */}
+      {/* Card Body */}
       <CardBody className="flex flex-1 flex-col gap-4 p-3 lg:p-4">
         {lanes.map((lane, idx) => {
-          const hasCalling = lane.calling.length > 0;
-          const nextTeam = lane.next[0];
-          const subsequentTeams = lane.next.slice(1);
           const currentRunning = lane.inProgress?.[0];
+          const hasCalling = lane.calling.length > 0;
+          const next1 = lane.next[0];
+          const next2 = lane.next[1];
 
           return (
             <div
               key={lane.laneName ?? idx}
-              className={`flex flex-1 flex-col gap-3.5 ${
+              className={`flex flex-1 flex-col gap-3 ${
                 isDual
-                  ? "rounded-xl border border-divider/40 bg-content2/30 p-2.5"
+                  ? "rounded-xl border-2 border-slate-300 bg-slate-50 p-2.5"
                   : ""
               }`}
             >
               {lane.laneName && (
-                <div className="flex items-center gap-2 border-b border-divider/50 pb-1.5">
-                  <Chip
-                    className="font-black"
-                    color={lane.laneName === "西" ? "success" : "warning"}
-                    size="sm"
-                    variant="solid"
-                  >
+                <div className="flex items-center justify-between border-b-2 border-slate-200 pb-1.5">
+                  <span className="rounded bg-slate-800 px-2 py-0.5 text-sm font-black text-white">
                     {lane.laneName}レーン
-                  </Chip>
-                  {lane.calling.length > 0 && (
-                    <span className="animate-pulse text-xs font-bold text-danger-500">
+                  </span>
+                  {hasCalling && (
+                    <span className="animate-pulse text-xs font-black text-red-600">
                       呼出中あり
                     </span>
                   )}
                 </div>
               )}
 
-              {/* 1. お呼び出し中 (Calling Section) */}
+              {/* 1. 実施中 (In Progress Section) */}
               <div
-                className={`relative flex flex-col rounded-xl border-2 p-3 transition-all duration-300 ${
-                  hasCalling
-                    ? `${theme.callingBorder} ring-2 ring-primary/20`
-                    : "border-dashed border-default-200 bg-content2/20 dark:border-default-100"
+                className={`rounded-xl p-2.5 ${
+                  currentRunning
+                    ? theme.inProgressBg
+                    : "border border-slate-200 bg-slate-50"
                 }`}
               >
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-1 flex items-center gap-1.5">
+                  <Icon
+                    className={`text-base ${
+                      currentRunning ? "text-slate-900" : "text-slate-400"
+                    }`}
+                    icon="solar:play-circle-bold"
+                  />
+                  <span
+                    className={`text-xs font-black tracking-wider ${
+                      currentRunning ? "text-slate-900" : "text-slate-400"
+                    }`}
+                  >
+                    実施中
+                  </span>
+                </div>
+
+                {currentRunning ? (
+                  <div className="flex items-baseline justify-between gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
+                    <span className="text-2xl font-black text-slate-950 lg:text-3xl">
+                      {currentRunning.pitNumber && currentRunning.pitNumber > 0
+                        ? `Pit ${currentRunning.pitNumber}`
+                        : "Pit -"}
+                    </span>
+                    <span className="truncate text-base font-black text-slate-900 lg:text-lg">
+                      {currentRunning.teamName}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="py-1 text-center text-xs font-bold text-slate-400">
+                    実施中のチームはありません
+                  </div>
+                )}
+              </div>
+
+              {/* 2. お呼び出し中 (Calling Section) */}
+              <div
+                className={`rounded-xl p-2.5 ${
+                  hasCalling
+                    ? theme.callingBg
+                    : "border border-slate-200 bg-slate-50"
+                }`}
+              >
+                <div className="mb-1 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Icon
                       className={`text-lg ${
                         hasCalling
-                          ? "animate-bounce text-danger-500"
-                          : "text-default-400"
+                          ? "animate-bounce text-red-600"
+                          : "text-slate-400"
                       }`}
                       icon="solar:volume-loud-bold"
                     />
                     <span
-                      className={`text-sm font-black tracking-wide ${
-                        hasCalling ? "text-danger-500" : "text-default-400"
+                      className={`text-xs font-black tracking-wide ${
+                        hasCalling ? "text-red-600" : "text-slate-400"
                       }`}
                     >
                       お呼び出し中
                     </span>
                   </div>
                   {hasCalling && (
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger-400 opacity-75" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-danger-500" />
+                    <span className="animate-pulse rounded bg-red-600 px-2 py-0.5 text-[11px] font-black text-white">
+                      呼出中
                     </span>
                   )}
                 </div>
 
                 {hasCalling ? (
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2">
                     {lane.calling.map((item) => (
                       <div
                         key={item.id}
-                        className="flex flex-col rounded-lg bg-background/80 p-2.5 shadow-sm"
+                        className="flex flex-col rounded-lg border border-red-300 bg-white p-2.5 shadow-sm"
                       >
                         <div className="flex items-baseline justify-between gap-2">
-                          <span className="text-3xl font-black tracking-tight text-foreground lg:text-4xl">
+                          <span className="text-3xl font-black text-red-950 lg:text-4xl">
                             {item.pitNumber && item.pitNumber > 0
                               ? `Pit ${item.pitNumber}`
                               : "Pit -"}
                           </span>
-                          <div className="flex items-center gap-1.5">
-                            {item.count > 0 && (
-                              <Chip
-                                className="font-bold"
-                                color="default"
-                                size="sm"
-                                variant="flat"
-                              >
-                                {item.count}回目
-                              </Chip>
-                            )}
-                            {item.time && (
-                              <span className="text-xs font-bold text-default-400">
-                                {item.time}呼出
-                              </span>
-                            )}
-                          </div>
+                          {item.count > 0 && (
+                            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
+                              {item.count}回目
+                            </span>
+                          )}
                         </div>
-                        <div className="mt-1 truncate text-lg font-bold text-default-800 lg:text-xl">
+                        <div className="mt-0.5 truncate text-lg font-black text-slate-900 lg:text-xl">
                           {item.teamName}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="flex min-h-[5rem] flex-col items-center justify-center py-2 text-center text-default-400">
-                    {currentRunning ? (
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="text-xs font-semibold text-primary">
-                          現在【{currentRunning.status}】
-                        </span>
-                        <span className="text-sm font-bold text-foreground">
-                          {currentRunning.pitNumber
-                            ? `Pit ${currentRunning.pitNumber} `
-                            : ""}
-                          {currentRunning.teamName}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-sm font-semibold text-default-400">
-                        現在お呼び出しはありません
-                      </span>
-                    )}
+                  <div className="py-1 text-center text-xs font-bold text-slate-400">
+                    呼び出し中のチームはありません
                   </div>
                 )}
               </div>
 
-              {/* 2. 次にお呼びするチーム (Next Called Team) */}
-              <div className="flex flex-1 flex-col rounded-xl border border-divider/60 bg-content2/40 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Icon
-                      className="text-base text-default-500"
-                      icon="solar:clock-circle-bold"
-                    />
-                    <span className="text-xs font-black tracking-wider text-default-500">
-                      次にお呼びするチーム
-                    </span>
-                  </div>
-                  {nextTeam && (
-                    <span className="rounded bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                      準備待機
-                    </span>
-                  )}
+              {/* 3. 順番待ち（次に呼ばれる ＆ 次の次に呼ばれる） */}
+              <div className="flex flex-1 flex-col gap-2 rounded-xl border-2 border-slate-300 bg-white p-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Icon
+                    className="text-base text-slate-700"
+                    icon="solar:clock-circle-bold"
+                  />
+                  <span className="text-xs font-black tracking-wider text-slate-800">
+                    順番待ち
+                  </span>
                 </div>
 
-                {nextTeam ? (
-                  <div className="flex flex-col rounded-lg bg-background/60 p-2.5 shadow-sm">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="text-2xl font-black tracking-tight text-foreground lg:text-3xl">
-                        {nextTeam.pitNumber && nextTeam.pitNumber > 0
-                          ? `Pit ${nextTeam.pitNumber}`
-                          : "Pit -"}
-                      </span>
-                      {nextTeam.count > 0 && (
-                        <Chip
-                          className="font-bold text-default-600"
-                          color="default"
-                          size="sm"
-                          variant="flat"
-                        >
-                          {nextTeam.count}回目
-                        </Chip>
-                      )}
-                    </div>
-                    <div className="mt-0.5 truncate text-base font-bold text-default-800 lg:text-lg">
-                      {nextTeam.teamName}
-                    </div>
+                {next1 || next2 ? (
+                  <div className="flex flex-1 flex-col gap-2">
+                    {/* 1番目のチーム (次に呼ばれるチーム) */}
+                    {next1 && (
+                      <div className="flex flex-col rounded-lg border-2 border-slate-400 bg-slate-50 p-2.5 shadow-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-2xl font-black text-slate-950 lg:text-3xl">
+                            {next1.pitNumber && next1.pitNumber > 0
+                              ? `Pit ${next1.pitNumber}`
+                              : "Pit -"}
+                          </span>
+                          <span className="rounded bg-slate-900 px-2 py-0.5 text-xs font-black text-white">
+                            次（1番目）
+                          </span>
+                        </div>
+                        <div className="mt-1 truncate text-lg font-black text-slate-900 lg:text-xl">
+                          {next1.teamName}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 2番目のチーム (次の次に呼ばれるチーム) */}
+                    {next2 && (
+                      <div className="flex flex-col rounded-lg border-2 border-slate-400 bg-slate-50 p-2.5 shadow-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-2xl font-black text-slate-950 lg:text-3xl">
+                            {next2.pitNumber && next2.pitNumber > 0
+                              ? `Pit ${next2.pitNumber}`
+                              : "Pit -"}
+                          </span>
+                          <span className="rounded bg-slate-700 px-2 py-0.5 text-xs font-black text-white">
+                            次々（2番目）
+                          </span>
+                        </div>
+                        <div className="mt-1 truncate text-lg font-black text-slate-900 lg:text-xl">
+                          {next2.teamName}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="flex flex-1 items-center justify-center py-3 text-center text-xs font-medium text-default-400">
+                  <div className="flex flex-1 items-center justify-center py-4 text-center text-xs font-bold text-slate-400">
                     待ちチームはありません
-                  </div>
-                )}
-
-                {/* 後続チームのサマリー */}
-                {subsequentTeams.length > 0 && (
-                  <div className="mt-2.5 border-t border-divider/40 pt-2 text-xs text-default-500">
-                    <span className="font-bold text-default-600">続いて: </span>
-                    {subsequentTeams.slice(0, 3).map((item, i) => (
-                      <span key={item.id}>
-                        {i > 0 && ", "}
-                        {item.pitNumber
-                          ? `Pit ${item.pitNumber}`
-                          : item.teamName}
-                      </span>
-                    ))}
-                    {subsequentTeams.length > 3 && (
-                      <span> 他{subsequentTeams.length - 3}組</span>
-                    )}
                   </div>
                 )}
               </div>
@@ -341,15 +323,6 @@ export function WaitingCard({
           );
         })}
       </CardBody>
-
-      {/* Card Footer (Optional bottom summary) */}
-      <CardFooter className="border-t border-divider/40 bg-content2/20 px-4 py-2 text-center text-xs text-default-400">
-        <span className="w-full text-center font-medium">
-          {totalWaitingCount === 0
-            ? "待ちなし・すぐに受付可能です"
-            : `合計 ${totalWaitingCount} チームが待機中`}
-        </span>
-      </CardFooter>
     </Card>
   );
 }

@@ -25,6 +25,7 @@ import {
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 import { buildUserSlackChannelName } from "@/lib/slack/channelName";
+import { generateRandomPassword } from "@/lib/server/password";
 
 export async function getTeamChannels(): Promise<
   Array<{ name: string; displayName: string }>
@@ -372,4 +373,144 @@ export async function deleteSlackChannelsForAllUsers(
       errors: `チャンネル削除処理中にエラーが発生しました: ${error}`,
     };
   }
+}
+
+interface HomepageTeamApiRecord {
+  team_no?: number;
+  school_name?: string;
+  team_name?: string;
+  username?: string;
+  display_name?: string;
+  pit_side?: string;
+  pit_number?: number;
+}
+
+export async function importUsersFromHomepage(
+  state: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const apiUrl =
+    formData.get("apiUrl")?.toString().trim() ||
+    process.env.HOMEPAGE_API_URL ||
+    process.env.NEXT_PUBLIC_HOMEPAGE_API_URL ||
+    "http://localhost:8000/api/teams/";
+
+  let teams: HomepageTeamApiRecord[];
+
+  try {
+    const res = await fetch(apiUrl, { cache: "no-store" });
+
+    if (!res.ok) {
+      return {
+        errors: `Homepage APIからの取得に失敗しました (ステータス: ${res.status})`,
+      };
+    }
+
+    teams = (await res.json()) as HomepageTeamApiRecord[];
+  } catch (error) {
+    return {
+      errors: `Homepage APIへの接続に失敗しました (${apiUrl}): ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+
+  if (!Array.isArray(teams) || teams.length === 0) {
+    return {
+      errors: "Homepageから取得したチーム情報が空または不正な形式です。",
+    };
+  }
+
+  const existingUsers = await getAllFirestoreUsers();
+  const existingUsernames = new Set(
+    existingUsers.map((u) => u.username.toLowerCase()),
+  );
+
+  const createdUsers: Array<{
+    username: string;
+    display_name: string;
+    password: string;
+    pit_side: string;
+    pit_number: number;
+  }> = [];
+
+  let skippedCount = 0;
+  const errors: string[] = [];
+
+  for (const team of teams) {
+    const teamNo = team.team_no ?? 0;
+    const prefix = String(teamNo).padStart(2, "0");
+
+    let username = team.username;
+
+    if (
+      !username ||
+      !/^[a-z0-9_-]+$/.test(username) ||
+      username.length < 3 ||
+      username.length > 31
+    ) {
+      username = `${prefix}_team${teamNo}`;
+    }
+
+    let displayName = team.display_name;
+
+    if (!displayName) {
+      const schoolOrTeam =
+        team.school_name || team.team_name || `チーム${teamNo}`;
+
+      displayName = `${prefix}_${schoolOrTeam}`;
+    }
+
+    const pitSide = (team.pit_side as CheckSide) || "東";
+    const pitNumber = team.pit_number ?? teamNo;
+
+    if (existingUsernames.has(username.toLowerCase())) {
+      skippedCount++;
+      continue;
+    }
+
+    const initialPassword = generateRandomPassword(10);
+
+    const result = await createFirebaseUser(
+      username,
+      initialPassword,
+      displayName,
+      "user",
+      pitSide,
+      pitNumber,
+      initialPassword,
+    );
+
+    if ("errors" in result && result.errors) {
+      errors.push(`ユーザー ${username}: ${result.errors}`);
+    } else {
+      existingUsernames.add(username.toLowerCase());
+      createdUsers.push({
+        username,
+        display_name: displayName,
+        password: initialPassword,
+        pit_side: pitSide,
+        pit_number: pitNumber,
+      });
+    }
+  }
+
+  revalidatePath("/settings/users");
+
+  if (createdUsers.length === 0 && skippedCount > 0 && errors.length === 0) {
+    return {
+      errors: `既存のユーザーと重複しているため、新規登録されたユーザーはありませんでした（${skippedCount}件スキップ）。`,
+    };
+  }
+
+  if (errors.length > 0) {
+    return {
+      errors: `一部のユーザー登録に失敗しました:\n${errors.join("\n")}`,
+      success: `Homepageから ${createdUsers.length} 件のユーザーを新規登録しました（${skippedCount}件スキップ）。`,
+      createdUsers,
+    };
+  }
+
+  return {
+    success: `Homepageから ${createdUsers.length} 件のユーザーを正常に新規登録しました！（${skippedCount}件既存スキップ）`,
+    createdUsers,
+  };
 }

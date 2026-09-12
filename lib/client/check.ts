@@ -100,39 +100,56 @@ export function onCheckReservationChange(
   id: string,
   collectionId: string,
   callback: (reservation: CheckReservation | null) => void,
+  onError?: (error: Error) => void,
 ) {
   const docRef = doc(firestore, collectionId, id).withConverter(
     checkDataConverter(),
   );
 
-  return onSnapshot(docRef, (snapshot) => {
-    if (!snapshot.exists()) {
-      callback(null);
+  return onSnapshot(
+    docRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback(null);
 
-      return;
-    }
+        return;
+      }
 
-    callback(snapshot.data());
-  });
+      callback(snapshot.data());
+    },
+    (error) => {
+      console.error("[Firestore] onCheckReservationChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export function onCheckCollectionChange(
   collectionId: string,
   callback: (schedule: QuerySnapshot<CheckReservation, DocumentData>) => void,
+  onError?: (error: Error) => void,
 ) {
   const checkRef = collection(firestore, collectionId).withConverter(
     checkDataConverter(),
   );
 
-  return onSnapshot(checkRef, (snapshot) => {
-    callback(snapshot);
-  });
+  return onSnapshot(
+    checkRef,
+    (snapshot) => {
+      callback(snapshot);
+    },
+    (error) => {
+      console.error("[Firestore] onCheckCollectionChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export function onCheckChangeByTeam(
   collectionId: string,
   teamName: string,
   callback: (status: CheckStatus | "未予約") => void,
+  onError?: (error: Error) => void,
 ) {
   const checkRef = collection(firestore, collectionId).withConverter(
     checkDataConverter(),
@@ -143,13 +160,20 @@ export function onCheckChangeByTeam(
     orderBy("reserved_at", "desc"),
   );
 
-  return onSnapshot(q, (snapshot) => {
-    if (snapshot.empty) {
-      callback("未予約");
-    } else {
-      callback(snapshot.docs[0].data().status);
-    }
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      if (snapshot.empty) {
+        callback("未予約");
+      } else {
+        callback(snapshot.docs[0].data().status);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] onCheckChangeByTeam error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export async function updateCheckStatus(

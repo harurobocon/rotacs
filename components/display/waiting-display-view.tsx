@@ -111,6 +111,22 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
     }
   };
 
+  // Keyboard listener for hidden demo mode toggle (Shift+D or Ctrl+Shift+D)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.key === "d" || e.key === "D") &&
+        (e.shiftKey || e.ctrlKey || e.metaKey)
+      ) {
+        setIsDemo((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Firestore listeners
   React.useEffect(() => {
     getCheckLocationSettings().then(setCheckSettings);
@@ -836,18 +852,22 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
     : "";
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-slate-950 p-3 text-foreground lg:p-5">
+    <div className="flex min-h-screen w-full flex-col bg-slate-100 p-3 text-slate-900 lg:p-5">
       {/* Top Signage Status Bar */}
-      <header className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-divider/40 bg-content1/60 px-4 py-2.5 backdrop-blur-md lg:mb-4 lg:px-6">
-        {/* Left: Branding & Mode */}
-        <div className="flex items-center gap-3">
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-slate-300 bg-white px-4 py-2.5 shadow-md lg:mb-4 lg:px-6">
+        {/* Left: Branding & Mode (Double-click logo to toggle hidden demo mode) */}
+        <div
+          className="flex cursor-pointer select-none items-center gap-3"
+          title="ダブルクリックでデモ表示切替 (または Shift+D)"
+          onDoubleClick={() => setIsDemo((prev) => !prev)}
+        >
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white">
               <Icon className="text-2xl" icon="solar:tv-bold" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black tracking-tight text-foreground lg:text-xl">
+                <h1 className="text-xl font-black tracking-tight text-slate-900 lg:text-2xl">
                   待機場案内モニター
                 </h1>
                 {isDemo ? (
@@ -864,77 +884,53 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
                     className="animate-pulse font-black text-white"
                     color="success"
                     size="sm"
-                    variant="shadow"
+                    variant="solid"
                   >
                     <span className="flex items-center gap-1">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-white" />
+                      <span className="inline-block h-2 w-2 rounded-full bg-white" />
                       LIVE
                     </span>
                   </Chip>
                 )}
               </div>
-              <p className="text-xs font-semibold text-default-400">
-                {checkType === "check1"
-                  ? "【前日】計量計測1 ・ テストラン赤/青 ・ 試走場"
-                  : "【当日】計量計測2 ・ テストラン赤/青 ・ 試走場"}
-              </p>
             </div>
           </div>
         </div>
 
-        {/* Center: Day Switcher & Demo Toggle */}
+        {/* Center: Day Switcher */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Day Switcher Tabs */}
-          <div className="flex items-center rounded-xl bg-background/80 p-1 shadow-inner">
+          <div className="flex items-center rounded-xl bg-slate-200 p-1">
             <Link
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-black transition-all ${
                 checkType === "check1"
-                  ? "bg-primary text-primary-foreground shadow"
-                  : "text-default-500 hover:text-foreground"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-700 hover:text-slate-900"
               }`}
               href={`/display/waiting/check1${isDemo ? "?demo=1" : ""}`}
             >
               前日（計量1）
             </Link>
             <Link
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-black transition-all ${
                 checkType === "check2"
-                  ? "bg-primary text-primary-foreground shadow"
-                  : "text-default-500 hover:text-foreground"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-700 hover:text-slate-900"
               }`}
               href={`/display/waiting/check2${isDemo ? "?demo=1" : ""}`}
             >
               当日（計量2）
             </Link>
           </div>
-
-          {/* Demo Toggle Button */}
-          <Button
-            className="text-xs font-bold"
-            color={isDemo ? "warning" : "default"}
-            size="sm"
-            startContent={
-              <Icon
-                className="text-base"
-                icon={
-                  isDemo ? "solar:eye-closed-linear" : "solar:play-circle-bold"
-                }
-              />
-            }
-            variant={isDemo ? "flat" : "bordered"}
-            onPress={() => setIsDemo((prev) => !prev)}
-          >
-            {isDemo ? "本番データに戻す" : "サンプルチーム表示"}
-          </Button>
         </div>
 
         {/* Right: Clock & Fullscreen */}
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="text-xs font-semibold text-default-400">
+            <div className="text-xs font-bold text-slate-600">
               {formattedDate}
             </div>
-            <div className="font-mono text-2xl font-black tracking-wider text-primary lg:text-3xl">
+            <div className="font-mono text-2xl font-black tracking-wider text-slate-950 lg:text-3xl">
               {formattedTime}
             </div>
           </div>
@@ -943,13 +939,13 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
             <Button
               isIconOnly
               aria-label="Toggle Fullscreen"
-              className="rounded-xl border border-divider/40 bg-content2/50"
+              className="rounded-xl border border-slate-300 bg-slate-100"
               size="sm"
               variant="flat"
               onPress={toggleFullscreen}
             >
               <Icon
-                className="text-lg"
+                className="text-lg text-slate-800"
                 icon={
                   isFullscreen
                     ? "solar:minimize-square-3-bold"
@@ -963,21 +959,21 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
 
       {/* Demo Scenario Bar (when in demo mode) */}
       {isDemo && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-950/20 px-4 py-2 text-xs text-amber-200">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-amber-400 bg-amber-100 px-4 py-2 text-xs font-bold text-amber-950 shadow-sm">
           <div className="flex items-center gap-2">
             <Icon
-              className="text-base text-amber-400"
+              className="text-base text-amber-700"
               icon="solar:info-circle-bold"
             />
             <span>
               <strong>【サンプル動作プレビュー中】</strong>{" "}
-              チームが予約・呼出された時の実際の表示例です。
+              実際の呼出・順番待ち表示例です。
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-amber-400">シナリオ切替:</span>
+            <span className="font-bold text-amber-900">シナリオ切替:</span>
             <Button
-              className="h-6 px-2 text-[11px] font-bold"
+              className="h-6 px-2 text-[11px] font-black"
               color={demoScenario === "standard" ? "warning" : "default"}
               size="sm"
               variant={demoScenario === "standard" ? "solid" : "flat"}
@@ -986,7 +982,7 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
               標準（呼出中あり）
             </Button>
             <Button
-              className="h-6 px-2 text-[11px] font-bold"
+              className="h-6 px-2 text-[11px] font-black"
               color={demoScenario === "heavy" ? "warning" : "default"}
               size="sm"
               variant={demoScenario === "heavy" ? "solid" : "flat"}
@@ -995,13 +991,22 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
               待機多数
             </Button>
             <Button
-              className="h-6 px-2 text-[11px] font-bold"
+              className="h-6 px-2 text-[11px] font-black"
               color={demoScenario === "idle" ? "warning" : "default"}
               size="sm"
               variant={demoScenario === "idle" ? "solid" : "flat"}
               onPress={() => setDemoScenario("idle")}
             >
               待機なし
+            </Button>
+            <Button
+              className="ml-2 h-6 px-2 text-[11px] font-black"
+              color="danger"
+              size="sm"
+              variant="flat"
+              onPress={() => setIsDemo(false)}
+            >
+              DEMO終了（本番に戻す）
             </Button>
           </div>
         </div>
@@ -1012,7 +1017,7 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
         {isLoading ? (
           <div className="flex h-[75vh] w-full flex-col items-center justify-center gap-4">
             <Spinner color="primary" size="lg" />
-            <p className="text-base font-bold text-default-400">
+            <p className="text-base font-bold text-slate-700">
               予約状況を受信中...
             </p>
           </div>
