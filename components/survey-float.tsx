@@ -14,12 +14,27 @@ export default function SurveyFloat() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = listenDisplaySettings((settings) => {
-      setShow(settings.showSurveyFloat);
-      setLoading(false);
-    });
+    const unsubscribe = listenDisplaySettings(
+      (settings) => {
+        setShow(settings.showSurveyFloat);
+        setLoading(false);
+      },
+      (error) => {
+        console.error(
+          "[SurveyFloat] Failed to listen display settings:",
+          error,
+        );
+        setLoading(false);
+      },
+    );
 
-    return () => unsubscribe();
+    return () => {
+      try {
+        unsubscribe();
+      } catch (error) {
+        console.error("[SurveyFloat] Error unsubscribing:", error);
+      }
+    };
   }, []);
 
   if (loading || !show) {

@@ -7,6 +7,7 @@ import { UserTable } from "@/types/auth";
 import UserSettingsTable from "@/components/settings/user-table";
 import { getAllFirestoreUsers } from "@/lib/server/firestoreUserHelpers";
 import NewUsersTextarea from "@/components/settings/new-users-textarea";
+import ImportHpUsers from "@/components/settings/import-hp-users";
 import {
   settingsPageSubtitle,
   settingsPageTitle,
@@ -44,8 +45,9 @@ export default async function UserSettings() {
       <div className="p-2">
         <p className={settingsPageTitle()}>ユーザーの追加</p>
         <p className={settingsPageSubtitle()}>
-          CSV形式でユーザーを追加できます．
+          Homepageからの自動登録、またはCSV形式でユーザーを追加できます．
         </p>
+        <ImportHpUsers />
         <NewUsersTextarea />
       </div>
     </div>

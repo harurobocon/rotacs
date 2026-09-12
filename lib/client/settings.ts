@@ -49,6 +49,7 @@ const defaultSettings: ReservationSettings = RESERVATION_TYPES.reduce(
 
 export function listenReservationSettings(
   callback: (settings: ReservationSettings) => void,
+  onError?: (error: Error) => void,
 ): () => void {
   const settingsRef = doc(
     firestore,
@@ -56,15 +57,22 @@ export function listenReservationSettings(
     RESERVATION_SETTINGS_DOCUMENT_ID,
   ).withConverter(dataConverter<ReservationSettings>());
 
-  const unsubscribe = onSnapshot(settingsRef, (doc) => {
-    if (doc.exists()) {
-      callback(
-        normalizeReservationSettingsWithFallbackInfo(doc.data()).settings,
-      );
-    } else {
-      callback(defaultSettings);
-    }
-  });
+  const unsubscribe = onSnapshot(
+    settingsRef,
+    (doc) => {
+      if (doc.exists()) {
+        callback(
+          normalizeReservationSettingsWithFallbackInfo(doc.data()).settings,
+        );
+      } else {
+        callback(defaultSettings);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] listenReservationSettings error:", error);
+      onError?.(error);
+    },
+  );
 
   return unsubscribe;
 }
@@ -251,6 +259,7 @@ export async function getCheckLocationSettings(): Promise<CheckLocationSettings>
 
 export function listenCheckLocationSettings(
   callback: (settings: CheckLocationSettings) => void,
+  onError?: (error: Error) => void,
 ): () => void {
   const settingsRef = doc(
     firestore,
@@ -258,13 +267,20 @@ export function listenCheckLocationSettings(
     CHECK_LOCATION_SETTINGS_DOCUMENT_ID,
   ).withConverter(dataConverter<CheckLocationSettings>());
 
-  const unsubscribe = onSnapshot(settingsRef, (doc) => {
-    if (doc.exists()) {
-      callback(doc.data());
-    } else {
-      callback(defaultCheckLocationSettings);
-    }
-  });
+  const unsubscribe = onSnapshot(
+    settingsRef,
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data());
+      } else {
+        callback(defaultCheckLocationSettings);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] listenCheckLocationSettings error:", error);
+      onError?.(error);
+    },
+  );
 
   return unsubscribe;
 }
@@ -324,6 +340,7 @@ export async function getCheckItemsSettings(): Promise<CheckItemsSettings> {
 
 export function listenCheckItemsSettings(
   callback: (settings: CheckItemsSettings) => void,
+  onError?: (error: Error) => void,
 ): () => void {
   const settingsRef = doc(
     firestore,
@@ -331,13 +348,20 @@ export function listenCheckItemsSettings(
     CHECK_ITEMS_SETTINGS_DOCUMENT_ID,
   ).withConverter(dataConverter<CheckItemsSettings>());
 
-  return onSnapshot(settingsRef, (doc) => {
-    if (doc.exists()) {
-      callback(normalizeCheckItemsSettings(doc.data()));
-    } else {
-      callback(DEFAULT_CHECK_ITEM_SETTINGS);
-    }
-  });
+  return onSnapshot(
+    settingsRef,
+    (doc) => {
+      if (doc.exists()) {
+        callback(normalizeCheckItemsSettings(doc.data()));
+      } else {
+        callback(DEFAULT_CHECK_ITEM_SETTINGS);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] listenCheckItemsSettings error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export async function getDisplaySettings(): Promise<DisplaySettings> {
@@ -363,6 +387,7 @@ export async function getDisplaySettings(): Promise<DisplaySettings> {
 
 export function listenDisplaySettings(
   callback: (settings: DisplaySettings) => void,
+  onError?: (error: Error) => void,
 ): () => void {
   const settingsRef = doc(
     firestore,
@@ -370,18 +395,25 @@ export function listenDisplaySettings(
     DISPLAY_SETTINGS_DOCUMENT_ID,
   ).withConverter(dataConverter<DisplaySettings>());
 
-  const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
+  const unsubscribe = onSnapshot(
+    settingsRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
 
-      callback({
-        showSurveyFloat: data.showSurveyFloat !== false,
-        showSurveyBanner: data.showSurveyBanner !== false,
-      });
-    } else {
-      callback(DEFAULT_DISPLAY_SETTINGS);
-    }
-  });
+        callback({
+          showSurveyFloat: data.showSurveyFloat !== false,
+          showSurveyBanner: data.showSurveyBanner !== false,
+        });
+      } else {
+        callback(DEFAULT_DISPLAY_SETTINGS);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] listenDisplaySettings error:", error);
+      onError?.(error);
+    },
+  );
 
   return unsubscribe;
 }

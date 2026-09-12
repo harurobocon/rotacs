@@ -31,6 +31,14 @@ export async function getFirebaseAdminApp() {
       });
     }
 
+    console.error(
+      "❌ [Firebase Admin] サービスアカウントの認証情報が設定されていません。\n" +
+        `  - projectId: ${firebaseAdminConfig.projectId ? "OK" : "未設定"}\n` +
+        `  - clientEmail: ${firebaseAdminConfig.clientEmail ? "OK" : "未設定"}\n` +
+        `  - privateKey: ${firebaseAdminConfig.privateKey ? "OK" : "未設定"}\n` +
+        "VercelのEnvironment Variablesで FIREBASE_ADMIN_CLIENT_EMAIL と FIREBASE_ADMIN_PRIVATE_KEY に Preview/Production のチェックが入っているか確認してください。",
+    );
+
     return initializeApp();
   }
 }

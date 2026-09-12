@@ -54,34 +54,50 @@ export async function getPracticeSchedule(): Promise<PracticeSchedule> {
 export function onPracticeReservationChange(
   id: string,
   callback: (reservation: PracticeReservation | null) => void,
+  onError?: (error: Error) => void,
 ) {
   const docRef = doc(firestore, PRACTICE_COLLECTION, id).withConverter(
     practiceDataConverter(),
   );
 
-  return onSnapshot(docRef, (snapshot) => {
-    if (!snapshot.exists()) {
-      callback(null);
+  return onSnapshot(
+    docRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback(null);
 
-      return;
-    }
+        return;
+      }
 
-    callback(snapshot.data());
-  });
+      callback(snapshot.data());
+    },
+    (error) => {
+      console.error("[Firestore] onPracticeReservationChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export function onPracticeCollectionChange(
   callback: (
     schedule: QuerySnapshot<PracticeReservation, DocumentData>,
   ) => void,
+  onError?: (error: Error) => void,
 ) {
   const practiceRef = collection(firestore, PRACTICE_COLLECTION).withConverter(
     practiceDataConverter(),
   );
 
-  return onSnapshot(practiceRef, (snapshot) => {
-    callback(snapshot);
-  });
+  return onSnapshot(
+    practiceRef,
+    (snapshot) => {
+      callback(snapshot);
+    },
+    (error) => {
+      console.error("[Firestore] onPracticeCollectionChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export async function updatePracticeStatus(id: string, status: PracticeStatus) {
