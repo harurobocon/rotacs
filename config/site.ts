@@ -76,6 +76,10 @@ export const routes: Route = {
       label: "表示設定",
       href: "/settings/display",
     },
+    match: {
+      label: "試合設定",
+      href: "/settings/match",
+    },
   },
   display: {
     label: "待機場モニター",
@@ -133,6 +137,7 @@ export const siteConfig = {
     routes.settings["check-mode"],
     routes.settings.reservations.control,
     routes.settings.display,
+    routes.settings.match,
   ],
   links: {
     github: "https://github.com/nextui-org/nextui",
