@@ -379,6 +379,10 @@ export async function getDisplaySettings(): Promise<DisplaySettings> {
     return {
       showSurveyFloat: data.showSurveyFloat !== false,
       showSurveyBanner: data.showSurveyBanner !== false,
+      voiceVolume:
+        data.voiceVolume !== undefined
+          ? Number(data.voiceVolume)
+          : DEFAULT_DISPLAY_SETTINGS.voiceVolume,
     };
   } else {
     return DEFAULT_DISPLAY_SETTINGS;
@@ -404,6 +408,10 @@ export function listenDisplaySettings(
         callback({
           showSurveyFloat: data.showSurveyFloat !== false,
           showSurveyBanner: data.showSurveyBanner !== false,
+          voiceVolume:
+            data.voiceVolume !== undefined
+              ? Number(data.voiceVolume)
+              : DEFAULT_DISPLAY_SETTINGS.voiceVolume,
         });
       } else {
         callback(DEFAULT_DISPLAY_SETTINGS);

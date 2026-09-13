@@ -2,13 +2,24 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { Card, CardHeader, CardBody, Chip, Button } from "@heroui/react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Chip,
+  Button,
+  Tooltip,
+} from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { firestore } from "@/lib/firebase/clientApp";
 import { MatchData, MATCH_COLLECTION } from "@/types/match";
 import { onPracticeCollectionChange } from "@/lib/client/practice";
 import { PracticeReservation, PracticeSchedule } from "@/types/practice";
+import {
+  useCallingAnnouncer,
+  CallingTargetItem,
+} from "@/lib/client/use-calling-announcer";
 
 function formatTime(d: Date | null | undefined): string | null {
   if (!d) return null;
@@ -158,6 +169,48 @@ export function MatchDisplayComponent() {
       })
     : "";
 
+  // 音声案内用の呼出中アイテム一覧を集約（試走場呼出中および1試合前移動対象）
+  const callingItems = useMemo(() => {
+    const items: CallingTargetItem[] = [];
+
+    // 試走場呼出中
+    for (const r of practiceData.calling) {
+      items.push({
+        id: `practice_${r.id}`,
+        pitNumber: r.pit_number,
+        teamName: r.user_display_name,
+      });
+    }
+
+    // 1試合前（コート移動対象）
+    if (nextMatch1) {
+      if (nextMatch1.team_red) {
+        items.push({
+          id: `match_${nextMatch1.id}_red`,
+          pitNumber: nextMatch1.team_red.team_no,
+          teamName:
+            nextMatch1.team_red.display_name || nextMatch1.team_red.team_name,
+        });
+      }
+      if (nextMatch1.team_blue) {
+        items.push({
+          id: `match_${nextMatch1.id}_blue`,
+          pitNumber: nextMatch1.team_blue.team_no,
+          teamName:
+            nextMatch1.team_blue.display_name || nextMatch1.team_blue.team_name,
+        });
+      }
+    }
+
+    return items;
+  }, [practiceData.calling, nextMatch1]);
+
+  // 音声アナウンス監視フック
+  const { isVoiceEnabled, toggleVoiceEnabled, volume } = useCallingAnnouncer(
+    callingItems,
+    matches.length > 0 || practiceReservations !== null,
+  );
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-slate-100 p-3 text-slate-900 lg:p-5">
       {/* Header Bar */}
@@ -184,7 +237,40 @@ export function MatchDisplayComponent() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* 音声案内切替ボタン */}
+          <Tooltip
+            content={
+              isVoiceEnabled
+                ? `音声案内: ON (${Math.round(volume * 100)}%) クリックでミュート`
+                : "音声案内: ミュート中 (クリックで有効化)"
+            }
+          >
+            <Button
+              isIconOnly
+              aria-label="Toggle Voice Announcement"
+              className={`border ${
+                isVoiceEnabled
+                  ? "border-primary-300 bg-primary-50 text-primary-600"
+                  : "border-slate-300 bg-white text-slate-400"
+              }`}
+              size="sm"
+              variant="bordered"
+              onPress={toggleVoiceEnabled}
+            >
+              <Icon
+                className="text-lg"
+                icon={
+                  isVoiceEnabled
+                    ? volume === 0
+                      ? "solar:volume-cross-bold"
+                      : "solar:volume-loud-bold"
+                    : "solar:volume-cross-bold"
+                }
+              />
+            </Button>
+          </Tooltip>
+
           <Button
             isIconOnly
             aria-label="Toggle Fullscreen"

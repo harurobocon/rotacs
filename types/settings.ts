@@ -202,11 +202,13 @@ export const SYSTEM_SLACK_CHANNELS_DOCUMENT_ID = "system_slack_channels";
 export interface DisplaySettings {
   showSurveyFloat: boolean;
   showSurveyBanner: boolean;
+  voiceVolume?: number; // 0.0 - 1.0 (デフォルト 1.0)
 }
 
 export const DEFAULT_DISPLAY_SETTINGS: DisplaySettings = {
   showSurveyFloat: true,
   showSurveyBanner: true,
+  voiceVolume: 1.0,
 };
 
 export const DISPLAY_SETTINGS_COLLECTION =

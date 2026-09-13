@@ -11,6 +11,10 @@ import {
   WaitingItem,
 } from "@/components/display/waiting-card";
 import {
+  useCallingAnnouncer,
+  CallingTargetItem,
+} from "@/lib/client/use-calling-announcer";
+import {
   CHECK1_COLLECTION,
   CHECK2_COLLECTION,
   CheckReservation,
@@ -851,6 +855,36 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
       })
     : "";
 
+  // 音声案内用の呼出中アイテム一覧を集約
+  const allCallingItems = React.useMemo(() => {
+    const items: CallingTargetItem[] = [];
+
+    const extractCalling = (lanes: WaitingCardLane[]) => {
+      for (const lane of lanes) {
+        for (const item of lane.calling) {
+          items.push({
+            id: item.id,
+            pitNumber: item.pitNumber,
+            teamName: item.teamName,
+          });
+        }
+      }
+    };
+
+    extractCalling(checkCardData.lanes);
+    extractCalling(testrunRedData.lanes);
+    extractCalling(testrunBlueData.lanes);
+    extractCalling(practiceData.lanes);
+
+    return items;
+  }, [checkCardData, testrunRedData, testrunBlueData, practiceData]);
+
+  // 音声アナウンス監視フック
+  const { isVoiceEnabled, toggleVoiceEnabled, volume } = useCallingAnnouncer(
+    allCallingItems,
+    !isLoading,
+  );
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-slate-100 p-3 text-slate-900 lg:p-5">
       {/* Top Signage Status Bar */}
@@ -934,6 +968,39 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
               {formattedTime}
             </div>
           </div>
+
+          {/* 音声案内切替ボタン */}
+          <Tooltip
+            content={
+              isVoiceEnabled
+                ? `音声案内: ON (${Math.round(volume * 100)}%) クリックでミュート`
+                : "音声案内: ミュート中 (クリックで有効化)"
+            }
+          >
+            <Button
+              isIconOnly
+              aria-label="Toggle Voice Announcement"
+              className={`rounded-xl border ${
+                isVoiceEnabled
+                  ? "border-primary-300 bg-primary-50 text-primary-600"
+                  : "border-slate-300 bg-slate-100 text-slate-400"
+              }`}
+              size="sm"
+              variant="flat"
+              onPress={toggleVoiceEnabled}
+            >
+              <Icon
+                className="text-lg"
+                icon={
+                  isVoiceEnabled
+                    ? volume === 0
+                      ? "solar:volume-cross-bold"
+                      : "solar:volume-loud-bold"
+                    : "solar:volume-cross-bold"
+                }
+              />
+            </Button>
+          </Tooltip>
 
           <Tooltip content={isFullscreen ? "全画面解除" : "全画面表示"}>
             <Button
