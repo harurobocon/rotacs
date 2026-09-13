@@ -11,7 +11,7 @@ describe("lib/auth/email", () => {
   describe("getAppDomain", () => {
     it("環境変数が未設定の場合はデフォルトドメインを返す", () => {
       delete process.env.NEXT_PUBLIC_APP_DOMAIN;
-      expect(getAppDomain()).toBe("rotacs.yuchi.jp");
+      expect(getAppDomain()).toBe("rotacs.kantouharurobo.com");
     });
 
     it("設定されたドメインをそのまま返す", () => {

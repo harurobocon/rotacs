@@ -12,6 +12,7 @@ export function convertDisplayNameToSlackChannelPart(
   const normalized = displayName.normalize("NFKC").trim().toLowerCase();
 
   const cleaned = normalized
+    .replace(/^\d{2}[_-]/, "")
     .replace(/\s+/g, "-")
     .replace(/[^\p{L}\p{N}_-]/gu, "")
     .replace(/[-_]{2,}/g, "-")

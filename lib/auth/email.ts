@@ -1,4 +1,4 @@
-const DEFAULT_DOMAIN = "rotacs.yuchi.jp";
+const DEFAULT_DOMAIN = "rotacs.kantouharurobo.com";
 
 /**
  * アプリの認証用ドメインを取得します。

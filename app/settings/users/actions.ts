@@ -450,14 +450,9 @@ export async function importUsersFromHomepage(
       username = `${prefix}_team${teamNo}`;
     }
 
-    let displayName = team.display_name;
-
-    if (!displayName) {
-      const schoolOrTeam =
-        team.school_name || team.team_name || `チーム${teamNo}`;
-
-      displayName = `${prefix}_${schoolOrTeam}`;
-    }
+    const teamName =
+      team.team_name?.trim() || team.school_name?.trim() || `チーム${teamNo}`;
+    const displayName = `${prefix}_${teamName}`;
 
     const pitSide = (team.pit_side as CheckSide) || "東";
     const pitNumber = team.pit_number ?? teamNo;
@@ -467,7 +462,7 @@ export async function importUsersFromHomepage(
       continue;
     }
 
-    const initialPassword = generateRandomPassword(10);
+    const initialPassword = generateRandomPassword(6);
 
     const result = await createFirebaseUser(
       username,

@@ -23,10 +23,10 @@ dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: true }
 
 function getAppDomain(): string {
   const rawDomain = process.env.NEXT_PUBLIC_APP_DOMAIN?.trim();
-  if (!rawDomain) return "rotacs.yuchi.jp";
+  if (!rawDomain) return "rotacs.kantouharurobo.com";
   let domain = rawDomain.replace(/^https?:\/\//i, "");
   domain = domain.split("/")[0];
-  return domain || "rotacs.yuchi.jp";
+  return domain || "rotacs.kantouharurobo.com";
 }
 
 function usernameToEmail(username: string): string {
