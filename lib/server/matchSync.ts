@@ -18,6 +18,7 @@ export async function syncMatchesFromHomepage(apiUrl?: string): Promise<{
     // If targetUrl is just a base domain/host or doesn't include match list path, append /staff/matches/api/list/
     if (!targetUrl.includes("/matches/api/list/")) {
       const cleanBase = targetUrl.replace(/\/+$/, "");
+
       targetUrl = `${cleanBase}/staff/matches/api/list/`;
     }
 
@@ -42,14 +43,18 @@ export async function syncMatchesFromHomepage(apiUrl?: string): Promise<{
     const now = Date.now();
 
     let count = 0;
+
     for (let i = 0; i < rawMatches.length; i++) {
       const m = rawMatches[i];
       const docId = m.match_id || String(m.id || i + 1);
       const docRef = db.collection(MATCH_COLLECTION).doc(docId);
+      const matchNo =
+        typeof m.match_no === "number" && m.match_no > 0 ? m.match_no : i + 1;
 
       const matchData: MatchData = {
         id: docId,
-        match_index: i + 1,
+        match_index: matchNo,
+        match_no: matchNo,
         match_id: docId,
         team_red: {
           team_no: m.team_red?.team_no ?? 0,
@@ -71,7 +76,8 @@ export async function syncMatchesFromHomepage(apiUrl?: string): Promise<{
         score_red: m.score_red ?? 0,
         score_blue: m.score_blue ?? 0,
         winner_side: m.winner_side ?? "none",
-        current_phase: m.status === "completed" ? "match_finished" : "scheduled",
+        current_phase:
+          m.status === "completed" ? "match_finished" : "scheduled",
         pre_call_sent: false,
         move_call_sent: false,
         updated_at: now,
@@ -82,9 +88,11 @@ export async function syncMatchesFromHomepage(apiUrl?: string): Promise<{
     }
 
     await batch.commit();
+
     return { ok: true, syncedCount: count };
   } catch (err: any) {
     console.error("syncMatchesFromHomepage error:", err);
+
     return { ok: false, syncedCount: 0, error: err.toString() };
   }
 }

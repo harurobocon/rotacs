@@ -10,6 +10,7 @@ import {
   TableCell,
   Chip,
 } from "@heroui/react";
+
 import { MatchData } from "@/types/match";
 
 interface MatchTableProps {
@@ -20,15 +21,35 @@ export default function MatchSettingsTable({ matches }: MatchTableProps) {
   const getStatusChip = (status: MatchData["status"]) => {
     switch (status) {
       case "in_progress":
-        return <Chip color="success" size="sm" variant="solid">進行中</Chip>;
+        return (
+          <Chip color="success" size="sm" variant="solid">
+            進行中
+          </Chip>
+        );
       case "moving":
-        return <Chip color="warning" size="sm" variant="flat">移動中</Chip>;
+        return (
+          <Chip color="warning" size="sm" variant="flat">
+            移動中
+          </Chip>
+        );
       case "preparing":
-        return <Chip color="secondary" size="sm" variant="flat">準備中</Chip>;
+        return (
+          <Chip color="secondary" size="sm" variant="flat">
+            準備中
+          </Chip>
+        );
       case "completed":
-        return <Chip color="default" size="sm" variant="flat">終了</Chip>;
+        return (
+          <Chip color="default" size="sm" variant="flat">
+            終了
+          </Chip>
+        );
       default:
-        return <Chip color="primary" size="sm" variant="flat">予定</Chip>;
+        return (
+          <Chip color="primary" size="sm" variant="flat">
+            予定
+          </Chip>
+        );
     }
   };
 
@@ -54,7 +75,9 @@ export default function MatchSettingsTable({ matches }: MatchTableProps) {
         <TableBody>
           {matches.map((m) => (
             <TableRow key={m.id}>
-              <TableCell className="font-bold">#{m.match_index}</TableCell>
+              <TableCell className="font-bold">
+                #{m.match_no ?? m.match_index}
+              </TableCell>
               <TableCell className="font-mono text-xs">{m.match_id}</TableCell>
               <TableCell>
                 <div className="flex flex-col">

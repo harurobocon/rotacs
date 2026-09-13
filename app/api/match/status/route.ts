@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+
 import { processRoLIMOAStatusUpdate } from "@/lib/server/match";
 import { RoLIMOAStatusPayload } from "@/types/match";
 
 export async function POST(request: Request) {
   try {
     const expectedSecret = process.env.ROLIMOA_API_SECRET?.trim();
+
     if (expectedSecret) {
       const authHeader = request.headers.get("X-RoLIMOA-Secret");
+
       if (authHeader !== expectedSecret) {
         return NextResponse.json(
           { ok: false, error: "Unauthorized" },
@@ -28,6 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, message: result.message });
   } catch (err: any) {
     console.error("API /api/match/status error:", err);
+
     return NextResponse.json(
       { ok: false, error: err.toString() },
       { status: 500 },

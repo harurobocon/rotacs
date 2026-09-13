@@ -16,7 +16,9 @@
     "admin:manage": "node -r esbuild-register scripts/manage-admin.ts",
     "admin:grant": "node -r esbuild-register scripts/manage-admin.ts --grant",
     "admin:revoke": "node -r esbuild-register scripts/manage-admin.ts --revoke",
-    "admin:list": "node -r esbuild-register scripts/manage-admin.ts --list"
+    "admin:list": "node -r esbuild-register scripts/manage-admin.ts --list",
+    "records:delete": "node -r esbuild-register scripts/delete-records.ts",
+    "records:list": "node -r esbuild-register scripts/delete-records.ts --list"
   },
   "dependencies": {
     "@heroui/react": "2.7.5",

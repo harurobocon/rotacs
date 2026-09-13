@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
+
 import { getAppDomain, usernameToEmail, emailToUsername } from "./email";
 
 describe("lib/auth/email", () => {
@@ -25,7 +26,8 @@ describe("lib/auth/email", () => {
     });
 
     it("パスが含まれる場合もドメイン部分のみを抽出する", () => {
-      process.env.NEXT_PUBLIC_APP_DOMAIN = "http://rotacs.example.com/some/path";
+      process.env.NEXT_PUBLIC_APP_DOMAIN =
+        "http://rotacs.example.com/some/path";
       expect(getAppDomain()).toBe("rotacs.example.com");
     });
   });
@@ -34,7 +36,9 @@ describe("lib/auth/email", () => {
     it("ユーザー名とドメインを結合してメールアドレスを生成する", () => {
       process.env.NEXT_PUBLIC_APP_DOMAIN = "rotacs.kantouharurobo.com";
       expect(usernameToEmail("admin")).toBe("admin@rotacs.kantouharurobo.com");
-      expect(usernameToEmail("staff01")).toBe("staff01@rotacs.kantouharurobo.com");
+      expect(usernameToEmail("staff01")).toBe(
+        "staff01@rotacs.kantouharurobo.com",
+      );
     });
   });
 

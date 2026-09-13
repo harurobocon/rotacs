@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
 import { ActionResult } from "@/types/actions";
 import { syncMatchesFromHomepage } from "@/lib/server/matchSync";
 
@@ -13,7 +14,8 @@ export async function importMatchesFromHomepageAction(
 
   if (!result.ok) {
     return {
-      errors: result.error || "Homepageからの試合情報の取り込みに失敗しました。",
+      errors:
+        result.error || "Homepageからの試合情報の取り込みに失敗しました。",
     };
   }
 

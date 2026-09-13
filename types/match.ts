@@ -5,11 +5,17 @@ export interface MatchTeamInfo {
   display_name: string; // e.g. "01_旭川"
 }
 
-export type MatchCallingStatus = "scheduled" | "preparing" | "moving" | "in_progress" | "completed";
+export type MatchCallingStatus =
+  | "scheduled"
+  | "preparing"
+  | "moving"
+  | "in_progress"
+  | "completed";
 
 export interface MatchData {
   id: string; // Document ID (e.g. "1" or "MA-1")
   match_index: number; // Order index (1, 2, 3...)
+  match_no: number; // Official match number according to schedule order
   match_id: string; // e.g. "MA-1", "MK-1"
   team_red: MatchTeamInfo;
   team_blue: MatchTeamInfo;
@@ -25,6 +31,7 @@ export interface MatchData {
 
 export interface RoLIMOAStatusPayload {
   match_index?: number;
+  match_no?: number;
   match_id?: string;
   current_phase?: string; // e.g. "preparing", "setting", "match", "match_finished"
   team_red?: Partial<MatchTeamInfo>;
@@ -32,4 +39,5 @@ export interface RoLIMOAStatusPayload {
   is_confirmed?: boolean;
 }
 
-export const MATCH_COLLECTION = process.env.NEXT_PUBLIC_MATCH_COLLECTION || "matches";
+export const MATCH_COLLECTION =
+  process.env.NEXT_PUBLIC_MATCH_COLLECTION || "matches";
