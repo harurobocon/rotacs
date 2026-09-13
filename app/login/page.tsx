@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { auth } from "@/lib/firebase/clientApp";
+import { usernameToEmail } from "@/lib/auth/email";
 
 function LoginContent() {
   const router = useRouter();
@@ -47,17 +48,14 @@ function LoginContent() {
       return;
     }
 
-    // Convert username to email format: username@rotacs.yuchi.jp
-    const emailStr = process.env.NEXT_PUBLIC_APP_DOMAIN
-      ? `@${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-      : "@rotacs.yuchi.jp";
-    const email = `${username}${emailStr}`;
+    // Convert username to email format using shared helper
+    const email = usernameToEmail(username);
 
     // Validate generated email format to prevent malicious domains or injection
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-      setError("パスワードの形式が不正です．");
+      setError("ユーザー名の形式が不正です．");
       setIsLoggingIn(false);
 
       return;

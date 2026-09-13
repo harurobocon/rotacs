@@ -46,3 +46,4 @@ firestore.indexes.json
 kosen2025_accounts.csv
 sprc2026_accounts.csv
 gakusei2026-teams.csv
+.env*

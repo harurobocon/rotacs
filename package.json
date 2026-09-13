@@ -12,7 +12,11 @@
     "check:env": "node -r esbuild-register scripts/validate-env.ts",
     "g:indexes": "node -r esbuild-register scripts/generate-firestore-indexes.ts",
     "deploy:indexes": "npm run g:indexes && firebase deploy --only firestore:indexes --project $(node -e \"const path=require('path');const dotenv=require('dotenv');const env=process.env.APP_ENV||'development';dotenv.config({path:path.resolve('.env')});dotenv.config({path:path.resolve(env==='production'?'.env.production.local':'.env.development.local'),override:true});console.log(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);\")",
-    "seed:admin": "node -r esbuild-register scripts/seed-admin.ts"
+    "seed:admin": "node -r esbuild-register scripts/seed-admin.ts",
+    "admin:manage": "node -r esbuild-register scripts/manage-admin.ts",
+    "admin:grant": "node -r esbuild-register scripts/manage-admin.ts --grant",
+    "admin:revoke": "node -r esbuild-register scripts/manage-admin.ts --revoke",
+    "admin:list": "node -r esbuild-register scripts/manage-admin.ts --list"
   },
   "dependencies": {
     "@heroui/react": "2.7.5",

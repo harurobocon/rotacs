@@ -61,7 +61,7 @@ async function seedAdmin() {
     console.log("Custom claims set: { admin: true }");
 
     // Create user document in Firestore
-    const userCollection = process.env.NEXT_PUBLIC_USER_COLLECTION || "users_dev";
+    const userCollection = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
     const userRef = db.collection(userCollection).doc(uid);
     
     await userRef.set({
