@@ -84,13 +84,14 @@ export async function processRoLIMOAStatusUpdate(
         updated_at: now,
       };
 
-      if (payload.team_red?.school_name) {
+      // 既存の公式チーム情報がある場合はRoLIMOAによる上書きを防ぐ（未定の場合のみ補完）
+      if (payload.team_red?.school_name && (!currentMatchDoc.team_red?.team_no || currentMatchDoc.team_red.team_no === 0)) {
         updateData.team_red = {
           ...currentMatchDoc.team_red,
           ...payload.team_red,
         };
       }
-      if (payload.team_blue?.school_name) {
+      if (payload.team_blue?.school_name && (!currentMatchDoc.team_blue?.team_no || currentMatchDoc.team_blue.team_no === 0)) {
         updateData.team_blue = {
           ...currentMatchDoc.team_blue,
           ...payload.team_blue,

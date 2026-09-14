@@ -49,11 +49,11 @@ export default function ImportHpMatches(props: ImportHpMatchesProps) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <Input
               className="flex-1"
-              defaultValue="http://localhost:8000/staff/matches/api/list/"
+              defaultValue="https://kantouharurobo.com/staff/matches/api/list/"
               isDisabled={isLoading}
               label="Homepage 試合 API URL"
               name="apiUrl"
-              placeholder="http://localhost:8000/staff/matches/api/list/"
+              placeholder="https://kantouharurobo.com/staff/matches/api/list/"
               size="sm"
             />
             <Button color="primary" isLoading={isLoading} type="submit">

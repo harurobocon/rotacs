@@ -393,7 +393,7 @@ export async function importUsersFromHomepage(
     formData.get("apiUrl")?.toString().trim() ||
     process.env.HOMEPAGE_API_URL ||
     process.env.NEXT_PUBLIC_HOMEPAGE_API_URL ||
-    "http://localhost:8000/api/teams/";
+    "https://kantouharurobo.com/api/teams/";
 
   let teams: HomepageTeamApiRecord[];
 

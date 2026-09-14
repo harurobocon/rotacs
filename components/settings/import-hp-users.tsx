@@ -63,11 +63,11 @@ const ImportHpUsers: React.FC<ImportHpUsersProps> = (props) => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <Input
               className="flex-1"
-              defaultValue="http://localhost:8000/api/teams/"
+              defaultValue="https://kantouharurobo.com/api/teams/"
               isDisabled={isLoading}
               label="Homepage API URL"
               name="apiUrl"
-              placeholder="http://localhost:8000/api/teams/"
+              placeholder="https://kantouharurobo.com/api/teams/"
               size="sm"
             />
             <Button color="primary" isLoading={isLoading} type="submit">

@@ -6,11 +6,68 @@ import { Card, CardHeader, CardBody, Chip, Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 
 import { firestore } from "@/lib/firebase/clientApp";
-import { MatchData, MATCH_COLLECTION } from "@/types/match";
+import {
+  MatchData,
+  MATCH_COLLECTION,
+  getMatchTeamDisplay,
+  MatchTeamInfo,
+} from "@/types/match";
 import {
   useCallingAnnouncer,
   CallingTargetItem,
 } from "@/lib/client/use-calling-announcer";
+
+function MatchTeamCard({
+  team,
+  color,
+}: {
+  team?: MatchTeamInfo;
+  color: "red" | "blue";
+}) {
+  const { primary, secondary } = getMatchTeamDisplay(team);
+  const isRed = color === "red";
+
+  return (
+    <div
+      className={`flex flex-col gap-1.5 rounded-xl border-2 p-3.5 shadow-sm ${
+        isRed ? "border-red-400 bg-red-50" : "border-blue-400 bg-blue-50"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={`text-xs font-black ${
+            isRed ? "text-red-700" : "text-blue-700"
+          }`}
+        >
+          {isRed ? "赤 (RED)" : "青 (BLUE)"}
+        </span>
+        <div
+          className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1 text-base font-black text-white shadow lg:text-lg ${
+            isRed ? "border-red-700 bg-red-600" : "border-blue-700 bg-blue-600"
+          }`}
+        >
+          Pit #{team?.team_no ?? "-"}
+        </div>
+      </div>
+      <div
+        className={`truncate text-2xl font-black lg:text-3xl ${
+          isRed ? "text-red-950" : "text-blue-950"
+        }`}
+      >
+        {primary}
+      </div>
+      {secondary ? (
+        <div
+          className={`truncate text-sm font-bold lg:text-base ${
+            isRed ? "text-red-800" : "text-blue-800"
+          }`}
+        >
+          {secondary}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export function MatchDisplayComponent() {
   const [matches, setMatches] = useState<MatchData[]>([]);
@@ -119,16 +176,14 @@ export function MatchDisplayComponent() {
         items.push({
           id: `match_${nextMatch1.id}_red`,
           pitNumber: nextMatch1.team_red.team_no,
-          teamName:
-            nextMatch1.team_red.display_name || nextMatch1.team_red.team_name,
+          teamName: getMatchTeamDisplay(nextMatch1.team_red).primary,
         });
       }
       if (nextMatch1.team_blue) {
         items.push({
           id: `match_${nextMatch1.id}_blue`,
           pitNumber: nextMatch1.team_blue.team_no,
-          teamName:
-            nextMatch1.team_blue.display_name || nextMatch1.team_blue.team_name,
+          teamName: getMatchTeamDisplay(nextMatch1.team_blue).primary,
         });
       }
     }
@@ -281,44 +336,14 @@ export function MatchDisplayComponent() {
                     </div>
 
                     {/* 赤チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-red-400 bg-red-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-red-700">
-                          赤 (RED)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{currentMatch.team_red.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-red-950 lg:text-3xl">
-                        {currentMatch.team_red.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-red-800 lg:text-base">
-                        {currentMatch.team_red.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="red" team={currentMatch.team_red} />
 
                     <div className="py-0.5 text-center text-sm font-black text-slate-400">
                       VS
                     </div>
 
                     {/* 青チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-blue-400 bg-blue-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-blue-700">
-                          青 (BLUE)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{currentMatch.team_blue.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-blue-950 lg:text-3xl">
-                        {currentMatch.team_blue.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-blue-800 lg:text-base">
-                        {currentMatch.team_blue.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="blue" team={currentMatch.team_blue} />
                   </>
                 ) : (
                   <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
@@ -363,44 +388,14 @@ export function MatchDisplayComponent() {
                     </div>
 
                     {/* 赤チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-red-400 bg-red-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-red-700">
-                          赤 (RED)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch1.team_red.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-red-950 lg:text-3xl">
-                        {nextMatch1.team_red.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-red-800 lg:text-base">
-                        {nextMatch1.team_red.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="red" team={nextMatch1.team_red} />
 
                     <div className="py-0.5 text-center text-sm font-black text-slate-400">
                       VS
                     </div>
 
                     {/* 青チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-blue-400 bg-blue-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-blue-700">
-                          青 (BLUE)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch1.team_blue.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-blue-950 lg:text-3xl">
-                        {nextMatch1.team_blue.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-blue-800 lg:text-base">
-                        {nextMatch1.team_blue.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="blue" team={nextMatch1.team_blue} />
                   </>
                 ) : (
                   <div className="flex flex-1 items-center justify-center text-center text-xs text-slate-400">
@@ -445,44 +440,14 @@ export function MatchDisplayComponent() {
                     </div>
 
                     {/* 赤チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-red-400 bg-red-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-red-700">
-                          赤 (RED)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch2.team_red.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-red-950 lg:text-3xl">
-                        {nextMatch2.team_red.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-red-800 lg:text-base">
-                        {nextMatch2.team_red.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="red" team={nextMatch2.team_red} />
 
                     <div className="py-0.5 text-center text-sm font-black text-slate-400">
                       VS
                     </div>
 
                     {/* 青チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-blue-400 bg-blue-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-blue-700">
-                          青 (BLUE)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch2.team_blue.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-blue-950 lg:text-3xl">
-                        {nextMatch2.team_blue.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-blue-800 lg:text-base">
-                        {nextMatch2.team_blue.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="blue" team={nextMatch2.team_blue} />
                   </>
                 ) : (
                   <div className="flex flex-1 items-center justify-center text-center text-xs text-slate-400">
@@ -527,44 +492,14 @@ export function MatchDisplayComponent() {
                     </div>
 
                     {/* 赤チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-red-400 bg-red-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-red-700">
-                          赤 (RED)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-red-700 bg-red-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch3.team_red.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-red-950 lg:text-3xl">
-                        {nextMatch3.team_red.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-red-800 lg:text-base">
-                        {nextMatch3.team_red.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="red" team={nextMatch3.team_red} />
 
                     <div className="py-0.5 text-center text-sm font-black text-slate-400">
                       VS
                     </div>
 
                     {/* 青チーム */}
-                    <div className="flex flex-col gap-1.5 rounded-xl border-2 border-blue-400 bg-blue-50 p-3.5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-blue-700">
-                          青 (BLUE)
-                        </span>
-                        <div className="inline-flex items-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-3 py-1 text-base font-black text-white shadow lg:text-lg">
-                          Pit #{nextMatch3.team_blue.team_no}
-                        </div>
-                      </div>
-                      <div className="truncate text-2xl font-black text-blue-950 lg:text-3xl">
-                        {nextMatch3.team_blue.display_name}
-                      </div>
-                      <div className="truncate text-sm font-bold text-blue-800 lg:text-base">
-                        {nextMatch3.team_blue.team_name}
-                      </div>
-                    </div>
+                    <MatchTeamCard color="blue" team={nextMatch3.team_blue} />
                   </>
                 ) : (
                   <div className="flex flex-1 items-center justify-center text-center text-xs text-slate-400">
