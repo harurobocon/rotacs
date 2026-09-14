@@ -3,33 +3,15 @@
 import "client-only";
 
 import { Chip } from "@heroui/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-import { onCheckChangeByTeam } from "@/lib/client/check";
 import { CheckStatus } from "@/types/check";
 
 type CheckCellProps = {
-  teamName: string;
-  collectionId: string;
+  status: CheckStatus | "未予約" | "読込中...";
 };
 
-export function CheckCell({ teamName, collectionId }: CheckCellProps) {
-  const [status, setStatus] = useState<CheckStatus | "未予約" | "読込中...">(
-    "読込中...",
-  );
-
-  useEffect(() => {
-    const unsubscribe = onCheckChangeByTeam(
-      collectionId,
-      teamName,
-      (newStatus) => {
-        setStatus(newStatus);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [collectionId, teamName]);
-
+export function CheckCell({ status }: CheckCellProps) {
   switch (status) {
     case "順番待ち":
     case "呼出中":
