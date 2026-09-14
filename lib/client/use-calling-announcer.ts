@@ -85,12 +85,24 @@ export function useCallingAnnouncer(
     };
   }, []);
 
+  const lastToggleTimeRef = useRef<number>(0);
+
   // 音声ON/OFF切り替えハンドラ
   const toggleVoiceEnabled = useCallback(() => {
+    const now = Date.now();
+
+    // 300ms以内の連続呼び出し（イベント重複等）をガード
+    if (now - lastToggleTimeRef.current < 300) {
+      return;
+    }
+    lastToggleTimeRef.current = now;
+
     setIsVoiceEnabledState((prev) => {
       const next = !prev;
 
-      setStoredVoiceEnabled(next);
+      setTimeout(() => {
+        setStoredVoiceEnabled(next);
+      }, 0);
 
       return next;
     });

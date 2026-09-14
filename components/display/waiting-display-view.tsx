@@ -23,10 +23,8 @@ import {
   getCheckSides,
 } from "@/types/check";
 import { TestrunReservation, TestrunSchedule } from "@/types/testrun";
-import { PracticeReservation, PracticeSchedule } from "@/types/practice";
 import { onCheckCollectionChange } from "@/lib/client/check";
 import { onTestrunCollectionChange } from "@/lib/client/testrun";
-import { onPracticeCollectionChange } from "@/lib/client/practice";
 import {
   getCheckLocationSettings,
   listenCheckLocationSettings,
@@ -75,9 +73,6 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
   >(null);
   const [testrunReservations, setTestrunReservations] = React.useState<
     TestrunReservation[] | null
-  >(null);
-  const [practiceReservations, setPracticeReservations] = React.useState<
-    PracticeReservation[] | null
   >(null);
   const [checkSettings, setCheckSettings] =
     React.useState<CheckLocationSettings | null>(null);
@@ -147,15 +142,10 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
       setTestrunReservations(snapshot.docs.map((doc) => doc.data()));
     });
 
-    const unsubscribePractice = onPracticeCollectionChange((snapshot) => {
-      setPracticeReservations(snapshot.docs.map((doc) => doc.data()));
-    });
-
     return () => {
       unsubscribeSettings();
       unsubscribeCheck();
       unsubscribeTestrun();
-      unsubscribePractice();
     };
   }, [activeCheckCollection]);
 
@@ -681,162 +671,8 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
     };
   }, [testrunReservations, isDemo, demoScenario]);
 
-  // Compute Practice Card Data
-  const practiceData = React.useMemo(() => {
-    const title = "試走場";
-    const subtitle = "自由試走エリア";
-
-    if (isDemo) {
-      if (demoScenario === "idle") {
-        return {
-          title,
-          subtitle,
-          icon: "solar:steering-wheel-bold",
-          colorTheme: "amber" as const,
-          lanes: [{ calling: [], next: [], inProgress: [] }],
-          totalWaitingCount: 0,
-        };
-      }
-
-      const nextList: WaitingItem[] = [
-        {
-          id: "demo-p-1",
-          pitNumber: 6,
-          teamName: "九州工業大学",
-          count: 2,
-          status: "順番待ち",
-        },
-        {
-          id: "demo-p-2",
-          pitNumber: 10,
-          teamName: "金沢大学",
-          count: 1,
-          status: "順番待ち",
-        },
-        ...(demoScenario === "heavy"
-          ? [
-              {
-                id: "demo-p-3",
-                pitNumber: 13,
-                teamName: "新潟大学",
-                count: 1,
-                status: "順番待ち",
-              },
-            ]
-          : []),
-      ];
-
-      return {
-        title,
-        subtitle,
-        icon: "solar:steering-wheel-bold",
-        colorTheme: "amber" as const,
-        lanes: [
-          {
-            calling: [
-              {
-                id: "demo-p-c",
-                pitNumber: 4,
-                teamName: "横浜国立大学 ロボット研究会",
-                count: 3,
-                time: "10:48",
-                status: "呼出中",
-              },
-            ],
-            next: nextList,
-            inProgress: [],
-          },
-        ],
-        totalWaitingCount: nextList.length,
-      };
-    }
-
-    if (!practiceReservations) {
-      return {
-        title,
-        subtitle,
-        icon: "solar:steering-wheel-bold",
-        colorTheme: "amber" as const,
-        lanes: [],
-        totalWaitingCount: 0,
-      };
-    }
-
-    const schedule = PracticeSchedule.fromUnsorted(practiceReservations);
-    const map = new Map(practiceReservations.map((r) => [r.id, r]));
-
-    const calling = schedule
-      .get("default", "呼出中")
-      .map((id) => map.get(id))
-      .filter(Boolean)
-      .map(
-        (r): WaitingItem => ({
-          id: r!.id,
-          pitNumber: r!.pit_number,
-          teamName: r!.user_display_name,
-          count: r!.reservation_count,
-          time: formatTime(r!.fixed_at),
-          side: "default",
-          status: r!.status,
-        }),
-      );
-
-    const next = schedule
-      .get("default", "順番待ち")
-      .map((id) => map.get(id))
-      .filter(Boolean)
-      .map(
-        (r): WaitingItem => ({
-          id: r!.id,
-          pitNumber: r!.pit_number,
-          teamName: r!.user_display_name,
-          count: r!.reservation_count,
-          time: null,
-          side: "default",
-          status: r!.status,
-        }),
-      );
-
-    const inProgressIds = [
-      ...schedule.get("default", "実施中"),
-      ...schedule.get("default", "移動中"),
-    ];
-    const inProgress = inProgressIds
-      .map((id) => map.get(id))
-      .filter(Boolean)
-      .map(
-        (r): WaitingItem => ({
-          id: r!.id,
-          pitNumber: r!.pit_number,
-          teamName: r!.user_display_name,
-          count: r!.reservation_count,
-          time: formatTime(r!.started_at ?? r!.fixed_at),
-          side: "default",
-          status: r!.status,
-        }),
-      );
-
-    return {
-      title,
-      subtitle,
-      icon: "solar:steering-wheel-bold",
-      colorTheme: "amber" as const,
-      lanes: [
-        {
-          calling,
-          next,
-          inProgress,
-        },
-      ],
-      totalWaitingCount: next.length,
-    };
-  }, [practiceReservations, isDemo, demoScenario]);
-
   const isLoading =
-    !isDemo &&
-    (checkReservations === null ||
-      testrunReservations === null ||
-      practiceReservations === null);
+    !isDemo && (checkReservations === null || testrunReservations === null);
 
   // Date and Time formatting
   const formattedDate = currentTime
@@ -874,10 +710,9 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
     extractCalling(checkCardData.lanes);
     extractCalling(testrunRedData.lanes);
     extractCalling(testrunBlueData.lanes);
-    extractCalling(practiceData.lanes);
 
     return items;
-  }, [checkCardData, testrunRedData, testrunBlueData, practiceData]);
+  }, [checkCardData, testrunRedData, testrunBlueData]);
 
   // 音声アナウンス監視フック
   const { isVoiceEnabled, toggleVoiceEnabled, volume } = useCallingAnnouncer(
@@ -970,37 +805,34 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
           </div>
 
           {/* 音声案内切替ボタン */}
-          <Tooltip
-            content={
+          <Button
+            aria-label="Toggle Voice Announcement"
+            className={`font-bold transition-all ${
               isVoiceEnabled
-                ? `音声案内: ON (${Math.round(volume * 100)}%) クリックでミュート`
-                : "音声案内: ミュート中 (クリックで有効化)"
-            }
-          >
-            <Button
-              isIconOnly
-              aria-label="Toggle Voice Announcement"
-              className={`rounded-xl border ${
-                isVoiceEnabled
-                  ? "border-primary-300 bg-primary-50 text-primary-600"
-                  : "border-slate-300 bg-slate-100 text-slate-400"
-              }`}
-              size="sm"
-              variant="flat"
-              onPress={toggleVoiceEnabled}
-            >
+                ? "border-2 border-emerald-500 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                : "border-2 border-rose-400 bg-rose-50 text-rose-700 hover:bg-rose-100"
+            }`}
+            size="sm"
+            startContent={
               <Icon
                 className="text-lg"
                 icon={
                   isVoiceEnabled
-                    ? volume === 0
-                      ? "solar:volume-cross-bold"
-                      : "solar:volume-loud-bold"
+                    ? "solar:volume-loud-bold"
                     : "solar:volume-cross-bold"
                 }
               />
-            </Button>
-          </Tooltip>
+            }
+            title={
+              isVoiceEnabled
+                ? `音声案内: ON (${Math.round(volume * 100)}%) クリックでミュート`
+                : "音声案内: ミュート中 (クリックで有効化)"
+            }
+            variant="flat"
+            onPress={toggleVoiceEnabled}
+          >
+            {isVoiceEnabled ? "音声: ON" : "ミュート中 (OFF)"}
+          </Button>
 
           <Tooltip content={isFullscreen ? "全画面解除" : "全画面表示"}>
             <Button
@@ -1079,7 +911,7 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
         </div>
       )}
 
-      {/* Main Grid: 4 Cards */}
+      {/* Main Grid: 3 Cards */}
       <main className="flex-1">
         {isLoading ? (
           <div className="flex h-[75vh] w-full flex-col items-center justify-center gap-4">
@@ -1089,11 +921,10 @@ export function WaitingDisplayView({ checkType }: WaitingDisplayViewProps) {
             </p>
           </div>
         ) : (
-          <div className="grid h-full grid-cols-1 gap-3.5 sm:grid-cols-2 lg:gap-4 xl:grid-cols-4">
+          <div className="grid h-full grid-cols-1 gap-3.5 md:grid-cols-3 lg:gap-4">
             <WaitingCard {...checkCardData} />
             <WaitingCard {...testrunRedData} />
             <WaitingCard {...testrunBlueData} />
-            <WaitingCard {...practiceData} />
           </div>
         )}
       </main>
