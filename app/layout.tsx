@@ -1,15 +1,12 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import { Link } from "@heroui/react";
 import clsx from "clsx";
-import { Icon } from "@iconify/react";
 
 import { Providers } from "./providers";
 
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
-import { Navbar } from "@/components/navbar";
-import SurveyFloat from "@/components/survey-float";
+import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: {
@@ -66,24 +63,7 @@ export default async function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar />
-            <main className="container mx-auto h-full max-w-7xl flex-grow flex-col px-2 pt-6 md:px-8">
-              {children}
-            </main>
-            <SurveyFloat />
-            <footer className="flex w-full items-center justify-center py-3">
-              <Link
-                isExternal
-                className="flex items-center gap-1 text-current"
-                href="https://github.com/harurobocon/rotacs"
-                title="RoTACS GitHub Repository"
-              >
-                <Icon icon="mdi:github" />
-                <p className="text-primary">Repository</p>
-              </Link>
-            </footer>
-          </div>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

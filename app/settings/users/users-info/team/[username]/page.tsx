@@ -30,7 +30,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
   const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN;
   const targetUrl = appDomain
     ? `https://${appDomain}`
-    : "https://rotacs.yuchi.jp";
+    : "https://rotacs.kantouharurobo.com";
 
   if (!team) {
     notFound();

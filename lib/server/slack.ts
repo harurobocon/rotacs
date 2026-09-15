@@ -54,15 +54,60 @@ async function getSystemChannels(): Promise<
   return channels;
 }
 
-// 環境変数からSlack Bot Tokenを取得
-const slackToken = process.env.SLACK_BOT_TOKEN;
-
-if (!slackToken) {
-  throw new Error("SLACK_BOT_TOKEN is not set in environment variables");
+/**
+ * Slack連携が設定されているかどうかを判定
+ */
+export function isSlackConfigured(): boolean {
+  return Boolean(process.env.SLACK_BOT_TOKEN?.trim());
 }
 
-// WebClientインスタンス生成
-export const slackClient = new WebClient(slackToken);
+let cachedSlackClient: WebClient | null = null;
+
+/**
+ * WebClientインスタンスを取得する（未設定時はnull）
+ */
+export function getSlackClient(): WebClient | null {
+  const token = process.env.SLACK_BOT_TOKEN?.trim();
+
+  if (!token) {
+    return null;
+  }
+
+  if (!cachedSlackClient) {
+    cachedSlackClient = new WebClient(token);
+  }
+
+  return cachedSlackClient;
+}
+
+/**
+ * 必須のWebClientインスタンスを取得する（未設定時はError）
+ */
+export function requireSlackClient(): WebClient {
+  const client = getSlackClient();
+
+  if (!client) {
+    throw new Error(
+      "SLACK_BOT_TOKEN が環境変数に設定されていません。Slack連携機能を利用するには SLACK_BOT_TOKEN を設定してください。",
+    );
+  }
+
+  return client;
+}
+
+// 後方互換性のためのProxyオブジェクト（直接slackClient.xxxと参照されても遅延評価で対応）
+export const slackClient: WebClient = new Proxy({} as WebClient, {
+  get(_target, prop, receiver) {
+    const client = requireSlackClient();
+    const value = Reflect.get(client, prop, receiver);
+
+    if (typeof value === "function") {
+      return value.bind(client);
+    }
+
+    return value;
+  },
+});
 
 /**
  * システムチャンネルのIDを取得する
@@ -158,6 +203,14 @@ export async function postSlackMessage({
   markdown_text: string;
   at_channel?: boolean;
 }): Promise<void> {
+  if (!isSlackConfigured()) {
+    console.warn(
+      `[Slack] SLACK_BOT_TOKEN is not configured. Skipping postSlackMessage to channel: "${channel}".`,
+    );
+
+    return;
+  }
+
   let text = markdown_text;
 
   if (at_channel) {
@@ -193,6 +246,14 @@ export async function sendSlackNotifyMessage({
   at_channel?: boolean;
   side?: string;
 }): Promise<void> {
+  if (!isSlackConfigured()) {
+    console.warn(
+      `[Slack] SLACK_BOT_TOKEN is not configured. Skipping sendSlackNotifyMessage for receiver: "${receiver}".`,
+    );
+
+    return;
+  }
+
   const channelNamePart = receiver ?? "";
 
   if (!channelNamePart) {
@@ -254,6 +315,12 @@ export async function createSlackChannelForUser(user: {
   username: string;
   display_name: string;
 }): Promise<string> {
+  if (!isSlackConfigured()) {
+    throw new Error(
+      "SLACK_BOT_TOKEN が環境変数に設定されていないため、Slackチャンネルを作成できません。",
+    );
+  }
+
   const channelName = buildUserSlackChannelName(user);
 
   try {
@@ -302,6 +369,16 @@ export async function createSystemChannels(): Promise<{
   failed: number;
   errors: string[];
 }> {
+  if (!isSlackConfigured()) {
+    return {
+      success: 0,
+      failed: 0,
+      errors: [
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、システムチャンネルを作成できません。",
+      ],
+    };
+  }
+
   const errors: string[] = [];
   let success = 0;
   let failed = 0;
@@ -346,6 +423,16 @@ export async function fetchAndSaveAllSlackChannelIds(): Promise<{
   failed: number;
   errors: string[];
 }> {
+  if (!isSlackConfigured()) {
+    return {
+      success: 0,
+      failed: 0,
+      errors: [
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、SlackチャンネルIDを取得できません。",
+      ],
+    };
+  }
+
   const db = await getFirestore();
   const errors: string[] = [];
   let success = 0;
@@ -469,6 +556,16 @@ export async function fetchAndSaveSystemChannelIds(): Promise<{
   failed: number;
   errors: string[];
 }> {
+  if (!isSlackConfigured()) {
+    return {
+      success: 0,
+      failed: 0,
+      errors: [
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、システムチャンネルIDを取得できません。",
+      ],
+    };
+  }
+
   const errors: string[] = [];
   let success = 0;
   let failed = 0;
@@ -524,6 +621,16 @@ export async function deleteAllUserSlackChannels(
   failed: number;
   errors: string[];
 }> {
+  if (!isSlackConfigured()) {
+    return {
+      success: 0,
+      failed: 0,
+      errors: [
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、Slackチャンネルを削除できません。",
+      ],
+    };
+  }
+
   const errors: string[] = [];
   let success = 0;
   let failed = 0;

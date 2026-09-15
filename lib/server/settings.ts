@@ -394,7 +394,7 @@ export async function updateDisplaySettings(
       .collection(DISPLAY_SETTINGS_COLLECTION)
       .doc(DISPLAY_SETTINGS_DOCUMENT_ID);
 
-    await settingsRef.set(settings);
+    await settingsRef.set(settings, { merge: true });
 
     revalidatePath("/settings/display");
     revalidatePath("/");
@@ -404,5 +404,32 @@ export async function updateDisplaySettings(
     console.error(e);
 
     return { errors: "表示設定の更新に失敗しました" };
+  }
+}
+
+export async function updateVoiceVolume(
+  volume: number,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const clamped = Math.max(
+      0,
+      Math.min(1, typeof volume === "number" ? volume : Number(volume) || 0),
+    );
+    const db = await getFirestore();
+    const settingsRef = db
+      .collection(DISPLAY_SETTINGS_COLLECTION)
+      .doc(DISPLAY_SETTINGS_DOCUMENT_ID);
+
+    await settingsRef.set({ voiceVolume: clamped }, { merge: true });
+
+    revalidatePath("/settings/notification");
+    revalidatePath("/display/waiting");
+    revalidatePath("/display/match");
+
+    return { success: true };
+  } catch (e: any) {
+    console.error(e);
+
+    return { success: false, error: "音量設定の保存に失敗しました" };
   }
 }

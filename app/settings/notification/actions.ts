@@ -3,16 +3,23 @@
 import "server-cli-only";
 
 import { getFirestoreUserById } from "@/lib/server/firestoreUserHelpers";
-import { postSlackMessage } from "@/lib/server/slack";
+import { isSlackConfigured, postSlackMessage } from "@/lib/server/slack";
 
 /**
  * Send a test Slack message
  * Note: userId should be provided from client-side Firebase Auth currentUser.uid.
  */
 export async function handleSlackTestMessageSend(
-  _state: Record<string, never>,
+  _state: { ok?: boolean; error?: string },
   formData: FormData,
 ) {
+  if (!isSlackConfigured()) {
+    return {
+      ok: false,
+      error:
+        "SLACK_BOT_TOKEN が環境変数に設定されていないため、Slackテスト通知を送信できません。",
+    };
+  }
   const userId = formData.get("userId")?.toString() ?? "";
 
   if (!userId) {

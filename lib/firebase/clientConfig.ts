@@ -1,16 +1,6 @@
 import type { FirebaseOptions } from "firebase/app";
 
-function normalizeEnvValue(value: string | undefined): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  if (value.charAt(0) === '"' && value.charAt(value.length - 1) === '"') {
-    return value.substring(1, value.length - 1);
-  }
-
-  return value;
-}
+import { normalizeEnvValue } from "@/lib/env";
 
 export const firebaseConfig: FirebaseOptions = {
   apiKey: normalizeEnvValue(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),

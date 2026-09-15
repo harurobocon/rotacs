@@ -9,13 +9,23 @@ import SlackChannelIdButton from "@/components/settings/slack-channel-id-button"
 import SlackChannelCreateButton from "@/components/settings/slack-channel-create-button";
 import SlackChannelDeleteButton from "@/components/settings/slack-channel-delete-button";
 import SystemChannelIdButton from "@/components/settings/system-channel-id-button";
+import VoiceNotificationSettings from "@/components/settings/voice-notification-settings";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 export default function Page() {
   const { isAdmin } = useAuth();
 
   return (
-    <div>
+    <div className="space-y-6">
+      {/* 案内モニター音声呼出設定 */}
+      <div className="p-2">
+        <p className={settingsPageTitle()}>案内モニター音声呼出設定</p>
+        <p className={settingsPageSubtitle()}>
+          待機場案内モニターおよび試合案内画面で「呼出中」になった際のアナウンス音量を設定・テストできます。
+        </p>
+        <VoiceNotificationSettings />
+      </div>
+
       <div className="p-2">
         <p className={settingsPageTitle()}>Slack通知設定</p>
         <p className={settingsPageSubtitle()}>

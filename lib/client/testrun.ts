@@ -96,38 +96,55 @@ export async function getTestrunStatus(userDisplayName: string, count: number) {
 export function onTestrunReservationChange(
   id: string,
   callback: (reservation: TestrunReservation | null) => void,
+  onError?: (error: Error) => void,
 ) {
   const docRef = doc(firestore, TESTRUN_COLLECTION, id).withConverter(
     testrunDataConverter(),
   );
 
-  return onSnapshot(docRef, (snapshot) => {
-    if (!snapshot.exists()) {
-      callback(null);
+  return onSnapshot(
+    docRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback(null);
 
-      return;
-    }
+        return;
+      }
 
-    callback(snapshot.data());
-  });
+      callback(snapshot.data());
+    },
+    (error) => {
+      console.error("[Firestore] onTestrunReservationChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export function onTestrunCollectionChange(
   callback: (schedule: QuerySnapshot<TestrunReservation, DocumentData>) => void,
+  onError?: (error: Error) => void,
 ) {
   const testrunRef = collection(firestore, TESTRUN_COLLECTION).withConverter(
     testrunDataConverter(),
   );
 
-  return onSnapshot(testrunRef, (snapshot) => {
-    callback(snapshot);
-  });
+  return onSnapshot(
+    testrunRef,
+    (snapshot) => {
+      callback(snapshot);
+    },
+    (error) => {
+      console.error("[Firestore] onTestrunCollectionChange error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export function onTestrunChangeByTeam(
   teamName: string,
   testrunNumber: number,
   callback: (status: TestrunStatus | "未予約") => void,
+  onError?: (error: Error) => void,
 ) {
   const testrunRef = collection(firestore, TESTRUN_COLLECTION).withConverter(
     testrunDataConverter(),
@@ -139,13 +156,20 @@ export function onTestrunChangeByTeam(
     orderBy("reserved_at", "desc"),
   );
 
-  return onSnapshot(q, (snapshot) => {
-    if (snapshot.empty) {
-      callback("未予約");
-    } else {
-      callback(snapshot.docs[0].data().status);
-    }
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      if (snapshot.empty) {
+        callback("未予約");
+      } else {
+        callback(snapshot.docs[0].data().status);
+      }
+    },
+    (error) => {
+      console.error("[Firestore] onTestrunChangeByTeam error:", error);
+      onError?.(error);
+    },
+  );
 }
 
 export async function updateTestrunStatus(id: string, status: TestrunStatus) {

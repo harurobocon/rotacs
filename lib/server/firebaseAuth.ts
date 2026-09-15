@@ -6,6 +6,7 @@ import { getAuth } from "@/lib/firebase/serverApp";
 import { getFirestore } from "@/lib/firebase/serverApp";
 import { ActionResult } from "@/types/actions";
 import { CheckSide } from "@/types/check";
+import { usernameToEmail } from "@/lib/auth/email";
 
 const USER_COLLECTION = process.env.NEXT_PUBLIC_USER_COLLECTION || "users";
 
@@ -49,8 +50,8 @@ export async function createFirebaseUser(
     const auth = await getAuth();
     const firestore = await getFirestore();
 
-    // Convert username to email format
-    const email = `${username}@rotacs.yuchi.jp`;
+    // Convert username to email format using shared helper
+    const email = usernameToEmail(username);
 
     // Create Firebase Auth user
     const userRecord = await auth.createUser({

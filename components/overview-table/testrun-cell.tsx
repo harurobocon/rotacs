@@ -3,33 +3,15 @@
 import "client-only";
 
 import { Chip } from "@heroui/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-import { onTestrunChangeByTeam } from "@/lib/client/testrun";
 import { TestrunStatus } from "@/types/testrun";
 
 type TestrunCellProps = {
-  teamName: string;
-  testrunNumber: number;
+  status: TestrunStatus | "未予約" | "読込中...";
 };
 
-export function TestrunCell({ teamName, testrunNumber }: TestrunCellProps) {
-  const [status, setStatus] = useState<TestrunStatus | "未予約" | "読込中...">(
-    "読込中...",
-  );
-
-  useEffect(() => {
-    const unsubscribe = onTestrunChangeByTeam(
-      teamName,
-      testrunNumber,
-      (newStatus) => {
-        setStatus(newStatus);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [teamName, testrunNumber]);
-
+export function TestrunCell({ status }: TestrunCellProps) {
   switch (status) {
     case "順番待ち":
     case "呼出中":
